@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { email, ZodSchema } from "zod";
-import z, { ZodError } from "zod/v3";
+import { AnyZodObject, ZodError, z } from "zod";
 
 export enum ValidationSource {
     BODY = 'body',
-    HEADER = 'headers',
     QUERY = 'query',
     PARAMS = 'params',
 }
@@ -13,14 +11,12 @@ export enum ValidationSource {
  * --------------------------------------------------------------------------
  * Reusable Validation Middleware (Higher-Order Function)
  * --------------------------------------------------------------------------
- * ဒီ Function က Schema တစ်ခုကို လက်ခံပြီး Express Middleware ကို return ပြန်ပေးပါတယ်။
- * Request Body ကို schema နဲ့ တိုက်စစ်ပြီး မှားယွင်းရင် 400 Bad Request ပြန်ပို့ပေးပါမယ်။
- * @param schemaValidation - { source: ValidationSource, schema: ZodSchema }
  */
 export const validate = (
-    schemaValidation: { source: ValidationSource; schema: ZodSchema }
+    schema: AnyZodObject, 
+    source: ValidationSource = ValidationSource.BODY
 ) => (req: Request, res: Response, next: NextFunction) => {
-    const { source, schema } = schemaValidation;
+    
     let dataToValidate: any;
 
     switch(source) {
