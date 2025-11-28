@@ -1,4 +1,3 @@
-import { data } from "react-router-dom";
 import User, { IUserDocument } from "../models/user.model";
 import { ILoginInput, IRegisterInput } from "../types/auth.types";
 import { AppError } from "../utils/error.utils";
