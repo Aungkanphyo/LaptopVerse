@@ -1,15 +1,46 @@
-import express, { Express, Request, Response } from 'express';
+import cors from 'cors';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import { connectDB } from './config/db.config';
+import authRoutes from './routes/auth.routes';
+import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
+import { errorHandler } from './middlewares/error.middleware';
+import { AppError } from './utils/error.utils';
 
 const app: Express = express();
 
-// Middleware
-// JWT/Cookie Auth အတွက်
-app.use(express.json()); // Request body ကို JSON အဖြစ် parse လုပ်ရန်
+// Security Middleware
+app.use(helmet());
 
+// CORS Configuration (To connect with React)
+app.use(cors({
+    origin: ['http://localhost:5173'],
+    credentials: true, // to accept cookies
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}));
+
+// Body Parsing
+// The 10kb limit is in place to safegurad against large data payloads, such as those used in DDoS attacks
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
+
+// Test route
 app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to LaptopVerse Backend API!');
 });
+
+// Auth Route
+app.use('/api/v1/auth', authRoutes);
+
+// 404 Route Catcher
+app.use((req: Request, res: Response, next: NextFunction) => {
+    // 404 error ကို Global Error Handler သို့ ပို့ပေးရန် AppError ကို သုံး
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Global Error Handler (Must be the last middleware)
+app.use(errorHandler);
 
 const PORT: number = parseInt(process.env.PORT || '5000', 10);
 
@@ -27,3 +58,5 @@ const startServer = async () => {
 }
 
 startServer();
+
+export default app;
