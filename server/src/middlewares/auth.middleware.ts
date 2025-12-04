@@ -29,7 +29,7 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
     }
 
     // Check token
-    let decoded: JwtPayload | string | null;
+    let decoded: JwtPayload | string;
     try {
         decoded = verifyAccessToken(token); // Verify from JWT utility
     } catch (error) {
