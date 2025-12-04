@@ -90,18 +90,10 @@ export const clearTokensFromCookie = (res: Response): void => {
 
 // Refresh Token ကို verify လုပ်ရန် function (Auth Middleware အတွက်)
 export const verifyRefreshToken = (token: string) => {
-    try {
-        return jwt.verify(token, REFRESH_SECRET);
-    } catch (error) {
-        return null; // Invalid or expired token
-    }
+    return jwt.verify(token, REFRESH_SECRET);
 };
 
 // Access Token ကို verify လုပ်ရန် function
 export const verifyAccessToken = (token: string) => {
-    try {
-        return jwt.verify(token, ACCESS_SECRET);
-    } catch (error) {
-        return null;
-    }
+    return jwt.verify(token, ACCESS_SECRET);
 }
