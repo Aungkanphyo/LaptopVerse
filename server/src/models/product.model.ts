@@ -1,7 +1,7 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 interface IReview {
-    user: mongoose.Schema.Types.ObjectId; // Review ပေးတဲ့ User ID
+    user: mongoose.Types.ObjectId; // Review ပေးတဲ့ User ID
     name: string;
     rating: number; // 1 to 5
     comment: string;
@@ -32,7 +32,7 @@ export interface IProductDocument extends Document {
     numOfReviews: number; // Total number of reviews
 
     // Admin/Creator Info
-    user: mongoose.Schema.Types.ObjectId; // Product ကို ဖန်တီးခဲ့သော Admin/User ID
+    user: mongoose.Types.ObjectId; // Product ကို ဖန်တီးခဲ့သော Admin/User ID
 
     // Timestamps
     createdAt: Date;
@@ -136,6 +136,6 @@ const productSchema: Schema<IProductDocument> = new Schema({
     timestamps: true,
 });
 
-const Produt: Model<IProductDocument> = mongoose.model('Product', productSchema);
+const Product: Model<IProductDocument> = mongoose.model('Product', productSchema);
 
-export default Produt;
+export default Product;
