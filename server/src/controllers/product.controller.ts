@@ -4,13 +4,14 @@ import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import Product from "../models/product.model";
 import { AppError } from "../utils/error.utils";
+import { uploadToCloudinary } from '../config/cloudinary.config';
 
 /**
  * @desc Create new product
  * @route POST /api/v1/products/admin
  * @access Private (Admin, Manager)
  */
-export const createNewProduct = asyncHandler(async(req: Request, res: Response) => {
+export const createNewProduct = asyncHandler(async(req: Request, res: Response, next: NextFunction) => {
     // Retrieve Data from Request Body
     const {
         name, description, price, category, brand, stock,
@@ -20,12 +21,28 @@ export const createNewProduct = asyncHandler(async(req: Request, res: Response) 
     // Retrieve Admin ID from req.user (get from protect middleware)
     const userId = req.userId;
 
+    if (!userId) return next(new AppError('Creator ID missing.', 500));
+
+    // Images Handling (Multi-upload)
+    let imageUrls: { public_id: string; url: string }[] = [];
+
+    // req.files is an Array of Files (Received from Multer)
+    if(req.files && Array.isArray(req.files)) {
+        const files = req.files as Express.Multer.File[];
+
+        // Loop through files and upload to Cloudinary concurrently
+        const uploadPromises = files.map(file => uploadToCloudinary(file.buffer, 'products'));
+
+        // Wait for all uploads to finish
+        imageUrls = await Promise.all(uploadPromises);
+    }
+
     // Create Product
     const product = await Product.create({
         name, description, price, category, brand, stock, 
         processor, ram, storage, screenSize,
         user: userId, // Creator (Admin/Manager)
-        images: [],  
+        images: imageUrls,  
     });
 
     res.status(201).json({

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createNewProduct, deleteProduct, getAllProducts, getSingleProduct, updateProduct } from "../controllers/product.controller";
 import { authorize, protect } from "../middlewares/auth.middleware";
+import { upload } from "../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -22,6 +23,10 @@ router
 
 router
     .route('/admin')
-    .post(authorize('admin', 'manager'), createNewProduct);
+    .post(
+        authorize('admin', 'manager'),
+        upload.array('images', 5),
+        createNewProduct,
+    );
 
 export default router;
