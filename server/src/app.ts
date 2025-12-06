@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/error.utils';
+import productRouter from './routes/product.routes';
 
 const app: Express = express();
 
@@ -32,6 +33,9 @@ app.get('/', (req: Request, res: Response) => {
 
 // Auth Route
 app.use('/api/v1/auth', authRoutes);
+
+// Product Routes
+app.use('/api/v1/products', productRouter);
 
 // 404 Route Catcher
 app.use((req: Request, res: Response, next: NextFunction) => {
