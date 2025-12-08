@@ -195,3 +195,140 @@ export const getSingleProduct = asyncHandler(async (req: Request, res: Response,
         product,
     });
 });
+
+/**
+ * @desc Create or Update Product Review
+ * @route PUT /api/v1/products/review
+ * @access Private (User)
+ */
+export const createProductReview = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { rating, comment, productId } = req.body;
+
+    const review = {
+        user: new mongoose.Types.ObjectId(req.userId),
+        name: req.user?.fullName || 'Anonymous User', // req.user from protect middleware
+        rating: Number(rating),
+        comment,
+    };
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+        return next(new AppError('Product not found', 404));
+    }
+
+    const isReviewed = product.reviews.find(
+        (rev) => rev.user.toString() === req.userId?.toString()
+    );
+
+    if (isReviewed) {
+        // Update existing review
+        product.reviews.forEach((rev) => {
+            if (rev.user.toString() === req.userId?.toString()) {
+                rev.rating = rating;
+                rev.comment = comment;
+            }
+        });
+    } else {
+        // Add new review
+        product.reviews.push(review);
+        product.numOfReviews = product.reviews.length;
+    }
+
+    let avg = 0;
+    product.reviews.forEach((rev) => {
+        avg += rev.rating;
+    });
+    product.ratings = avg / product.reviews.length;
+    await product.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+        success: true,
+        message: 'Review added successfully.',
+    });
+});
+
+/**
+ * @desc Get All Reviews of a Single Product
+ * @route GET /api/v1/products/reviews
+ * @access Public
+ */
+export const getProductReviews = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const productId = req.query.id as string;
+    const product = await Product.findById(productId);
+
+    if (!product) {
+        return next(new AppError('Product not found', 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        reviews: product.reviews,
+    });
+});
+
+/**
+ * @desc Delete Review
+ * @route DELETE /api/v1/products/reviews
+ * @access Private (User/Admin)
+ */
+export const deleteReview = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const productId = req.query.productId as string;
+    const reviewId = req.query.id as string; // Review ID to delete
+    const currentUserId = req.userId?.toString();
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+        return next(new AppError('Product not found', 404));
+    }
+
+    const reviewToDelete = product.reviews.find(
+        (rev) => rev._id?.toString() === reviewId.toString()
+    );
+
+    if (!reviewToDelete) {
+        return next(new AppError('Review not found or already deleted', 404));
+    };
+
+    if (reviewToDelete.user.toString() !== currentUserId) {
+        return next(
+            new AppError('You are not authorized to delete this review. Only the review owner can delete it.', 403)
+        );
+    }
+
+    const reviews = product.reviews.filter(
+        (rev) => rev._id?.toString() !== reviewId.toString()
+    );
+
+    // Recalculate Rating
+    let avg = 0;
+    let ratings = 0;
+
+    if (reviews.length > 0) {
+        reviews.forEach((rev) => {
+            avg += rev.rating;
+        });
+        ratings = avg / reviews.length;
+    }
+    const numOfReviews = reviews.length;
+
+    // Update product directly
+    await Product.findByIdAndUpdate(
+        productId,
+        {
+            reviews,
+            ratings,
+            numOfReviews,
+        },
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
+
+    res.status(200).json({
+        success: true,
+        message: 'Review deleted successfully.',
+    });
+});

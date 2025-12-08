@@ -1,6 +1,7 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 interface IReview {
+    _id?: mongoose.Types.ObjectId;
     user: mongoose.Types.ObjectId; // Review ပေးတဲ့ User ID
     name: string;
     rating: number; // 1 to 5
