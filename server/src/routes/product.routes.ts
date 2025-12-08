@@ -18,7 +18,7 @@ router.use(protect); // User login is required for all the following routes.
 // PUT/DELETE /api/v1/products/admin/:id (Product Update/Delete)
 router
     .route('/admin/:id')
-    .put(authorize('admin', 'manager'), updateProduct)
+    .put(authorize('admin', 'manager'), upload.array('images', 5), updateProduct)
     .delete(authorize('admin'), deleteProduct);
 
 router
