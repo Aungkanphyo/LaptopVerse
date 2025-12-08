@@ -94,8 +94,10 @@ const productSchema: Schema<IProductDocument> = new Schema({
     category: {
         type: String,
         required: [true, 'Please select category for this product'],
+        trim: true,
+        lowercase: true,
         enum: {
-            values: ['Gaming', 'Business', 'Creator', 'Basic'],
+            values: ['gaming', 'business', 'creator', 'basic'],
             message: 'Please select correct category for product',
         },
     },

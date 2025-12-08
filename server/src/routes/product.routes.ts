@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createNewProduct, deleteProduct, getAllProducts, getSingleProduct, updateProduct } from "../controllers/product.controller";
 import { authorize, protect } from "../middlewares/auth.middleware";
+import { upload } from "../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -17,11 +18,15 @@ router.use(protect); // User login is required for all the following routes.
 // PUT/DELETE /api/v1/products/admin/:id (Product Update/Delete)
 router
     .route('/admin/:id')
-    .put(authorize('admin', 'manager'), updateProduct)
+    .put(authorize('admin', 'manager'), upload.array('images', 5), updateProduct)
     .delete(authorize('admin'), deleteProduct);
 
 router
     .route('/admin')
-    .post(authorize('admin', 'manager'), createNewProduct);
+    .post(
+        authorize('admin', 'manager'),
+        upload.array('images', 5),
+        createNewProduct,
+    );
 
 export default router;
