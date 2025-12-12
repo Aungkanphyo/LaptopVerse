@@ -7,6 +7,7 @@ import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/error.utils';
 import productRouter from './routes/product.routes';
+import orderRouter from './routes/order.routes';
 
 const app: Express = express();
 
@@ -36,6 +37,9 @@ app.use('/api/v1/auth', authRoutes);
 
 // Product Routes
 app.use('/api/v1/products', productRouter);
+
+// Order Routes
+app.use('/api/v1/orders', orderRouter);
 
 // 404 Route Catcher
 app.use((req: Request, res: Response, next: NextFunction) => {
