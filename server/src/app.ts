@@ -8,6 +8,7 @@ import { errorHandler } from './middlewares/error.middleware';
 import { AppError } from './utils/error.utils';
 import productRouter from './routes/product.routes';
 import orderRouter from './routes/order.routes';
+import paymentRoutes from './routes/payment.routes'
 
 const app: Express = express();
 
@@ -40,6 +41,8 @@ app.use('/api/v1/products', productRouter);
 
 // Order Routes
 app.use('/api/v1/orders', orderRouter);
+
+app.use('/api/v1/payment', paymentRoutes);
 
 // 404 Route Catcher
 app.use((req: Request, res: Response, next: NextFunction) => {
