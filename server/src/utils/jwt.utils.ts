@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { Response } from 'express';
-import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { IUserDocument } from '../models/user.model';
 
 dotenv.config();

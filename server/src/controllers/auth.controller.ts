@@ -70,3 +70,24 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
         message: 'Successfully logged out.',
     });
 });
+
+/**
+ * @desc Forgot Password (Email ပို့ရန်) (POST /api/v1/auth/forgotpassword)
+ * @access Public
+ */
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if(!email) {
+        res.status(400);
+        throw new Error('Please provide an email address');
+    }
+
+    // Call Logic from Service
+    await authService.forgotPasswordRequest(email, req.get('host') as string, req.protocol);
+
+    res.status(200).json({
+        success: true,
+        message: 'Email sent.',
+    });
+});

@@ -1,6 +1,7 @@
 import User, { IUserDocument } from "../models/user.model";
 import { ILoginInput, IRegisterInput } from "../types/auth.types";
 import { AppError } from "../utils/error.utils";
+import sendEmail from "../utils/sendEmail";
 
 export const registerUser = async (data: IRegisterInput): Promise<IUserDocument> => {
     // check for email
@@ -43,3 +44,58 @@ export const loginUser = async (data: ILoginInput): Promise<IUserDocument> => {
 
     return userObject as IUserDocument;
 }
+
+/**
+ * Forgot Password Service
+ * @param email User provided email
+ */
+export const forgotPasswordRequest = async (email: string, requestHost: string, protocol: string) => {
+    const user = await User.findOne({ email });
+
+    if(!user) {
+        throw new AppError('There is no user with that email address.', 404);
+    }
+
+    // Get Reset Token (Model Method)
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create Reset URL (Frontend URL or API URL)
+    const resetUrl = `${protocol}://${requestHost}/api/v1/auth/resetpassword/${resetToken}`;
+
+    const message = `
+        Hello ${user.fullName},
+
+        We received a request to reset the password for your LaptopVerse account.
+        
+        If you made this request, please click the link below to set a new password:
+
+        ${resetUrl}
+
+        (This link will expire in 10 minutes)
+
+        If you didn't ask to reset your password, you can safely ignore this email. Your account is secure.
+
+        Thanks,
+        The LaptopVerse Team
+    `;
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'Reset Your Password - LaptopVerse',
+            message,
+        });
+
+        return { message: 'Email sent successfully' };
+    } catch (error) {
+        // Email ပို့မရရင် DB မှာ save ထားတဲ့ token တွေကို ပြန်ဖျက်မယ်
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+
+        await user.save({ validateBeforeSave: false });
+
+        throw new AppError('Email could not be sent', 500);
+    }
+};
