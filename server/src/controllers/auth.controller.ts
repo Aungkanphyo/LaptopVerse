@@ -91,3 +91,27 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
         message: 'Email sent.',
     });
 });
+
+/**
+ * @desc Reset Password (PUT /api/v1/auth/resetpassword/:resettoken)
+ * @access Public
+ */
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { password } = req.body;
+    const { resettoken } = req.params;
+
+    if (!password) {
+        res.status(400);
+        throw new Error('Please provide a new password');
+    }
+
+    const user = await authService.resetPasswordLogic(resettoken, password);
+
+    const { accessToken } = sendTokenAsCookie(res, user);
+
+    res.status(200).json({
+        success: true,
+        message: 'Password reset successful.',
+        accessToken
+    });
+})

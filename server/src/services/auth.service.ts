@@ -2,6 +2,7 @@ import User, { IUserDocument } from "../models/user.model";
 import { ILoginInput, IRegisterInput } from "../types/auth.types";
 import { AppError } from "../utils/error.utils";
 import sendEmail from "../utils/sendEmail";
+import crypto from 'crypto';
 
 export const registerUser = async (data: IRegisterInput): Promise<IUserDocument> => {
     // check for email
@@ -98,4 +99,36 @@ export const forgotPasswordRequest = async (email: string, requestHost: string, 
 
         throw new AppError('Email could not be sent', 500);
     }
+};
+
+/**
+ * Reset Password Service
+ * @param resetToken Email ထဲမှရလာသော Token အစစ်
+ * @param newPassword User အသစ်ပေးလိုသော Password
+ */
+export const resetPasswordLogic = async (resetToken: string, newPassword: string) => {
+    // Token ကို Hash ပြန်လုပ်မယ် (DB ထဲမှာ Hash နဲ့ သိမ်းထားလို့)
+    const hashedToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    // Hash တူပြီး Expire မဖြစ်သေးတဲ့ User ကို ရှာမယ်
+    const user = await User.findOne({
+        resetPasswordToken: hashedToken,
+        resetPasswordExpire: { $gt: new Date(Date.now()) }
+    });
+
+    if(!user) {
+        throw new AppError('Invalid or expired password reset token', 400);
+    }
+
+    // Password အသစ်သတ်မှတ်ပြီး Token တွေကို ပြန်ဖျက်
+    user.password = newPassword
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    return user;
 };
