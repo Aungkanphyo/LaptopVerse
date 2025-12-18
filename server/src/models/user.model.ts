@@ -1,5 +1,6 @@
 import mongoose, { Schema, Model, Document } from "mongoose";
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export interface IUser {
     fullName: string;
@@ -8,12 +9,15 @@ export interface IUser {
     role: 'admin' | 'user';
     isVerified: boolean;
     googleId?: string;
+    resetPasswordToken?: string;
+    resetPasswordExpire?: Date;
 }
 
 export interface IUserDocument extends IUser, Document {
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
+    getResetPasswordToken(): string;
 }
 
 const UserSchema = new Schema<IUserDocument>(
@@ -50,7 +54,9 @@ const UserSchema = new Schema<IUserDocument>(
             type: String,
             unique: true,
             sparse: true
-        }
+        },
+        resetPasswordToken: String,
+        resetPasswordExpire: Date,
     },
     {
         timestamps: true,
@@ -86,7 +92,23 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string):
     // Since we set `select: false`, we must ensure password is explicitly selected in query before calling this.
     if (!this.password) return false;
     return await bcrypt.compare(candidatePassword, this.password);
-}
+};
+
+UserSchema.methods.getResetPasswordToken = function(): string {
+    // Random bytes ထုတ်မယ် (Token အစစ်)
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    // Hash လုပ်ပြီး Database မှာသိမ်းမယ် (Security အတွက်)
+    this.resetPasswordToken = crypto
+        .createHash('sha256')
+        .update(resetToken)
+        .digest('hex');
+
+    // Expire time 10 minutes
+    this.resetPasswordExpire = new Date(Date.now() + 10 * 60 * 1000);
+
+    return resetToken;
+};
 
 const User: Model<IUserDocument> = mongoose.model<IUserDocument>('User', UserSchema);
 

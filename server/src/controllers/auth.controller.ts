@@ -70,3 +70,48 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
         message: 'Successfully logged out.',
     });
 });
+
+/**
+ * @desc Forgot Password (Email ပို့ရန်) (POST /api/v1/auth/forgotpassword)
+ * @access Public
+ */
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if(!email) {
+        res.status(400);
+        throw new Error('Please provide an email address');
+    }
+
+    // Call Logic from Service
+    await authService.forgotPasswordRequest(email, req.get('host') as string, req.protocol);
+
+    res.status(200).json({
+        success: true,
+        message: 'Email sent.',
+    });
+});
+
+/**
+ * @desc Reset Password (PUT /api/v1/auth/resetpassword/:resettoken)
+ * @access Public
+ */
+export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+    const { password } = req.body;
+    const { resettoken } = req.params;
+
+    if (!password) {
+        res.status(400);
+        throw new Error('Please provide a new password');
+    }
+
+    const user = await authService.resetPasswordLogic(resettoken, password);
+
+    const { accessToken } = sendTokenAsCookie(res, user);
+
+    res.status(200).json({
+        success: true,
+        message: 'Password reset successful.',
+        accessToken
+    });
+})
