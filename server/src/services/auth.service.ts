@@ -65,32 +65,37 @@ export const forgotPasswordRequest = async (email: string, requestHost: string, 
     // Create Reset URL (Frontend URL or API URL)
     const resetUrl = `${protocol}://${requestHost}/api/v1/auth/resetpassword/${resetToken}`;
 
-    const message = `
-        Hello ${user.fullName},
+    const htmlMessage = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>Hello ${user.fullName},</h2>
+            <p>We received a request to reset the password for your <strong>LaptopVerse</strong> account.</p>
+            <p>If you made this request, please click the button below to set a new password:</p>
+            
+            <div style="margin: 30px 0;">
+                <a href="${resetUrl}" 
+                    style="background-color: #4CAF50; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Reset Password
+                </a>
+            </div>
 
-        We received a request to reset the password for your LaptopVerse account.
-        
-        If you made this request, please click the link below to set a new password:
-
-        ${resetUrl}
-
-        (This link will expire in 10 minutes)
-
-        If you didn't ask to reset your password, you can safely ignore this email. Your account is secure.
-
-        Thanks,
-        The LaptopVerse Team
-    `;
+            <p style="font-size: 0.9em; color: #666;">(This link will expire in 10 minutes)</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p>If you didn't ask to reset your password, you can safely ignore this email. Your account is secure.</p>
+            <p>Thanks,<br />The LaptopVerse Team</p>
+        </div>
+    `;;
 
     try {
         await sendEmail({
             email: user.email,
             subject: 'Reset Your Password - LaptopVerse',
-            message,
+            message: `Please reset your password by making a PUT request to: \n\n ${resetUrl}`,
+            html: htmlMessage,
         });
 
         return { message: 'Email sent successfully' };
     } catch (error) {
+        // console.log("Nodemailer Error Details:", error);
         // Email ပို့မရရင် DB မှာ save ထားတဲ့ token တွေကို ပြန်ဖျက်မယ်
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
