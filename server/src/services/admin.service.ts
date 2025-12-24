@@ -1,4 +1,5 @@
 import Order from "../models/order.model";
+import Product from "../models/product.model";
 import User from "../models/user.model";
 
 /**
@@ -82,3 +83,13 @@ export const getTopSellingProducts = async () => {
 
     return topProducts;
 }
+
+export const getLowStockProducts = async () => {
+    const lowStockThreshold = 5;
+
+    const lowStockProducts = await Product.find({
+        stock: { $lte: lowStockThreshold }
+    }).select('name stock price');
+
+    return lowStockProducts;
+};
