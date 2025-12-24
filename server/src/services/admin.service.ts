@@ -59,4 +59,26 @@ export const getSalesStats = async () => {
     ]);
 
     return salesData;
+};
+
+/**
+ * Get Top 5 Selling Products
+ */
+export const getTopSellingProducts = async () => {
+    const topProducts = await Order.aggregate([
+        { $unwind: "$orderItems" }, // Order ထဲက item တစ်ခုချင်းစီကို ခွဲထုတ်တယ်
+        {
+            
+            $group: {
+                _id: "$orderItems.product", // Product ရဲ့ id အလိုက် group တွေခွဲပြီးတော့ဖွဲ့တယ်
+                name: { $first: "$orderItems.name" },
+                totalQuantity: { $sum: "orderItems.quantity" },
+                totalRevenue: { $sum: { $multiply: ["$orderItems.price", "orderItems.quantity"] } }
+            }
+        },
+        { $sort: { totalQuantity: -1 } }, // descending အလိုက်စီထားတယ်
+        { $limit: 5 }
+    ]);
+
+    return topProducts;
 }
