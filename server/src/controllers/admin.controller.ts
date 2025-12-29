@@ -11,13 +11,15 @@ export const getDashboardOverview = asyncHandler(async (req: Request, res: Respo
     const stats = await adminService.getAdminStats();
     const salesHistory = await adminService.getSalesStats();
     const topProducts = await adminService.getTopSellingProducts();
+    const lowStock = await adminService.getLowStockProducts();
 
     res.status(200).json({
         success: true,
         data: {
             summary: stats,
             graphData: salesHistory,
-            topProducts
+            topProducts,
+            lowStock
         }
     });
 });
