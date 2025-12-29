@@ -10,12 +10,16 @@ import * as adminService from "../services/admin.service";
 export const getDashboardOverview = asyncHandler(async (req: Request, res: Response) => {
     const stats = await adminService.getAdminStats();
     const salesHistory = await adminService.getSalesStats();
+    const topProducts = await adminService.getTopSellingProducts();
+    const lowStock = await adminService.getLowStockProducts();
 
     res.status(200).json({
         success: true,
         data: {
             summary: stats,
-            graphData: salesHistory
+            graphData: salesHistory,
+            topProducts,
+            lowStock
         }
     });
 });

@@ -1,4 +1,5 @@
 import Order from "../models/order.model";
+import Product from "../models/product.model";
 import User from "../models/user.model";
 
 /**
@@ -59,4 +60,66 @@ export const getSalesStats = async () => {
     ]);
 
     return salesData;
+};
+
+/**
+ * Get Top 5 Selling Products
+ */
+export const getTopSellingProducts = async () => {
+    const topProducts = await Order.aggregate([
+        { $unwind: "$orderItems" }, // Order ထဲက item တစ်ခုချင်းစီကို ခွဲထုတ်တယ်
+        {
+            
+            $group: {
+                _id: "$orderItems.product", // Product ရဲ့ id အလိုက် group တွေခွဲပြီးတော့ဖွဲ့တယ်
+                name: { $first: "$orderItems.name" },
+                totalQuantity: {
+                    $sum: {
+                        $convert: {
+                            input: "$orderItems.quantity",
+                            to: "int",
+                            onError: 0, // နံပါတ်မဟုတ်တဲ့စာသားတွေ့ရင် 0 လို့သတ်မှတ်ပြီး skip လုပ်မယ်
+                            onNull: 0
+                        }
+                    }
+                },
+                totalRevenue: {
+                    $sum: {
+                        $multiply: [
+                            {
+                                $convert: {
+                                    input: "$orderItems.price",
+                                    to: "double",
+                                    onError: 0,
+                                    onNull: 0
+                                }
+                            },
+                            {
+                                $convert: {
+                                    input: "$orderItems.quantity",
+                                    to: "int",
+                                    onError: 0,
+                                    onNull: 0
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        { $sort: { totalQuantity: -1 } }, // descending အလိုက်စီထားတယ်
+        { $limit: 5 }
+    ]);
+
+    return topProducts;
 }
+
+export const getLowStockProducts = async () => {
+    const lowStockThreshold = 5;
+
+    const lowStockProducts = await Product.find({
+        stock: { $lte: lowStockThreshold }
+    }).select('name stock price');
+
+    return lowStockProducts;
+};
