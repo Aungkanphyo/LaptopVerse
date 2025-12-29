@@ -73,8 +73,38 @@ export const getTopSellingProducts = async () => {
             $group: {
                 _id: "$orderItems.product", // Product ရဲ့ id အလိုက် group တွေခွဲပြီးတော့ဖွဲ့တယ်
                 name: { $first: "$orderItems.name" },
-                totalQuantity: { $sum: "orderItems.quantity" },
-                totalRevenue: { $sum: { $multiply: ["$orderItems.price", "orderItems.quantity"] } }
+                totalQuantity: {
+                    $sum: {
+                        $convert: {
+                            input: "$orderItems.quantity",
+                            to: "int",
+                            onError: 0, // နံပါတ်မဟုတ်တဲ့စာသားတွေ့ရင် 0 လို့သတ်မှတ်ပြီး skip လုပ်မယ်
+                            onNull: 0
+                        }
+                    }
+                },
+                totalRevenue: {
+                    $sum: {
+                        $multiply: [
+                            {
+                                $convert: {
+                                    input: "$orderItems.price",
+                                    to: "double",
+                                    onError: 0,
+                                    onNull: 0
+                                }
+                            },
+                            {
+                                $convert: {
+                                    input: "$orderItems.quantity",
+                                    to: "int",
+                                    onError: 0,
+                                    onNull: 0
+                                }
+                            }
+                        ]
+                    }
+                }
             }
         },
         { $sort: { totalQuantity: -1 } }, // descending အလိုက်စီထားတယ်
