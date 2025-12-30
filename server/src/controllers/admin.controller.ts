@@ -8,18 +8,24 @@ import * as adminService from "../services/admin.service";
  * @access Private (Admin Only)
  */
 export const getDashboardOverview = asyncHandler(async (req: Request, res: Response) => {
-    const stats = await adminService.getAdminStats();
-    const salesHistory = await adminService.getSalesStats();
-    const topProducts = await adminService.getTopSellingProducts();
-    const lowStock = await adminService.getLowStockProducts();
+    const [summary, graphData, topProducts, lowStock, distribution, recentOrders] = await Promise.all([
+        adminService.getAdminStats(),
+        adminService.getSalesStats(),
+        adminService.getTopSellingProducts(),
+        adminService.getLowStockProducts(),
+        adminService.getOrderStatusDistribution(),
+        adminService.getRecentOrders()
+    ]);
 
     res.status(200).json({
         success: true,
         data: {
-            summary: stats,
-            graphData: salesHistory,
+            summary,
+            graphData,
             topProducts,
-            lowStock
+            lowStock,
+            distribution,
+            recentOrders
         }
     });
 });
