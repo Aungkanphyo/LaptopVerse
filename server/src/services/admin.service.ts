@@ -1,3 +1,4 @@
+import { count } from "console";
 import Order from "../models/order.model";
 import Product from "../models/product.model";
 import User from "../models/user.model";
@@ -122,4 +123,29 @@ export const getLowStockProducts = async () => {
     }).select('name stock price');
 
     return lowStockProducts;
+};
+
+export const getOrderStatusDistribution = async () => {
+    const distribution = await Order.aggregate([
+        {
+            $match: { orderStatus: { $exists: true, $ne: null}}
+        },
+        {
+            $group: {
+                _id: "$orderStatus",
+                count: { $sum: 1 }
+            }
+        },
+        { $sort: { count: -1} }
+    ]);
+
+    return distribution;
+};
+
+export const getRecentOrders = async () => {
+    return await Order.find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .populate('user', 'fullName email') // User model ကနေ fullName နဲ့ email ကိုသာ ယူမယ်
+        .select('user totalPrice orderStatus createdAt'); // Order ကနေလိုတာဘဲယူ
 };
