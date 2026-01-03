@@ -3,7 +3,6 @@ import { asyncHandler } from "../utils/asyncHandler";
 import Order from "../models/order.model";
 import { AppError } from "../utils/error.utils";
 import Product from "../models/product.model";
-import mongoose from "mongoose";
 
 // User Controller function
 /**
