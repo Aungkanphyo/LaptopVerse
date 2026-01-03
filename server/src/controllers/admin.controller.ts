@@ -3,6 +3,21 @@ import { asyncHandler } from "../utils/asyncHandler";
 import * as adminService from "../services/admin.service";
 
 /**
+ * @desc Get all users with search, filter, and pagination
+ * @route GET /api/v1/admin/users
+ * @access Private (Admin)
+ */
+export const getAllUsersList = asyncHandler(async (req: Request, res: Response) => {
+    const { users, totalUsers } = await adminService.getAllUsers(req.query);
+    res.status(200).json({
+        success: true,
+        count: users.length, // Current Page Users Count
+        totalUsers, // Total Users Count
+        data: users
+    });
+});
+
+/**
  * @desc Get Dashboard Overview Data
  * @route GET /api/v1/admin/dashboard-stats
  * @access Private (Admin Only)
