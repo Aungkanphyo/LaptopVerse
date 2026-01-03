@@ -1,7 +1,23 @@
-import { count } from "console";
 import Order from "../models/order.model";
 import Product from "../models/product.model";
 import User from "../models/user.model";
+import { APIFeatures } from "../utils/apiFeatures.utils";
+import { AppError } from "../utils/error.utils";
+
+export const getAllUsers = async (queryStr: any) => {
+    const features = new APIFeatures(User.find(), queryStr)
+        .search(['fullName', 'email']) // Search by fullName and email
+        .filter();
+
+    const users = await features.sort().paginate().query;
+
+    const totalUsers = await User.countDocuments();
+
+    return {
+        users,
+        totalUsers
+    };
+};
 
 /**
  * Get Overall Stats (Users, Orders, Revenue)
@@ -148,4 +164,40 @@ export const getRecentOrders = async () => {
         .limit(5)
         .populate('user', 'fullName email') // User model ကနေ fullName နဲ့ email ကိုသာ ယူမယ်
         .select('user totalPrice orderStatus createdAt'); // Order ကနေလိုတာဘဲယူ
+};
+
+export const updateUserRole = async (targetUserId: string, newRole: 'admin' | 'user', adminId: string) => {
+    if(targetUserId === adminId) {
+        throw new AppError("Action denied: You cannot change your own role.", 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+        targetUserId,
+        { role: newRole },
+        { new: true, runValidators: true }
+    );
+
+    if(!user) {
+        throw new AppError('User not found.', 404);
+    }
+    
+    return user;
+};
+
+export const updateUserStatus = async (targetUserId: string, newStatus: string, adminId: string) => {
+    if(targetUserId === adminId) {
+        throw new AppError("Action denied: You cannot ban or deactivate your own account.", 400);
+    }
+
+    const user = await User.findByIdAndUpdate(
+        targetUserId,
+        { status: newStatus },
+        { new: true, runValidators: true }
+    );
+
+    if(!user) {
+        throw new AppError('User not found.', 404);
+    }
+
+    return user;
 };
