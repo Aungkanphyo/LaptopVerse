@@ -44,3 +44,39 @@ export const getDashboardOverview = asyncHandler(async (req: Request, res: Respo
         }
     });
 });
+
+/**
+ * @desc Update User Role
+ * @route PUT /api/v1/admin/users/:id/role
+ */
+export const updateUserRole = asyncHandler(async (req: Request, res: Response) => {
+    const { role } = req.body;
+    const targetUserId = req.params.id;
+    const adminId = req.userId as string; // Current logged-in admin
+
+    const user = await adminService.updateUserRole(targetUserId, role, adminId);
+
+    res.status(200).json({
+        success: true,
+        message: `User role updated to ${role} successfully.`,
+        data: user
+    });
+});
+
+/**
+ * @desc Update User Status (Ban/Unban)
+ * @route PUT /api/v1/admin/users/:id/status
+ */
+export const updateUserStatus = asyncHandler(async (req: Request, res: Response) => {
+    const { status } = req.body;
+    const targetId = req.params.id;
+    const adminId = req.userId as string; // Current logged-in admin
+
+    const user = await adminService.updateUserStatus(targetId, status, adminId);
+
+    res.status(200).json({
+        success: true,
+        message: `User has been ${status} successfully.`,
+        data: user
+    });
+});
