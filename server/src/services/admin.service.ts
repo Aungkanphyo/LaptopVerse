@@ -5,7 +5,7 @@ import { APIFeatures } from "../utils/apiFeatures.utils";
 
 export const getAllUsers = async (queryStr: any) => {
     const features = new APIFeatures(User.find(), queryStr)
-        .search()
+        .search(['fullName', 'email']) // Search by fullName and email
         .filter();
 
     const users = await features.sort().paginate().query;

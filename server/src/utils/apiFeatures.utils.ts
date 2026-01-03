@@ -17,17 +17,23 @@ export class APIFeatures {
         this.queryString = queryString;
     }
 
-    search() {
+    /**
+     * Search functionality (Dynamic Fields Support)
+     * @param searchFields - ရှာဖွေလိုသော field နာမည်များ (Default: ['name'])
+     */
+    search(searchFields: string[] = ['name']) {
         if (this.queryString.keyword) {
             const keyword = {
-                name: {
-                    $regex: this.queryString.keyword,
-                    $options: 'i',
-                },
+                $or: searchFields.map((field) => ({
+                    [field]: {
+                        $regex: this.queryString.keyword,
+                        $options: 'i' // case-insensitive
+                    }
+                }))
             };
             this.query = this.query.find(keyword);
         }
-        // Modifies only the Query object without executing find()
+        
         return this;
     }
 
