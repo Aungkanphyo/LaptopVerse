@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { getAllUsersList, getDashboardOverview, updateUserRole, updateUserStatus } from "../controllers/admin.controller";
 import { authorize, protect } from "../middlewares/auth.middleware";
+import { auditLogger } from "../middlewares/auditLogger.middleware";
 
 const router = Router();
 
-router.use(protect, authorize('admin'));
+router.use(protect, authorize('admin'), auditLogger); // Apply middlewares to all admin routes
 
 // GET /api/v1/admin/dashboard-stats
 router.get('/dashboard-stats', getDashboardOverview);
