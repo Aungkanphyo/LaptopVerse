@@ -7,7 +7,7 @@ export const createLog = async(logData : {
     resourceId?: string;
     details?: any;
     ipAddress?: string;
-    userAgent: string;
+    userAgent?: string;
 }) => {
     try {
         await ActivityLog.create(logData);

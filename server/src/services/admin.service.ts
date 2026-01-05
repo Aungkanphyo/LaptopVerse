@@ -3,6 +3,7 @@ import Product from "../models/product.model";
 import User from "../models/user.model";
 import { APIFeatures } from "../utils/apiFeatures.utils";
 import { AppError } from "../utils/error.utils";
+import { createLog } from "./logger.service";
 
 export const getAllUsers = async (queryStr: any) => {
     const features = new APIFeatures(User.find(), queryStr)
@@ -171,16 +172,26 @@ export const updateUserRole = async (targetUserId: string, newRole: 'admin' | 'u
         throw new AppError("Action denied: You cannot change your own role.", 400);
     }
 
-    const user = await User.findByIdAndUpdate(
-        targetUserId,
-        { role: newRole },
-        { new: true, runValidators: true }
-    );
+    const user = await User.findById(targetUserId);
+    if(!user) throw new AppError('User not found.', 404);
 
-    if(!user) {
-        throw new AppError('User not found.', 404);
-    }
-    
+    const oldRole = user.role;
+
+    user.role = newRole;
+    await user.save();
+
+    await createLog({
+        admin: adminId,
+        action: "UPDATE_USER_ROLE",
+        resource: "User",
+        resourceId: targetUserId,
+        details: {
+            from: oldRole,
+            to: newRole,
+            targetEmail: user.email
+        },
+    });
+
     return user;
 };
 
@@ -189,15 +200,26 @@ export const updateUserStatus = async (targetUserId: string, newStatus: string, 
         throw new AppError("Action denied: You cannot ban or deactivate your own account.", 400);
     }
 
-    const user = await User.findByIdAndUpdate(
-        targetUserId,
-        { status: newStatus },
-        { new: true, runValidators: true }
-    );
+    const user = await User.findById(targetUserId);
+    if(!user) throw new AppError('User not found.', 404);
 
-    if(!user) {
-        throw new AppError('User not found.', 404);
-    }
+    const oldStatus = user.status;
+
+    user.status = newStatus as any;
+    await user.save();
+
+    const logAction = newStatus === 'banned' ? 'BAN_USER' : 'ACTIVATE_USER';
+
+    await createLog({
+        admin: adminId,
+        action: logAction,
+        resource: "User",
+        resourceId: targetUserId,
+        details: { 
+            previousStatus: oldStatus, 
+            currentStatus: newStatus 
+        }
+    });
 
     return user;
 };
