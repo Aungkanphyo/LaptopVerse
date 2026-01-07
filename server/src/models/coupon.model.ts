@@ -9,11 +9,15 @@ export interface ICoupon extends Document {
     minOrderAmount: number;
     expiryDate: Date;
     usageLimit: number;
+    usageLimitPerUser: number; // user တစ်ဦးချင်းစီ အတွက် အသုံးပြုနိုင်မည့် အကြိမ်ရေ
     usedCount: number;
     usersUsed: mongoose.Types.ObjectId[];
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
+
+    // Method to check if the coupon is expired
+    isValid(userId: string, orderAmount: number): boolean;
 };
 
 const CouponSchema = new Schema<ICoupon>(
@@ -23,7 +27,8 @@ const CouponSchema = new Schema<ICoupon>(
             required: [true, "Coupon code is required"],
             unique: true,
             uppercase: true, // code ကို အမြဲတမ်း အက္ခရာအကြီးဖြင့် သိမ်းဆည်းရန်
-            trim: true
+            trim: true,
+            index: true // အမြန်ရှာဖွေနိုင်ရန် index ထည့်ထားသည်
         },
         discountType: {
             type: String,
@@ -49,7 +54,11 @@ const CouponSchema = new Schema<ICoupon>(
         },
         usageLimit: {
             type: Number,
-            default: 1, // coupon ကို အသုံးပြုနိုင်မည့် အကြိမ်ရေ
+            default: 100,
+        },
+        usageLimitPerUser: {
+            type: Number,
+            default: 1, // Default to one-time use per customer
         },
         usedCount: {
             type: Number,
@@ -71,8 +80,29 @@ const CouponSchema = new Schema<ICoupon>(
     }
 );
 
-CouponSchema.methods.isExpired = function (): boolean {
-    return Date.now() > this.expiryDate.getTime();
+// --- Compound Indexing ---
+// အသုံးပြုသူက code ရိုက်ထည့်လိုက်တဲ့အခါ Active ဖြစ်မဖြစ်နဲ့ Expire ဖြစ်မဖြစ်ကို 
+// တစ်ခါတည်း database level မှာ အမြန်ဆုံးရှာနိုင်အောင် index ပေးထားခြင်းဖြစ်ပါတယ်။
+CouponSchema.index({ code: 1, isActive: 1, expiryDate: 1 });
+
+CouponSchema.methods.isValid = function (userId: string, orderAmount: number): boolean {
+    const now = Date.now();
+
+    if(!this.isActive) return false;
+
+    if(now > this.expiryDate) return false;
+
+    // Check Minimum Order Amount
+    if(orderAmount < this.minOrderAmount) return false;
+
+    if(this.usedCount >= this.usageLimit) return false;
+
+    const userUsageCount = this.usersUsed.filter(
+        (id: mongoose.Types.ObjectId) => id.toString() === userId.toString()).length;
+
+    if(userUsageCount >= this.usageLimitPerUser) return false;
+
+    return true;
 };
 
 const Coupon: Model<ICoupon> = mongoose.model<ICoupon>('Coupon', CouponSchema);
