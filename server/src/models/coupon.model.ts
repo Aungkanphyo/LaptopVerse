@@ -1,7 +1,21 @@
 import mongoose, { Model, Schema } from "mongoose";
-import { string } from "zod";
+import { IUser } from "./user.model";
+
+// Create လုပ်တဲ့အခါ သုံးမယ့် Pure Data interface
+export interface ICreateCouponInput {
+    code: string;
+    discountType: 'fixed' | 'percent';
+    discountAmount: number;
+    maxDiscountAmount?: number;
+    minOrderAmount?: number;
+    expiryDate: Date;
+    usageLimit?: number;
+    usageLimitPerUser?: number;
+    isActive?: boolean;
+}
 
 export interface ICoupon extends Document {
+    _id: mongoose.Types.ObjectId;
     code: string;
     discountType: 'fixed' | 'percent';
     discountAmount: number;
@@ -11,7 +25,7 @@ export interface ICoupon extends Document {
     usageLimit: number;
     usageLimitPerUser: number; // user တစ်ဦးချင်းစီ အတွက် အသုံးပြုနိုင်မည့် အကြိမ်ရေ
     usedCount: number;
-    usersUsed: mongoose.Types.ObjectId[];
+    usersUsed: mongoose.Types.ObjectId[] | IUser[];
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
