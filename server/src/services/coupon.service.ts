@@ -59,7 +59,7 @@ export const applyCouponUsage = async (couponId: string, userId: string) => {
             {
                 _id: couponId,
                 isActive: true,
-                expr: { $lt: ["$usedCount", "$usageLimit"] }
+                $expr: { $lt: ["$usedCount", "$usageLimit"] }
             },
             {
                 $inc: { usedCount: 1 },
