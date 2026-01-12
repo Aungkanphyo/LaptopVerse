@@ -3,13 +3,12 @@ import { AppError } from "../utils/error.utils";
 import { createLog } from "./logger.service";
 import { ICoupon } from '../models/coupon.model';
 import mongoose from "mongoose";
+import { withTransaction } from "../utils/transaction.util";
 
 export const createCoupon = async (couponData: ICreateCouponInput, adminId: string): Promise<ICoupon> => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    try {
+    return await withTransaction(async (session) => {
         const normalizedCode = couponData.code.trim().toUpperCase();
-        const existingCoupon = await Coupon.findOne({ code: normalizedCode });
+        const existingCoupon = await Coupon.findOne({ code: normalizedCode }).session(session);
 
         if(existingCoupon) {
             throw new AppError("Coupon code already exists", 400);
@@ -19,7 +18,7 @@ export const createCoupon = async (couponData: ICreateCouponInput, adminId: stri
             ...couponData,
             code: normalizedCode
         });
-        await coupon.save();
+        await coupon.save({ session });
 
         await createLog({
             admin: adminId,
@@ -29,12 +28,6 @@ export const createCoupon = async (couponData: ICreateCouponInput, adminId: stri
             details: { code: coupon.code, discountType: coupon.discountType }
         }, session);
 
-        await session.commitTransaction();
         return coupon;
-    } catch (error) {
-        await session.abortTransaction();
-        throw error;
-    } finally {
-        session.endSession();
-    }
+    });
 };
