@@ -2,9 +2,11 @@ import { Router } from "express";
 import { getAllUsersList, getDashboardOverview, updateUserRole, updateUserStatus } from "../controllers/admin.controller";
 import { authorize, protect } from "../middlewares/auth.middleware";
 import { auditLogger } from "../middlewares/auditLogger.middleware";
+import * as couponController from "../controllers/coupon.controller";
 
 const router = Router();
 
+// Global middlewares for all admin routes
 router.use(protect, authorize('admin'), auditLogger); // Apply middlewares to all admin routes
 
 // GET /api/v1/admin/dashboard-stats
@@ -16,5 +18,14 @@ router.get('/users', getAllUsersList);
 // User Management Routes
 router.put('/users/:id/role', updateUserRole);
 router.put('users/:id/status', updateUserStatus);
+
+// Coupon Management Routes
+router.route('/coupons')
+    .get(couponController.getAllCoupons) // Get all coupons with advanced filtering
+    .post(couponController.createCoupon); // Create new coupon
+
+router.route('/coupons/:id')
+    .put(couponController.updateCoupon) // Update coupon details
+    .delete(couponController.deleteCoupon); // Delete coupon
 
 export default router;

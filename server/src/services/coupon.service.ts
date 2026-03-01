@@ -83,6 +83,10 @@ export const applyCouponUsage = async (couponId: string, userId: string) => {
     });
 };
 
+/**
+ * 
+ * Admin: Coupon information update
+ */
 export const updateCoupon = async (id: string, updateData: Partial<ICoupon>, adminId: string) => {
     return await withTransaction(async (session) => {
         const coupon = await Coupon.findById(id).session(session);
