@@ -2,7 +2,6 @@ import Coupon, { ICreateCouponInput } from "../models/coupon.model";
 import { AppError } from "../utils/error.utils";
 import { createLog } from "./logger.service";
 import { ICoupon } from '../models/coupon.model';
-import mongoose from "mongoose";
 import { withTransaction } from "../utils/transaction.util";
 
 export const createCoupon = async (couponData: ICreateCouponInput, adminId: string): Promise<ICoupon> => {
@@ -59,7 +58,7 @@ export const applyCouponUsage = async (couponId: string, userId: string) => {
             {
                 _id: couponId,
                 isActive: true,
-                expr: { $lt: ["$usedCount", "$usageLimit"] }
+                $expr: { $lt: ["$usedCount", "$usageLimit"] }
             },
             {
                 $inc: { usedCount: 1 },
@@ -81,5 +80,51 @@ export const applyCouponUsage = async (couponId: string, userId: string) => {
         }, session);
 
         return coupon;
+    });
+};
+
+/**
+ * 
+ * Admin: Coupon information update
+ */
+export const updateCoupon = async (id: string, updateData: Partial<ICoupon>, adminId: string) => {
+    return await withTransaction(async (session) => {
+        const coupon = await Coupon.findById(id).session(session);
+        if(!coupon) throw new AppError("Coupon not found", 404);
+
+        const oldData = { isActive: coupon.isActive, discountAmount: coupon.discountAmount };
+
+        // Dynamic update
+        Object.assign(coupon, updateData);
+        await coupon.save({ session });
+
+        await createLog({
+            admin: adminId,
+            action: "UPDATE COUPON",
+            resource: "Coupon",
+            resourceId: coupon._id.toString(),
+            details: { old: oldData, new: updateData }
+        }, session);
+
+        return coupon;
+    });
+};
+
+export const deleteCoupon = async (id: string, adminId: string) => {
+    return await withTransaction(async (session) => {
+        const coupon = await Coupon.findById(id).session(session);
+        if (!coupon) throw new AppError("Coupon not found", 404);
+
+        await Coupon.findByIdAndDelete(id).session(session);
+
+        await createLog({
+            admin: adminId,
+            action: "DELETE_COUPON",
+            resource: "Coupon",
+            resourceId: id,
+            details: { code: coupon.code }
+        }, session);
+
+        return true;
     });
 };
