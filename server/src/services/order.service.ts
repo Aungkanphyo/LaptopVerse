@@ -1,7 +1,10 @@
 import { ICoupon } from "../models/coupon.model";
+import Order from "../models/order.model";
 import Product from "../models/product.model";
 import { AppError } from "../utils/error.utils";
+import { calculateDiscount } from "../utils/price.utils";
 import { withTransaction } from "../utils/transaction.util";
+import * as couponService from "./coupon.service";
 
 export const createOrder = async (orderData: any, userId: string) => {
     return await withTransaction(async (session) => {
@@ -26,5 +29,33 @@ export const createOrder = async (orderData: any, userId: string) => {
             totalAmount += product.price * item.quantity;
         }
 
+        // Coupon Logic (if there is a code)
+        if (couponCode) {
+            // Valid check
+            appliedCoupon = await couponService.validateCoupon(couponCode, userId, totalAmount);
+            
+            // Calculate Discount
+            discountAmount = calculateDiscount(totalAmount, appliedCoupon);
+
+            // Updating Coupon Usage (Session must be sent for Race Condition)
+            await couponService.applyCouponUsage(appliedCoupon._id.toString(), userId, session);
+        }
+
+        const finalAmount = totalAmount - discountAmount;
+
+        // Create order record
+        const order = new Order({
+            user: userId,
+            items,
+            totalAmount,
+            discountAmount,
+            finalAmount,
+            coupon: appliedCoupon?._id,
+            status: 'pending'
+        });
+
+        await order.save({ session });
+
+        return order;
     })
 }
