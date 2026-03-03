@@ -3,6 +3,7 @@ import { AppError } from "../utils/error.utils";
 import { createLog } from "./logger.service";
 import { ICoupon } from '../models/coupon.model';
 import { withTransaction } from "../utils/transaction.util";
+import mongoose, { ClientSession } from 'mongoose';
 
 export const createCoupon = async (couponData: ICreateCouponInput, adminId: string): Promise<ICoupon> => {
     return await withTransaction(async (session) => {
@@ -52,7 +53,7 @@ export const validateCoupon = async (code: string, userId: string, orderAmount: 
     return coupon;
 };
 
-export const applyCouponUsage = async (couponId: string, userId: string) => {
+export const applyCouponUsage = async (couponId: string, userId: string, session?: mongoose.ClientSession) => {
     return await withTransaction(async (session) => {
         const coupon = await Coupon.findOneAndUpdate(
             {
