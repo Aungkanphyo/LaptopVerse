@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IRefund extends Document {
     order: mongoose.Types.ObjectId;
@@ -30,4 +30,6 @@ const RefundSchema = new Schema<IRefund>({
     processedBy: { type: Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
 
-export default mongoose.model<IRefund>("Refund", RefundSchema);
+const Refund: Model<IRefund> = mongoose.model('Refund', RefundSchema);
+
+export default Refund;
