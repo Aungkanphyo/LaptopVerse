@@ -1,3 +1,4 @@
+import { session } from "passport";
 import Order from "../models/order.model";
 import Product from "../models/product.model";
 import Refund from "../models/refund.model";
@@ -48,6 +49,39 @@ export const approveRefund = async (refundId: string, adminId: string, note: str
                 orderId: refund.order,
                 amount: refund.totalRefundAmount,
                 note
+            }
+        }, session);
+
+        return refund;
+    });
+};
+
+/**
+ * Admin: Refund Request reject
+ */
+export const rejectRefund = async (refundId: string, adminId: string, reason: string) => {
+    return await withTransaction(async (session) => {
+        // Finding a Refund Request
+        const refund = await Refund.findById(refundId).session(session);
+        if (!refund || refund.status !== 'requested') {
+            throw new AppError("Refund request not found or already processed", 404);
+        }
+
+        // Changing the status to Rejected
+        refund.status = 'rejected';
+        refund.adminNote = reason;
+        refund.processedBy = adminId as any;
+        await refund.save({ session });
+
+        // Manual logging
+        await createLog({
+            admin: adminId,
+            action: "REJECT_REFUND",
+            resource: "Refund",
+            resourceId: refundId,
+            details: {
+                orderId: refund.order,
+                reason: reason
             }
         }, session);
 
