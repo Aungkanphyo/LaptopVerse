@@ -1,18 +1,19 @@
-import { session } from "passport";
 import Order from "../models/order.model";
 import Product from "../models/product.model";
 import Refund from "../models/refund.model";
 import { AppError } from "../utils/error.utils";
 import { withTransaction } from "../utils/transaction.util";
 import { createLog } from "./logger.service";
+import sendEmail from "../utils/sendEmail";
+import { getRefundApprovalTemplate, getRefundRejectionTemplate } from "../utils/emailTemplates";
 
 /**
  * Admin: Approve and close the refund request
  */
 export const approveRefund = async (refundId: string, adminId: string, note: string) => {
-    return await withTransaction(async (session) => {
+    const result = await withTransaction(async (session) => {
         // Find and check the refund request
-        const refund = await Refund.findById(refundId).session(session);
+        const refund = await Refund.findById(refundId).populate('user').session(session);
         if (!refund || refund.status !== 'requested') {
             throw new AppError("Invalid or already processed refund request", 400);
         }
@@ -54,15 +55,26 @@ export const approveRefund = async (refundId: string, adminId: string, note: str
 
         return refund;
     });
+
+    if (result) {
+        const user = result.user as any;
+        sendEmail({
+            email: user.email,
+            subject: `[LaptopVerse] Refund Approved - Order #${result.order}`,
+            html: getRefundApprovalTemplate(user.name, result.order.toString(), result.totalRefundAmount)
+        });
+    }
+
+    return result;
 };
 
 /**
  * Admin: Refund Request reject
  */
 export const rejectRefund = async (refundId: string, adminId: string, reason: string) => {
-    return await withTransaction(async (session) => {
+    const result = await withTransaction(async (session) => {
         // Finding a Refund Request
-        const refund = await Refund.findById(refundId).session(session);
+        const refund = await Refund.findById(refundId).populate('user').session(session);
         if (!refund || refund.status !== 'requested') {
             throw new AppError("Refund request not found or already processed", 404);
         }
@@ -87,4 +99,15 @@ export const rejectRefund = async (refundId: string, adminId: string, reason: st
 
         return refund;
     });
+
+    if (result) {
+        const user = result.user as any;
+        sendEmail({
+            email: user.email,
+            subject: `[LaptopVerse] Update regarding your refund request`,
+            html: getRefundRejectionTemplate(user.name, result.order.toString(), reason)
+        });
+    }
+
+    return result;
 };
