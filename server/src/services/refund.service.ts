@@ -14,7 +14,7 @@ export const approveRefund = async (refundId: string, adminId: string, note: str
     const result = await withTransaction(async (session) => {
         // Find and check the refund request
         const refund = await Refund.findById(refundId).populate('user').session(session);
-        if (!refund || refund.status !== 'requested') {
+        if (!refund || refund.status !== 'Requested') {
             throw new AppError("Invalid or already processed refund request", 400);
         }
 
@@ -28,7 +28,7 @@ export const approveRefund = async (refundId: string, adminId: string, note: str
         }
 
         // Changing Refund Status to Completed
-        refund.status = 'completed';
+        refund.status = 'Completed';
         refund.adminNote = note;
         refund.processedBy = adminId as any;
         await refund.save({ session });
@@ -75,12 +75,12 @@ export const rejectRefund = async (refundId: string, adminId: string, reason: st
     const result = await withTransaction(async (session) => {
         // Finding a Refund Request
         const refund = await Refund.findById(refundId).populate('user').session(session);
-        if (!refund || refund.status !== 'requested') {
+        if (!refund || refund.status !== 'Requested') {
             throw new AppError("Refund request not found or already processed", 404);
         }
 
         // Changing the status to Rejected
-        refund.status = 'rejected';
+        refund.status = 'Rejected';
         refund.adminNote = reason;
         refund.processedBy = adminId as any;
         await refund.save({ session });
