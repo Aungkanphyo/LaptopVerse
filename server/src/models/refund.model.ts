@@ -10,7 +10,7 @@ export interface IRefund extends Document {
     }[];
     totalRefundAmount: number;
     reason: string;
-    status: 'requested' | 'processing' | 'completed' | 'rejected';
+    status: 'Requested' | 'Processing' | 'Completed' | 'Rejected';
     adminNote?: string;
     processedBy?: mongoose.Types.ObjectId;
 }
@@ -25,7 +25,7 @@ const RefundSchema = new Schema<IRefund>({
     }],
     totalRefundAmount: { type: Number, required: true },
     reason: { type: String, required: true },
-    status: { type: String, enum: ['requested', 'processing', 'completed', 'rejected'], default: 'requested' },
+    status: { type: String, enum: ['Requested', 'Processing', 'Completed', 'Rejected'], default: 'Requested' },
     adminNote: { type: String },
     processedBy: { type: Schema.Types.ObjectId, ref: 'User' }
 }, { timestamps: true });
