@@ -92,3 +92,60 @@ export const getDashboardStats = async () => {
         topSellingProducts: topProducts
     }
 };
+
+/**
+ * Admin: Monthly Sales Trend Calculation
+ * We will take the last 12 months of data
+ */
+export const getMonthlySalesTrend = async () => {
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+    twelveMonthsAgo.setDate(1);
+    twelveMonthsAgo.setHours(0, 0, 0, 0);
+
+    return await Order.aggregate([
+        // Only orders from the last 12 months will be accepted. Orders must not have been cancelled.
+        {
+            $match: {
+                createdAt: { $gte: twelveMonthsAgo },
+                orderStatus: { $ne: "Cancelled" }
+            }
+        },
+        // Extracting month and year from date
+        {
+            $project: {
+                year: { $year: "$createdAt" },
+                month: { $month: "$createdAt" },
+                totalPrice: 1
+            }
+        },
+        {
+            $group: {
+                _id: { year: "$year", month: "$month" },
+                totalRevenue: { $sum: "$totalPrice" },
+                orderCount: { $sum: 1 }
+            }
+        },
+        // Sorting (by year and month)
+        {
+            $sort: { "_id.year": 1, "_id.month": 1 }
+        },
+        // Clear output format editing
+        {
+            $project: {
+                _id: 0,
+                year: "$_id.year",
+                month: "$_id.month",
+                revenue: "$totalRevenue",
+                orders: "$orderCount",
+                date: {
+                    $concat: [
+                        { $toString: "$_id.year" },
+                        "-",
+                        { $toString: "$_id.month" }
+                    ]
+                }
+            }
+        }
+    ]);
+};
