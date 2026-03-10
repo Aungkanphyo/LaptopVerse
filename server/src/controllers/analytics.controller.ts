@@ -7,11 +7,17 @@ import * as analyticsService from "../services/analytics.service";
  * @route GET /api/v1/admin/analytics/dashboard
  */
 export const getDashboardOverview = asyncHandler(async (req: Request, res: Response) => {
-    const stats = await analyticsService.getDashboardStats();
+    const [stats, salesTrend] = await Promise.all([
+        analyticsService.getDashboardStats(),
+        analyticsService.getMonthlySalesTrend()
+    ]);
 
     res.status(200).json({
         success: true,
         message: "Dashboard statistics retrieved successfully",
-        data: stats
+        data: {
+            ...stats,
+            salesTrend
+        }
     });
 });
