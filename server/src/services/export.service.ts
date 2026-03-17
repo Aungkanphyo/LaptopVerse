@@ -11,6 +11,7 @@ export const getOrderExportStream = (startDate?: string, endDate?: string) => {
     const mongooseCursor = Order.find(query)
         .populate('user', 'fullName email') // Populate user details
         .sort({ createdAt: -1 }) // Sort by creation date (newest first)
+        .lean() // Use lean for faster read-only queries
         .cursor({ batchSize: 1000 }); // Set batch size for efficient streaming
 
     const transformer = new Transform({

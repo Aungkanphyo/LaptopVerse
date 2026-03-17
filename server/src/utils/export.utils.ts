@@ -9,6 +9,7 @@ export const createCsvTransformStream = (fields: string[]) => {
             fields,
             withBOM: true, // avoid losing Myanmaravoid losing Myanmar or special characters in Excel or special characters in Excel
         },
+        {},
         { objectMode: true }
     );
 };
