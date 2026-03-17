@@ -30,7 +30,9 @@ router.route('/coupons/:id')
     .delete(couponController.deleteCoupon); // Delete coupon
 
 // Analytics & Reporting
-router.route('/analytics/dashboard')
-    .get(analyticsController.getDashboardOverview)
+router.get('/analytics/dashboard', analyticsController.getDashboardOverview);
+
+// CSV Export Route
+router.get('/analytics/export-orders', analyticsController.exportOrderReport);
 
 export default router;
