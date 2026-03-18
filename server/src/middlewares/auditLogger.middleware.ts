@@ -26,6 +26,10 @@ const maskSensitiveData = (data: any) => {
 };
 
 export const auditLogger = (req: Request, res: Response, next: NextFunction) => {
+    // Log if it is a GET request but the URL contains 'export' (or Sensitive GETs)
+    const isSensitiveGet = req.method === "GET" && req.originalUrl.includes("export");
+
+    // Regular GET requests will be skipped, but exports will be recorded.
     if(req.method === "GET") return next();
 
     res.on("finish", async() => {
@@ -42,7 +46,7 @@ export const auditLogger = (req: Request, res: Response, next: NextFunction) => 
                     userAgent: req.headers["user-agent"] || "",
                     details: {
                         path: req.originalUrl,
-                        body: filteredBody,
+                        body: req.method === "GET" ? req.query : filteredBody, // If GET, Query param will be remembered.
                         method: req.method
                     }
                 });
