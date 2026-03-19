@@ -30,7 +30,7 @@ export const auditLogger = (req: Request, res: Response, next: NextFunction) => 
     const isSensitiveGet = req.method === "GET" && req.originalUrl.includes("export");
 
     // Regular GET requests will be skipped, but exports will be recorded.
-    if(req.method === "GET") return next();
+    if(req.method === "GET" && !isSensitiveGet) return next();
 
     res.on("finish", async() => {
         if(res.statusCode >= 200 && res.statusCode < 300) {
