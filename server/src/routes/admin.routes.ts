@@ -4,6 +4,7 @@ import { authorize, protect } from "../middlewares/auth.middleware";
 import { auditLogger } from "../middlewares/auditLogger.middleware";
 import * as couponController from "../controllers/coupon.controller";
 import * as analyticsController from "../controllers/analytics.controller";
+import * as activityLogController from "../controllers/activityLog.controller";
 
 const router = Router();
 
@@ -34,5 +35,8 @@ router.get('/analytics/dashboard', analyticsController.getDashboardOverview);
 
 // CSV Export Route
 router.get('/analytics/export-orders', analyticsController.exportOrderReport);
+
+// Activity Logs (Audit Trail)
+router.get('/activity-logs', activityLogController.getActivityLogs); // Get activity logs with filtering and pagination
 
 export default router;
