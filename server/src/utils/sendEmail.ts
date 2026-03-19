@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 interface EmailOptions {
     email: string;
     subject: string;
-    message: string;
+    message?: string;
     html?: string;
 }
 
@@ -18,7 +18,7 @@ const sendEmail = async (options: EmailOptions) => {
         },
     });
 
-    // Email ထဲမှာထည့်ပို့မယ့်အကြောင်းအရာတွေဖြစ်ပါတယ်
+    // contents to be included in the email
     const mailOptions = {
         from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`,
         to: options.email,

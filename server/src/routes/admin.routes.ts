@@ -3,6 +3,7 @@ import { getAllUsersList, getDashboardOverview, updateUserRole, updateUserStatus
 import { authorize, protect } from "../middlewares/auth.middleware";
 import { auditLogger } from "../middlewares/auditLogger.middleware";
 import * as couponController from "../controllers/coupon.controller";
+import * as analyticsController from "../controllers/analytics.controller";
 
 const router = Router();
 
@@ -27,5 +28,11 @@ router.route('/coupons')
 router.route('/coupons/:id')
     .put(couponController.updateCoupon) // Update coupon details
     .delete(couponController.deleteCoupon); // Delete coupon
+
+// Analytics & Reporting
+router.get('/analytics/dashboard', analyticsController.getDashboardOverview);
+
+// CSV Export Route
+router.get('/analytics/export-orders', analyticsController.exportOrderReport);
 
 export default router;
