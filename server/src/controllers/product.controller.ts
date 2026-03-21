@@ -276,6 +276,7 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response, nex
     const productId = req.query.productId as string;
     const reviewId = req.query.id as string; // Review ID to delete
     const currentUserId = req.userId?.toString();
+    const currentUserRole = req.user?.role;
 
     const product = await Product.findById(productId);
 
@@ -284,32 +285,32 @@ export const deleteReview = asyncHandler(async (req: Request, res: Response, nex
     }
 
     const reviewToDelete = product.reviews.find(
-        (rev) => rev._id?.toString() === reviewId.toString()
+        (rev) => rev._id?.toString() === reviewId
     );
 
     if (!reviewToDelete) {
         return next(new AppError('Review not found or already deleted', 404));
     };
 
-    if (reviewToDelete.user.toString() !== currentUserId) {
+    // Only the review owner or admin can delete it.
+    const isOwner = reviewToDelete.user.toString() === currentUserId;
+    const isAdmin = currentUserRole === 'admin';
+    if (!isOwner && !isAdmin) {
         return next(
-            new AppError('You are not authorized to delete this review. Only the review owner can delete it.', 403)
+            new AppError('Unauthorized to delete this review', 403)
         );
     }
 
     const reviews = product.reviews.filter(
-        (rev) => rev._id?.toString() !== reviewId.toString()
+        (rev) => rev._id?.toString() !== reviewId
     );
 
     // Recalculate Rating
-    let avg = 0;
     let ratings = 0;
-
     if (reviews.length > 0) {
-        reviews.forEach((rev) => {
-            avg += rev.rating;
-        });
-        ratings = avg / reviews.length;
+        const totalRating = reviews.reduce((acc, item) => item.rating + acc, 0);
+        // Only takes 1 decimal place (eg, 4.3)
+        ratings = Math.round((totalRating / reviews.length) * 10) / 10;
     }
     const numOfReviews = reviews.length;
 
