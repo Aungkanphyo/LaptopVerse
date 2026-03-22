@@ -10,11 +10,15 @@ import productRouter from './routes/product.routes';
 import orderRouter from './routes/order.routes';
 import paymentRoutes from './routes/payment.routes';
 import adminRoutes from './routes/admin.routes';
+import { globalLimiter } from './middlewares/rateLimiter.middleware';
 
 const app: Express = express();
 
 // Security Middleware
 app.use(helmet());
+
+// Global Rate Limiting (DDoS Protection)
+app.use('/api', globalLimiter);
 
 // CORS Configuration (To connect with React)
 app.use(cors({
