@@ -19,8 +19,8 @@ export interface IProductDocument extends Document {
     description: string;
     price: number;
     images: IImage[];
-    category: string;
-    brand: string;
+    category: mongoose.Types.ObjectId;
+    brand: mongoose.Types.ObjectId;
     stock: number;
     processor: string; // e.g., Intel Core i7, AMD Ryzen 7
     ram: string;       // e.g., 16GB DDR4
@@ -64,7 +64,7 @@ const reviewSchema: Schema<IReview> = new Schema({
         timestamps: true,
     });
 
-const productSchema: Schema<IProductDocument> = new Schema({
+const productSchema = new mongoose.Schema<IProductDocument>({
     name: {
         type: String,
         required: [true, 'Please enter product name'],
@@ -93,18 +93,14 @@ const productSchema: Schema<IProductDocument> = new Schema({
         }
     ],
     category: {
-        type: String,
-        required: [true, 'Please select category for this product'],
-        trim: true,
-        lowercase: true,
-        enum: {
-            values: ['gaming', 'business', 'creator', 'basic'],
-            message: 'Please select correct category for product',
-        },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Cateory',
+        required: [true, 'Please select a category for this product'],
     },
     brand: {
-        type: String,
-        required: [true, 'Please enter product brand'],
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Brand',
+        required: [true, 'Please select a brand for this product'],
     },
     stock: {
         type: Number,
