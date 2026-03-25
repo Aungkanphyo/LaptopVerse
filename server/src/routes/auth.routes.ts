@@ -2,8 +2,15 @@ import { Router } from "express";
 import * as authController from '../controllers/auth.controller';
 import { loginSchema, registerSchema, validate, ValidationSource } from "../middlewares/validation";
 import { authLimiter } from "../middlewares/rateLimiter.middleware";
+import * as userController from '../controllers/user.controller';
+import { protect } from "../middlewares/auth.middleware";
 
 const router = Router();
+
+// User Profile Routes (Protected)
+router.get('/me', protect, userController.getUserProfile);
+router.put('/me/update', protect, userController.updateProfile);
+
 
 // Register Route
 // POST /api/v1/auth/register
