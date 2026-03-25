@@ -5,6 +5,9 @@ import { auditLogger } from "../middlewares/auditLogger.middleware";
 import * as couponController from "../controllers/coupon.controller";
 import * as analyticsController from "../controllers/analytics.controller";
 import * as activityLogController from "../controllers/activityLog.controller";
+import { exportLimiter } from '../middlewares/rateLimiter.middleware';
+import * as categoryController from "../controllers/category.controller";
+import * as brandController from "../controllers/brand.controller";
 
 const router = Router();
 
@@ -34,9 +37,12 @@ router.route('/coupons/:id')
 router.get('/analytics/dashboard', analyticsController.getDashboardOverview);
 
 // CSV Export Route
-router.get('/analytics/export-orders', analyticsController.exportOrderReport);
+router.get('/analytics/export-orders', exportLimiter, analyticsController.exportOrderReport);
 
 // Activity Logs (Audit Trail)
 router.get('/activity-logs', activityLogController.getActivityLogs); // Get activity logs with filtering and pagination
+
+router.post('/categories', categoryController.createCategory);
+router.post('/brands', brandController.createBrand);
 
 export default router;
