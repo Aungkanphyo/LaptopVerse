@@ -12,8 +12,9 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         // Save User Data in Store after Login
-        setCredentials: (state, action: PayloadAction<{ user: IUser }>) => {
+        setCredentials: (state, action: PayloadAction<{ user: IUser; accessToken: string }>) => {
             state.user = action.payload.user;
+            state.accessToken = action.payload.accessToken;
             state.isAuthenticated = true;
         },
         logout: (state) => {
