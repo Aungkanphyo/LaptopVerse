@@ -16,6 +16,15 @@ const Search = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.trim() === "") {
+      navigate("/");
+    }
+  };
+
   // call live data 
   const { data, isFetching } = useGetProductsQuery(
     { keyword: debouncedTerm, limit: 5 },
@@ -47,10 +56,7 @@ const Search = () => {
           value={searchTerm}
           placeholder="Search for laptops..."
           className="w-full pl-10 pr-4 rounded-full bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setIsOpen(true);
-          }}
+          onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
         />
         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
