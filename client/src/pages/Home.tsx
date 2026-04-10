@@ -3,6 +3,7 @@ import { useGetProductsQuery } from '../features/products/productApiSlice';
 import ProductCard from '../features/products/components/ProductCard';
 import ProductSkeleton from '../features/products/components/ProductSkeleton';
 import type { IProduct } from '@/types/product.types';
+import Pagination from '@/components/common/Pagination';
 
 const Home = () => {
     // Reading Query Parameters from a URL (e.g. ?keyword=macbook&category=gaming)
@@ -41,7 +42,7 @@ const Home = () => {
             )}
 
             {/* Product Grid Area */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 {showLoading ? (
                     /* show 8 skeleton */
                     Array.from({ length: 8 }).map((_, index) => (
@@ -61,6 +62,10 @@ const Home = () => {
             </div>
 
             {/* TODO: Pagination Component နေရာ */}
+            {data && (
+                <Pagination totalItems={data.total} itemsPerPage={8}/>
+            )}
+
         </div>
     );
 };
