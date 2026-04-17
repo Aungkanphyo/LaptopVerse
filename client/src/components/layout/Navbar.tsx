@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux.hooks"
 import { useLogoutMutation } from "../../features/auth/authApiSlice";
 import { logout } from "../../features/auth/authSlice";
+import Search from "./Search";
 
 const Navbar = () => {
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
@@ -26,6 +27,10 @@ const Navbar = () => {
                 <Link to="/" className="flex items-center gap-2">
                     <span className="text-2xl font-extrabold text-blue-600">LaptopVerse</span>
                 </Link>
+
+                <div className="flex-1 flex justify-center">
+                    <Search/>
+                </div>
 
                 {/* Navigation Links based on Auth State */}
                 <div className="flex items-center gap-4">
