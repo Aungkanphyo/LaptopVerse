@@ -43,7 +43,7 @@ export interface IProductResponse {
     success: boolean;
     count: number;
     total: number;
-    products: IProduct[];
+    product: IProduct[];
 }
 
 export interface ISingleProductResponse {
