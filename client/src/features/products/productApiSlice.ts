@@ -14,7 +14,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
             providesTags: (result) =>
                 result
                     ? [
-                        ...result.product.map(({ _id }) => ({ type: 'Product' as const, id: _id })),
+                        ...result.products.map(({ _id }) => ({ type: 'Product' as const, id: _id })),
                         { type: 'Product', id: 'LIST' },
                     ]
                     : [{ type: 'Product', id: 'LIST'}]

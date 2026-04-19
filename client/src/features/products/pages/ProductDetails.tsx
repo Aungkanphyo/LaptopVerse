@@ -4,6 +4,7 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductInfo } from "../components/ProductInfo";
 import SpecGrid from "../components/SpecGrid";
+import ImageGallery from "../components/ImageGallery";
 
 
 const ProductDetails = () => {
@@ -41,15 +42,8 @@ const ProductDetails = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
                 {/* Left Side: Image Display */}
-                <div className="sticky top-24 space-y-4">
-                    <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-inner">
-                        <img
-                            src={product.images[0]?.url || "https://via.placeholder.com/600"}
-                            alt={product.name}
-                            className="w-full h-full object-contain p-8 hover:scale-105 transition-transform duration-500"
-                        />
-                    </div>
-                    {/* TODO: Image Thumbnail Gallery later */}
+                <div className="sticky top-24">
+                    <ImageGallery images={product.images} />
                 </div>
 
                 {/* Right Side: Content */}
