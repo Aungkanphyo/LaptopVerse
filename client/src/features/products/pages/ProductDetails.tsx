@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ProductInfo } from "../components/ProductInfo";
 import SpecGrid from "../components/SpecGrid";
 import ImageGallery from "../components/ImageGallery";
+import ProductReviews from "../components/ProductReviews";
 
 
 const ProductDetails = () => {
@@ -42,7 +43,7 @@ const ProductDetails = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
                 {/* Left Side: Image Display */}
-                <div className="sticky top-24">
+                <div className="lg:sticky lg:top-24 h-auto lg:h-[calc(100vh-6rem)] overflow-y-auto">
                     <ImageGallery images={product.images} />
                 </div>
 
@@ -52,6 +53,8 @@ const ProductDetails = () => {
                     <SpecGrid product={product} />
                 </div>
             </div>
+
+            <ProductReviews product={product}/>
         </div>
     )
 }
