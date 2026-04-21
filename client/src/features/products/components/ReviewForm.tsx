@@ -40,7 +40,7 @@ export const ReviewForm = ({ productId }: { productId: string }) => {
           onMouseEnter={() => setHover(star)}
           onMouseLeave={() => setHover(0)}
           >
-            <Star className={`size-6 ${
+            <Star className={`size-6 ${ 
               star <= (hover || rating) ? "fill-amber-400 text-amber-500" : "text-gray-300"
               }`}/>
           </button>
