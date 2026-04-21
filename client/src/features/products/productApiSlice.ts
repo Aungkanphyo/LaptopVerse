@@ -14,7 +14,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
             providesTags: (result) =>
                 result
                     ? [
-                        ...result.product.map(({ _id }) => ({ type: 'Product' as const, id: _id })),
+                        ...result.products.map(({ _id }) => ({ type: 'Product' as const, id: _id })),
                         { type: 'Product', id: 'LIST' },
                     ]
                     : [{ type: 'Product', id: 'LIST'}]
@@ -27,8 +27,8 @@ export const productApiSlice = apiSlice.injectEndpoints({
 
         createReview: builder.mutation<IReviewResponse, { rating: number; comment: string; productId: string }>({
             query: (body) => ({
-                url: '/products/reviews',
-                method: 'POST',
+                url: '/products/review',
+                method: 'PUT',
                 body,
             }),
             invalidatesTags: (_result, _error, { productId }) => [
