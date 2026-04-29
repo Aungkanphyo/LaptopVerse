@@ -5,6 +5,7 @@ import { useAppDispatch } from "@/hooks/redux.hooks";
 import type { IProduct } from "@/types/product.types";
 import { ShieldCheck, ShoppingCart, Star, Truck } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -16,9 +17,13 @@ export const ProductInfo = ({ product }: { product: IProduct }) => {
     const dispatch = useAppDispatch();
 
     const addToCartHandler = () => {
-        console.log("working");
-        dispatch(addToCart({...product, qty}))
-    }
+        dispatch(addToCart({...product, qty}));
+
+        toast.success("Added to cart successfully", {
+            description: `${product.name} (${qty} items)`,
+            duration: 3000,
+        });
+    };
     
     return (
         <div className="flex flex-col gap-6">
