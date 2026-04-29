@@ -16,8 +16,10 @@ export const ProductInfo = ({ product }: { product: IProduct }) => {
     const dispatch = useAppDispatch();
 
     const addToCartHandler = () => {
+        console.log("working");
         dispatch(addToCart({...product, qty}))
     }
+    
     return (
         <div className="flex flex-col gap-6">
             <div>
