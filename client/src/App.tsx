@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import ProductDetails from "./features/products/pages/ProductDetails";
 import CartScreen from "./features/cart/CartScreen";
 import { Toaster } from "sonner";
+import ShippingScreen from "./features/cart/ShippingScreen";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "cart",
         element: <CartScreen/>
+      },
+      {
+        path: "/shipping",
+        element: <ShippingScreen/>
       }
     ]
   }

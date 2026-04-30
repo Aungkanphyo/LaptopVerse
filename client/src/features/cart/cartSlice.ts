@@ -1,4 +1,4 @@
-import type { ICartItem, ICartState } from "@/types/cart.types";
+import type { ICartItem, ICartState, IShippingInfo } from "@/types/cart.types";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { updateCart } from "./cartUtils";
 
@@ -28,9 +28,13 @@ const cartSlice = createSlice({
         clearCartItems: (state) => {
             state.cartItems = [];
             return updateCart(state);
+        },
+        saveShippingInfo: (state, action: PayloadAction<IShippingInfo>) => {
+            state.shippingInfo = action.payload;
+            localStorage.setItem("cart", JSON.stringify(state));
         }
     }
 });
 
-export const { addToCart, removeFromCart, clearCartItems } = cartSlice.actions;
+export const { addToCart, removeFromCart, clearCartItems, saveShippingInfo } = cartSlice.actions;
 export default cartSlice.reducer;
