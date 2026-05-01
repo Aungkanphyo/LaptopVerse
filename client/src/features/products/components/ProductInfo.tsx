@@ -1,7 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { addToCart } from "@/features/cart/cartSlice";
+import { useAppDispatch } from "@/hooks/redux.hooks";
 import type { IProduct } from "@/types/product.types";
 import { ShieldCheck, ShoppingCart, Star, Truck } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -9,6 +13,18 @@ const formatter = new Intl.NumberFormat('en-US', {
 });
 
 export const ProductInfo = ({ product }: { product: IProduct }) => {
+    const [qty, setQty] = useState(1);
+    const dispatch = useAppDispatch();
+
+    const addToCartHandler = () => {
+        dispatch(addToCart({...product, qty}));
+
+        toast.success("Added to cart successfully", {
+            description: `${product.name} (${qty} items)`,
+            duration: 3000,
+        });
+    };
+    
     return (
         <div className="flex flex-col gap-6">
             <div>
@@ -32,8 +48,21 @@ export const ProductInfo = ({ product }: { product: IProduct }) => {
 
             <p className="text-gray-600 leading-relaxed max-w-xl">{product.description}</p>
 
+            <div className="flex items-center gap-4 mb-6">
+                <span className="font-semibold">Quantity:</span>
+                <select 
+                    value={qty}
+                    onChange={(e) => setQty(Number(e.target.value))}
+                    className="border rounded p-2"
+                >
+                    {[...Array(product.stock).keys()].map((x) => (
+                        <option key={x+1} value={x+1}>{x+1}</option>
+                    ))}
+                </select>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-100">
-                <Button size="lg" className="flex-1 gap-2 h-14 text-lg shadow-lg shadow-blue-100" disabled={product.stock <= 0}>
+                <Button onClick={addToCartHandler} size="lg" className="flex-1 gap-2 h-14 text-lg shadow-lg shadow-blue-100" disabled={product.stock <= 0}>
                     <ShoppingCart className="size-5" /> Add to Cart
                 </Button>
             </div>

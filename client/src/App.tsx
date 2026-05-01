@@ -4,6 +4,9 @@ import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
 import Home from "./pages/Home";
 import ProductDetails from "./features/products/pages/ProductDetails";
+import CartScreen from "./features/cart/CartScreen";
+import { Toaster } from "sonner";
+import ShippingScreen from "./features/cart/ShippingScreen";
 
 const router = createBrowserRouter([
   {
@@ -25,13 +28,26 @@ const router = createBrowserRouter([
       {
         path: "products/:id",
         element: <ProductDetails/>
+      },
+      {
+        path: "cart",
+        element: <CartScreen/>
+      },
+      {
+        path: "/shipping",
+        element: <ShippingScreen/>
       }
     ]
   }
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <Toaster position="top-center" richColors closeButton />
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default App;

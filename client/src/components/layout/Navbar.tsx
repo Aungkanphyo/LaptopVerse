@@ -3,12 +3,16 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux.hooks"
 import { useLogoutMutation } from "../../features/auth/authApiSlice";
 import { logout } from "../../features/auth/authSlice";
 import Search from "./Search";
+import { ShoppingCart } from "lucide-react";
 
 const Navbar = () => {
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+    const {cartItems} = useAppSelector((state) => state.cart);
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [logoutUser] = useLogoutMutation();
+
+    const cartCount = cartItems.reduce((acc, item) => acc + item.qty, 0);
 
     const handleLogout = async () => {
         try {
@@ -32,8 +36,19 @@ const Navbar = () => {
                     <Search/>
                 </div>
 
-                {/* Navigation Links based on Auth State */}
-                <div className="flex items-center gap-4">
+
+                {/* Right menu */}
+                <div className="flex items-center gap-5">
+                    {/* Cart Icon with Badge */}
+                    <Link to="/cart" className="relative p-2 hover:bg-gray-50 rounded-full transition-colors group">
+                        <ShoppingCart className="size-6 text-gray-700 group-hover:text-blue-600" />
+                        {cartCount > 0 &&(
+                            <span className="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-bold size-5 flex items-center justify-center rounded-full border-2 border-white">
+                                {cartCount}
+                            </span>
+                        )}
+                    </Link>
+
                     {isAuthenticated && user ?(
                         <>
                             <span className="text-sm font-medium text-gray-700">
