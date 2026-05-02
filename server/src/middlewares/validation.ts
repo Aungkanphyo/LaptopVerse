@@ -112,3 +112,30 @@ export const loginSchema = z.object({
     // Login မှာ password length မစစ်တာက Security Best Practice ပါ (User Enumeration ကာကွယ်ရန်)
     // ဒါပေမဲ့ required ဖြစ်တာကိုတော့ စစ်ရပါမယ်။
 });
+
+/**
+ * --------------------------------------------------------------------------
+ * Manual Payment Settings Schemas (Admin)
+ * --------------------------------------------------------------------------
+ */
+export const manualPaymentSettingsSchema = z.object({
+    enabled: z.boolean(),
+    instructions: z
+        .string()
+        .trim()
+        .min(1, "Instructions are required")
+        .max(2000, "Instructions must be at most 2000 characters"),
+    accounts: z
+        .array(
+            z.object({
+                provider: z.enum(["KPay", "AYA Pay", "Wave Money", "UAB Pay", "CB Pay", "Other"]),
+                accountName: z.string().trim().min(1, "Account name is required").max(120),
+                accountNumber: z.string().trim().min(1, "Account number is required").max(64),
+                phoneNumber: z.string().trim().max(32).optional(),
+                note: z.string().trim().max(200).optional(),
+                isActive: z.boolean().default(true),
+                sortOrder: z.number().int().min(0).max(1000).default(0),
+            })
+        )
+        .max(50, "Too many accounts"),
+});

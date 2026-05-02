@@ -19,4 +19,7 @@ export interface ICartState {
     shippingPrice: number;
     taxPrice: number;
     totalPrice: number;
+    paymentMethod?: 'manual_transfer';
+    manualTransferProvider?: string;
+    manualTransferReference?: string;
 }

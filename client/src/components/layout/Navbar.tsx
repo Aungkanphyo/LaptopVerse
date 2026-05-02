@@ -54,6 +54,14 @@ const Navbar = () => {
                             <span className="text-sm font-medium text-gray-700">
                                 Hi, {user.fullName}
                             </span>
+                            {user.role === 'admin' && (
+                                <Link
+                                    to="/admin/payment-settings"
+                                    className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
+                                >
+                                    Admin
+                                </Link>
+                            )}
                             <button onClick={handleLogout}
                                 className="text-sm font-medium text-red-600 hover:text-red-700 transition-colors px-3 py-2 rounded-md hover:bg-red-50" 
                             >
