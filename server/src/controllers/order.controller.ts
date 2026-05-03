@@ -21,6 +21,8 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
         totalPrice,
     } = req.body;
 
+    const isPaid = paymentInfo?.status === 'succeeded';
+
     const order = await Order.create({
         shippingInfo,
         orderItems,
@@ -29,7 +31,7 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
         taxPrice,
         shippingPrice,
         totalPrice,
-        paidAt: Date.now(),
+        ...(isPaid ? { paidAt: Date.now() } : {}),
         user: req.userId, // From protect middleware
     });
 

@@ -8,6 +8,8 @@ import * as activityLogController from "../controllers/activityLog.controller";
 import { exportLimiter } from '../middlewares/rateLimiter.middleware';
 import * as categoryController from "../controllers/category.controller";
 import * as brandController from "../controllers/brand.controller";
+import { manualPaymentSettingsSchema, validate } from "../middlewares/validation";
+import { getManualPaymentSettingsAdmin, updateManualPaymentSettingsAdmin } from "../controllers/manualPaymentSettings.controller";
 
 const router = Router();
 
@@ -22,16 +24,14 @@ router.get('/users', getAllUsersList);
 
 // User Management Routes
 router.put('/users/:id/role', updateUserRole);
-router.put('users/:id/status', updateUserStatus);
+router.put('/users/:id/status', updateUserStatus);
 
 // Coupon Management Routes
-router.route('/coupons')
-    .get(couponController.getAllCoupons) // Get all coupons with advanced filtering
-    .post(couponController.createCoupon); // Create new coupon
+router.get('/coupons', couponController.getAllCoupons); // Get all coupons with advanced filtering
+router.post('/coupons', couponController.createCoupon); // Create new coupon
 
-router.route('/coupons/:id')
-    .put(couponController.updateCoupon) // Update coupon details
-    .delete(couponController.deleteCoupon); // Delete coupon
+router.put('/coupons/:id', couponController.updateCoupon); // Update coupon details
+router.delete('/coupons/:id', couponController.deleteCoupon); // Delete coupon
 
 // Analytics & Reporting
 router.get('/analytics/dashboard', analyticsController.getDashboardOverview);
@@ -44,5 +44,9 @@ router.get('/activity-logs', activityLogController.getActivityLogs); // Get acti
 
 router.post('/categories', categoryController.createCategory);
 router.post('/brands', brandController.createBrand);
+
+// Manual Payment Settings (KPay / AYA Pay / Wave / etc.)
+router.get('/manual-payment', getManualPaymentSettingsAdmin);
+router.put('/manual-payment', validate(manualPaymentSettingsSchema), updateManualPaymentSettingsAdmin);
 
 export default router;

@@ -2,13 +2,23 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
+import Home from "./pages/Home";
+import ProductDetails from "./features/products/pages/ProductDetails";
+import CartScreen from "./features/cart/CartScreen";
+import { Toaster } from "sonner";
+import ShippingScreen from "./features/cart/ShippingScreen";
+import PaymentScreen from "./features/cart/PaymentScreen";
+import ManualPaymentSettings from "./pages/admin/ManualPaymentSettings";
+import { useAppSelector } from "./hooks/redux.hooks";
+import React from "react";
 
-const Home = () => (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-    <h1 className="text-4xl font-extrabold text-gray-900">Welcome to LaptopVerse</h1>
-    <p className="mt-4 text-lg text-gray-500">Your ultimate destination for high-performance laptops.</p>
-  </div>
-);
+const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
+  const { user, isAuthenticated } = useAppSelector((s) => s.auth);
+  if (!isAuthenticated || !user || user.role !== "admin") {
+    return <div className="container mx-auto px-4 py-10">Not authorized.</div>;
+  }
+  return <>{children}</>;
+};
 
 const router = createBrowserRouter([
   {
@@ -26,13 +36,42 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <Register/>,
+      },
+      {
+        path: "products/:id",
+        element: <ProductDetails/>
+      },
+      {
+        path: "cart",
+        element: <CartScreen/>
+      },
+      {
+        path: "/shipping",
+        element: <ShippingScreen/>
+      },
+      {
+        path: "/payment",
+        element: <PaymentScreen/>
+      },
+      {
+        path: "/admin/payment-settings",
+        element: (
+          <RequireAdmin>
+            <ManualPaymentSettings />
+          </RequireAdmin>
+        ),
       }
     ]
   }
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <Toaster position="top-center" richColors closeButton />
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default App;
