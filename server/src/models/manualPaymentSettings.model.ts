@@ -1,5 +1,8 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
+/** One logical document in MongoDB — do not use arbitrary strings with `findById` (ObjectId cast → 400). */
+export const MANUAL_PAYMENT_SETTINGS_SINGLETON_KEY = "default" as const;
+
 export type ManualPaymentProvider =
   | "KPay"
   | "AYA Pay"
@@ -19,6 +22,7 @@ export interface IManualPaymentAccount {
 }
 
 export interface IManualPaymentSettingsDocument extends Document {
+  singletonKey: typeof MANUAL_PAYMENT_SETTINGS_SINGLETON_KEY;
   enabled: boolean;
   instructions: string;
   accounts: IManualPaymentAccount[];
@@ -46,6 +50,14 @@ const manualPaymentAccountSchema = new Schema<IManualPaymentAccount>(
 
 const manualPaymentSettingsSchema = new Schema<IManualPaymentSettingsDocument>(
   {
+    singletonKey: {
+      type: String,
+      required: true,
+      unique: true,
+      default: MANUAL_PAYMENT_SETTINGS_SINGLETON_KEY,
+      enum: [MANUAL_PAYMENT_SETTINGS_SINGLETON_KEY],
+      trim: true,
+    },
     enabled: { type: Boolean, default: true },
     instructions: {
       type: String,
