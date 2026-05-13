@@ -1,5 +1,9 @@
 import type { ICartState } from "@/types/cart.types";
 
+export const getCartKey = (userId: string | undefined): string => {
+    return userId ? `cart_${userId}` : "cart_guest";
+}
+
 export const addDecimals = (num: number): number => {
     return Math.round(num * 100) / 100;
 }
@@ -17,8 +21,9 @@ export const updateCart = (state: ICartState) => {
     // calculate total price
     state.totalPrice = addDecimals(state.itemsPrice + state.shippingPrice + state.taxPrice);
 
+    const cartKey = getCartKey(state.userId);
     // save to localStorage
-    localStorage.setItem("cart", JSON.stringify(state));
+    localStorage.setItem(cartKey, JSON.stringify(state));
 
     return state;
 }
