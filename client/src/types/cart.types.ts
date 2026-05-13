@@ -13,6 +13,7 @@ export interface IShippingInfo {
 }
 
 export interface ICartState {
+    userId?: string;
     cartItems: ICartItem[];
     shippingInfo: IShippingInfo | null;
     itemsPrice: number;
