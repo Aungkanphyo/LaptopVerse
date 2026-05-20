@@ -60,7 +60,9 @@ LaptopVerse is a full-stack e-commerce platform for laptop shopping built as a m
 
 - Protected admin routes under `/api/v1/admin`.
 - Role-based authorization supporting `admin` and `manager` roles.
-- Product and order management features for administrators.
+- Product CRUD management for administrators and managers with image upload support.
+- Manual payment settings management for administrators.
+- Admin analytics and order administration capabilities.
 
 ## API Endpoints
 
@@ -72,11 +74,11 @@ Base path: `/api/v1`
 - `/payment` — payment checkout and webhook handling
 - `/admin` — admin-specific analytics and management endpoints
 
-Additional payment-related endpoints:
+Additional product admin endpoints:
 
-- `GET /payment/manual-info` — public manual transfer account information for checkout UI
-- `GET /admin/manual-payment` — get manual transfer settings (admin)
-- `PUT /admin/manual-payment` — update manual transfer settings (admin)
+- `POST /products/admin` — create new product (admin/manager)
+- `PUT /products/admin/:id` — update product (admin/manager)
+- `DELETE /products/admin/:id` — delete product (admin)
 
 ## Important Files
 
@@ -86,6 +88,9 @@ Additional payment-related endpoints:
 - `client/src/components/layout/MainLayout.tsx` — main application frame
 - `client/src/features/auth/pages/Login.tsx` and `Register.tsx`
 - `client/src/features/products/pages/ProductDetails.tsx`
+- `client/src/features/products/components/ProductForm.tsx` — reusable admin form
+- `client/src/pages/admin/ProductList.tsx` — product dashboard
+- `client/src/pages/admin/CreateProduct.tsx` and `EditProduct.tsx`
 - `client/src/features/cart/CartScreen.tsx`, `ShippingScreen.tsx`
 - `client/src/app/store.ts` — Redux store configuration
 - `client/src/services/apiSlice.ts` — API service layer

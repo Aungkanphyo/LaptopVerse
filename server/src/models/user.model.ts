@@ -6,7 +6,7 @@ export interface IUser {
     fullName: string;
     email: string;
     password?: string; // Google Auth users might not have a password initially
-    role: 'admin' | 'user';
+    role: 'admin' | 'manager' | 'user';
     isVerified: boolean;
     status: 'active' | 'banned' | 'deactivated';
     googleId?: string;
@@ -44,7 +44,7 @@ const UserSchema = new Schema<IUserDocument>(
         },
         role: {
             type: String,
-            enum: ['admin', 'user'],
+            enum: ['admin', 'manager', 'user'],
             default: 'user'
         },
         isVerified: {

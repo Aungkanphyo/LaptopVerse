@@ -36,7 +36,38 @@ export const productApiSlice = apiSlice.injectEndpoints({
             ],
         }),
 
-        // Admin-related mutations (Create, Update, Delete) will be added later in the Admin Panel
+        // Admin-related mutations (Create, Update, Delete)
+        createProduct: builder.mutation<ISingleProductResponse, FormData>({
+            query: (formData) => ({
+                url: '/products/admin',
+                method: 'POST',
+                body: formData,
+            }),
+            invalidatesTags: [{ type: 'Product', id: 'LIST' }],
+        }),
+
+        updateProduct: builder.mutation<ISingleProductResponse, { id: string; formData: FormData }>({
+            query: ({ id, formData }) => ({
+                url: `/products/admin/${id}`,
+                method: 'PUT',
+                body: formData,
+            }),
+            invalidatesTags: (_result, _error, { id }) => [
+                { type: 'Product', id },
+                { type: 'Product', id: 'LIST' },
+            ],
+        }),
+
+        deleteProduct: builder.mutation<{ success: boolean; message: string }, string>({
+            query: (id) => ({
+                url: `/products/admin/${id}`,
+                method: 'DELETE',
+            }),
+            invalidatesTags: (_result, _error, id) => [
+                { type: 'Product', id },
+                { type: 'Product', id: 'LIST' },
+            ],
+        }),
     })
 });
 
@@ -44,4 +75,7 @@ export const {
     useGetProductsQuery,
     useGetSingleProductQuery,
     useCreateReviewMutation,
+    useCreateProductMutation,
+    useUpdateProductMutation,
+    useDeleteProductMutation,
 } = productApiSlice;

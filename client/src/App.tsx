@@ -9,12 +9,15 @@ import { Toaster } from "sonner";
 import ShippingScreen from "./features/cart/ShippingScreen";
 import PaymentScreen from "./features/cart/PaymentScreen";
 import ManualPaymentSettings from "./pages/admin/ManualPaymentSettings";
+import ProductList from "./pages/admin/ProductList";
+import CreateProduct from "./pages/admin/CreateProduct";
+import EditProduct from "./pages/admin/EditProduct";
 import { useAppSelector } from "./hooks/redux.hooks";
 import React from "react";
 
 const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated } = useAppSelector((s) => s.auth);
-  if (!isAuthenticated || !user || user.role !== "admin") {
+  if (!isAuthenticated || !user || (user.role !== "admin" && user.role !== "manager")) {
     return <div className="container mx-auto px-4 py-10">Not authorized.</div>;
   }
   return <>{children}</>;
@@ -52,6 +55,38 @@ const router = createBrowserRouter([
       {
         path: "/payment",
         element: <PaymentScreen/>
+      },
+      {
+        path: "/admin",
+        element: (
+          <RequireAdmin>
+            <ProductList />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: "/admin/products",
+        element: (
+          <RequireAdmin>
+            <ProductList />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: "/admin/products/new",
+        element: (
+          <RequireAdmin>
+            <CreateProduct />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: "/admin/products/:id/edit",
+        element: (
+          <RequireAdmin>
+            <EditProduct />
+          </RequireAdmin>
+        ),
       },
       {
         path: "/admin/payment-settings",
