@@ -249,7 +249,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
                 <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={isLoading}>
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isLoading} className="min-w-[120px]">
+                <Button type="submit" disabled={isLoading} className="min-w-30">
                     {isLoading ? (
                         <>
                             <Loader2 className="size-4 mr-2 animate-spin" />
