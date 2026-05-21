@@ -17,7 +17,7 @@ export const ProductInfo = ({ product }: { product: IProduct }) => {
     const dispatch = useAppDispatch();
 
     const addToCartHandler = () => {
-        dispatch(addToCart({...product, qty}));
+        dispatch(addToCart({ ...product, qty }));
 
         toast.success("Added to cart successfully", {
             description: `${product.name} (${qty} items)`,

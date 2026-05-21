@@ -27,10 +27,11 @@ const ShippingScreen = () => {
     };
 
     return (
+        <div className="min-h-screen bg-[#F8FAFC]">
         <div className="container max-w-2xl mx-auto px-4 py-10">
-            <CheckoutSteps step1 step2 />
+            <CheckoutSteps currentStep={1} className="mb-8" />
 
-            <Card className="border-none shadow-xl">
+            <Card className="rounded-[2.5rem] border border-slate-200 bg-white shadow-xl">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold flex items-center gap-2">
                         <MapPin className="text-blue-600" /> Shipping Address
@@ -93,12 +94,13 @@ const ShippingScreen = () => {
                             </div>
                         </div>
 
-                        <Button type="submit" className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700">
+                        <Button type="submit" className="w-full h-12 text-lg text-white bg-blue-600 hover:bg-blue-700">
                             Continue to Payment
                         </Button>
                     </form>
                 </CardContent>
             </Card>
+        </div>
         </div>
     )
 }

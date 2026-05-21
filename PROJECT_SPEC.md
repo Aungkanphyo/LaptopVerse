@@ -125,7 +125,7 @@ Additional product admin endpoints:
 - JWT authentication
 - Passport Google OAuth
 - Cloudinary file uploads
-- Stripe payment integration
+- Payment integration
 - Zod validation
 
 ## Development Commands
@@ -154,7 +154,7 @@ Backend commands (server):
 
 ## Deployment Notes
 
-- Ensure environment variables are configured for MongoDB, Cloudinary, Stripe, JWT secrets, and client origin.
+- Ensure environment variables are configured for MongoDB, Cloudinary, JWT secrets, and client origin.
 - The backend listens on port `5000` by default.
 - CORS is configured to allow `http://localhost:5173`.
 - The client is served separately via Vite in development.

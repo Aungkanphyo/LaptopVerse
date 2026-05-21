@@ -23,7 +23,7 @@ export interface IOrderDocument extends Document {
     user: mongoose.Types.ObjectId; // User who placed the order
 
     paymentInfo: {
-        id: string; // Stripe Payment ID, etc.
+        id: string; // Payment gateway transaction ID
         status: string; // e.g., 'succeeded', 'pending'
     };
 
@@ -72,7 +72,7 @@ const orderSchema: Schema<IOrderDocument> = new Schema({
     },
 
     paymentInfo: {
-        id: { type: String }, // Stripe or other payment gateway ID
+        id: { type: String }, // Payment gateway transaction ID
         status: { type: String, default: 'pending' }, // e.g., 'succeeded', 'pending'
     },
 
