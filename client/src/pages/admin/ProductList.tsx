@@ -2,9 +2,10 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useGetProductsQuery, useDeleteProductMutation } from '../../features/products/productApiSlice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import Pagination from '@/components/common/Pagination';
-import { Edit, Trash2, Plus, Search } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Package, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ProductList = () => {
@@ -19,6 +20,31 @@ const ProductList = () => {
     });
 
     const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
+
+    // Calculate stats (in a real app, these might come from a separate API)
+    const stats = [
+        { 
+            label: 'Total Products', 
+            value: data?.total || 0, 
+            icon: Package, 
+            color: 'text-blue-600', 
+            bg: 'bg-blue-50' 
+        },
+        { 
+            label: 'In Stock', 
+            value: data?.products?.filter(p => p.stock > 0).length || 0, 
+            icon: CheckCircle2, 
+            color: 'text-emerald-600', 
+            bg: 'bg-emerald-50' 
+        },
+        { 
+            label: 'Out of Stock', 
+            value: data?.products?.filter(p => p.stock === 0).length || 0, 
+            icon: AlertTriangle, 
+            color: 'text-rose-600', 
+            bg: 'bg-rose-50' 
+        },
+    ];
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -46,13 +72,13 @@ const ProductList = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Manage Products</h1>
-                    <p className="text-sm text-gray-500">View, edit, and delete your store products.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Products</h1>
+                    <p className="text-muted-foreground mt-1">Manage your catalog, inventory and product information.</p>
                 </div>
-                <Button asChild>
+                <Button asChild className="rounded-full px-6">
                     <Link to="/admin/products/new">
                         <Plus className="size-4 mr-2" />
                         Add New Product
@@ -60,27 +86,49 @@ const ProductList = () => {
                 </Button>
             </div>
 
-            <Card className="overflow-hidden">
-                <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-                    <div className="relative max-w-sm">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {stats.map((stat, idx) => (
+                    <Card key={idx} className="border-none shadow-sm bg-white overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center gap-4">
+                                <div className={`size-12 rounded-2xl ${stat.bg} flex items-center justify-center`}>
+                                    <stat.icon className={`size-6 ${stat.color}`} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                                    <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            <Card className="border-none shadow-sm overflow-hidden bg-white">
+                <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="relative max-w-sm w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
                         <Input
-                            placeholder="Search products..."
-                            className="pl-9"
+                            placeholder="Search by name or category..."
+                            className="pl-9 rounded-full bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-primary/20"
                             value={keyword}
                             onChange={handleSearch}
                         />
                     </div>
+                    <div className="text-sm text-muted-foreground">
+                        Showing {data?.products?.length || 0} of {data?.total || 0} products
+                    </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-100">
+                    <table className="w-full text-left">
+                        <thead className="bg-gray-50/50 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b border-gray-100">
                             <tr>
-                                <th className="px-6 py-4">Product</th>
+                                <th className="px-6 py-4">Product Details</th>
                                 <th className="px-6 py-4">Category</th>
                                 <th className="px-6 py-4">Price</th>
-                                <th className="px-6 py-4">Stock</th>
+                                <th className="px-6 py-4">Stock Status</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -88,40 +136,63 @@ const ProductList = () => {
                             {isLoading || isFetching ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-48"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-24"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-12"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="size-10 rounded-lg bg-gray-100"></div>
+                                                <div className="h-4 bg-gray-100 rounded w-48"></div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-20"></div></td>
+                                        <td className="px-6 py-4 text-right"><div className="h-8 bg-gray-100 rounded w-20 ml-auto"></div></td>
                                     </tr>
                                 ))
                             ) : data?.products && data.products.length > 0 ? (
                                 data.products.map((product) => (
-                                    <tr key={product._id} className="hover:bg-gray-50 transition-colors">
+                                    <tr key={product._id} className="hover:bg-gray-50/50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="size-10 rounded border border-gray-100 overflow-hidden shrink-0 bg-gray-50">
+                                                <div className="size-12 rounded-xl border border-gray-100 overflow-hidden shrink-0 bg-gray-50 flex items-center justify-center">
                                                     {product.images?.[0] ? (
-                                                        <img src={product.images[0].url} alt={product.name} className="size-full object-contain" />
+                                                        <img src={product.images[0].url} alt={product.name} className="size-full object-contain p-1" />
                                                     ) : (
-                                                        <div className="size-full flex items-center justify-center text-gray-400 text-[10px]">No Image</div>
+                                                        <Package className="size-5 text-gray-300" />
                                                     )}
                                                 </div>
-                                                <div className="font-medium text-gray-900 line-clamp-1">{product.name}</div>
+                                                <div>
+                                                    <div className="font-semibold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</div>
+                                                    <div className="text-xs text-muted-foreground mt-0.5">ID: {product._id.slice(-6).toUpperCase()}</div>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-gray-600">{product.category}</td>
-                                        <td className="px-6 py-4 font-medium text-gray-900">${product.price.toLocaleString()}</td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                {product.stock} in stock
-                                            </span>
+                                            <Badge variant="outline" className="font-medium bg-gray-50/50">
+                                                {product.category}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-gray-900">${product.price.toLocaleString()}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {product.stock > 0 ? (
+                                                <div className="flex flex-col gap-1">
+                                                    <Badge className="w-fit bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100 shadow-none">
+                                                        In Stock
+                                                    </Badge>
+                                                    <span className="text-[10px] text-muted-foreground ml-1">{product.stock} units left</span>
+                                                </div>
+                                            ) : (
+                                                <Badge variant="destructive" className="bg-rose-50 text-rose-700 hover:bg-rose-50 border-rose-100 shadow-none">
+                                                    Out of Stock
+                                                </Badge>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" asChild>
+                                            <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button variant="ghost" size="icon" asChild className="rounded-full hover:bg-blue-50 hover:text-blue-600">
                                                     <Link to={`/admin/products/${product._id}/edit`}>
-                                                        <Edit className="size-4 text-blue-600" />
+                                                        <Edit className="size-4" />
                                                     </Link>
                                                 </Button>
                                                 <Button 
@@ -129,8 +200,9 @@ const ProductList = () => {
                                                     size="icon" 
                                                     onClick={() => handleDelete(product._id)}
                                                     disabled={isDeleting}
+                                                    className="rounded-full hover:bg-rose-50 hover:text-rose-600"
                                                 >
-                                                    <Trash2 className="size-4 text-red-600" />
+                                                    <Trash2 className="size-4" />
                                                 </Button>
                                             </div>
                                         </td>
@@ -138,17 +210,25 @@ const ProductList = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                                        No products found.
+                                    <td colSpan={5} className="px-6 py-20 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="size-16 rounded-full bg-gray-50 flex items-center justify-center">
+                                                <Package className="size-8 text-gray-300" />
+                                            </div>
+                                            <div className="text-gray-500 font-medium">No products found</div>
+                                            <p className="text-sm text-muted-foreground">Try adjusting your search or add a new product.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
-            </Card>
 
-            {data && <Pagination totalItems={data.total} itemsPerPage={10} />}
+                <div className="p-6 border-t border-gray-100">
+                    {data && <Pagination totalItems={data.total} itemsPerPage={10} />}
+                </div>
+            </Card>
         </div>
     );
 };

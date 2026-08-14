@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useCreateProductMutation } from '../../features/products/productApiSlice';
 import ProductForm from '../../features/products/components/ProductForm';
 import { toast } from 'sonner';
+import { ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const CreateProduct = () => {
     const navigate = useNavigate();
@@ -19,10 +21,20 @@ const CreateProduct = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Add New Product</h1>
-                <p className="text-sm text-gray-500">Fill in the details to list a new laptop.</p>
+        <div className="max-w-5xl mx-auto space-y-8">
+            <div className="flex flex-col gap-4">
+                <Button 
+                    variant="ghost" 
+                    className="w-fit -ml-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => navigate('/admin/products')}
+                >
+                    <ChevronLeft className="size-4 mr-1" />
+                    Back to Products
+                </Button>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Add New Product</h1>
+                    <p className="text-muted-foreground mt-1">Fill in the details to list a new laptop in your store.</p>
+                </div>
             </div>
 
             <ProductForm onSubmit={handleSubmit} isLoading={isLoading} />

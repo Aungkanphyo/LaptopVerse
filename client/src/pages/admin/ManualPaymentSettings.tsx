@@ -417,8 +417,8 @@ const ManualPaymentSettingsForm = ({
       </Card>
 
       {/* Sticky action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-50">
-        <div className="mx-auto max-w-4xl px-4 pb-4">
+      <div className="sticky bottom-4 z-50 mt-8">
+        <div className="mx-auto max-w-4xl px-4">
           <div className="rounded-[2rem] border border-slate-200 bg-white/80 backdrop-blur-xl shadow-[0_12px_40px_rgba(15,23,42,0.12)] px-5 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="inline-flex size-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm">
@@ -467,9 +467,8 @@ const ManualPaymentSettings = () => {
     useGetAdminManualPaymentSettingsQuery();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        {isLoading ? (
+    <div className="max-w-5xl mx-auto">
+      {isLoading ? (
           <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
             <div className="flex items-center gap-3 text-slate-700">
               <Loader2 className="size-5 animate-spin" />
@@ -495,7 +494,6 @@ const ManualPaymentSettings = () => {
             onSaved={() => refetch()}
           />
         )}
-      </div>
     </div>
   );
 };

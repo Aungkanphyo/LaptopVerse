@@ -58,15 +58,12 @@ export const productApiSlice = apiSlice.injectEndpoints({
             ],
         }),
 
-        deleteProduct: builder.mutation<{ success: boolean; message: string }, string>({
+        deleteProduct: builder.mutation<{ message: string }, string>({
             query: (id) => ({
                 url: `/products/admin/${id}`,
                 method: 'DELETE',
             }),
-            invalidatesTags: (_result, _error, id) => [
-                { type: 'Product', id },
-                { type: 'Product', id: 'LIST' },
-            ],
+            invalidatesTags: [{ type: 'Product', id: 'LIST' }],
         }),
     })
 });

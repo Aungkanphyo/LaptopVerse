@@ -12,16 +12,8 @@ import ManualPaymentSettings from "./pages/admin/ManualPaymentSettings";
 import ProductList from "./pages/admin/ProductList";
 import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
-import { useAppSelector } from "./hooks/redux.hooks";
-import React from "react";
 
-const RequireAdmin = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAuthenticated } = useAppSelector((s) => s.auth);
-  if (!isAuthenticated || !user || (user.role !== "admin" && user.role !== "manager")) {
-    return <div className="container mx-auto px-4 py-10">Not authorized.</div>;
-  }
-  return <>{children}</>;
-};
+import AdminLayout from "./components/layout/AdminLayout";
 
 const router = createBrowserRouter([
   {
@@ -56,45 +48,31 @@ const router = createBrowserRouter([
         path: "/payment",
         element: <PaymentScreen/>
       },
+    ]
+  },
+  {
+    path: "/admin",
+    element: <AdminLayout />,
+    children: [
       {
-        path: "/admin",
-        element: (
-          <RequireAdmin>
-            <ProductList />
-          </RequireAdmin>
-        ),
+        index: true,
+        element: <ProductList />,
       },
       {
-        path: "/admin/products",
-        element: (
-          <RequireAdmin>
-            <ProductList />
-          </RequireAdmin>
-        ),
+        path: "products",
+        element: <ProductList />,
       },
       {
-        path: "/admin/products/new",
-        element: (
-          <RequireAdmin>
-            <CreateProduct />
-          </RequireAdmin>
-        ),
+        path: "products/new",
+        element: <CreateProduct />,
       },
       {
-        path: "/admin/products/:id/edit",
-        element: (
-          <RequireAdmin>
-            <EditProduct />
-          </RequireAdmin>
-        ),
+        path: "products/:id/edit",
+        element: <EditProduct />,
       },
       {
-        path: "/admin/payment-settings",
-        element: (
-          <RequireAdmin>
-            <ManualPaymentSettings />
-          </RequireAdmin>
-        ),
+        path: "payment-settings",
+        element: <ManualPaymentSettings />,
       }
     ]
   }
