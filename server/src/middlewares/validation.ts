@@ -109,8 +109,29 @@ export const loginSchema = z.object({
     password: z
     .string({ required_error: "Password is required" })
     .min(1, "Password is required"),
-    // Login မှာ password length မစစ်တာက Security Best Practice ပါ (User Enumeration ကာကွယ်ရန်)
-    // ဒါပေမဲ့ required ဖြစ်တာကိုတော့ စစ်ရပါမယ်။
+    // Not checking the password length during login is a security best practice (to prevent user enumeration).
+    // However, you must check that the field is required.
+});
+
+// OTP Verification Schema
+export const verifyOtpSchema = z.object({
+    email: z
+        .string({ required_error: "Email is required" })
+        .email("Invalid email format")
+        .trim()
+        .toLowerCase(),
+    otp: z
+        .string({ required_error: "OTP code is required" })
+        .length(6, "OTP must be exactly 6 digits")
+});
+
+// Resend OTP Schema
+export const resendOtpSchema = z.object({
+    email: z
+        .string({ required_error: "Email is required" })
+        .email("Invalid email format")
+        .trim()
+        .toLowerCase()
 });
 
 /**

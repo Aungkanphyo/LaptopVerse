@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import { ILoginInput, IRegisterInput } from "../types/auth.types";
+import { ILoginInput, IRegisterInput, IResendOtpInput, IVerifyOtpInput } from "../types/auth.types";
 import * as authService from '../services/auth.service';
 import { clearTokensFromCookie, sendTokenAsCookie } from "../utils/jwt.utils";
+import { IUserDocument } from "../models/user.model";
 
 /**
  * @desc Registering a New User (POST /api/v1/auth/register)
@@ -16,19 +17,49 @@ export const register = asyncHandler(async (req: Request<{}, {}, IRegisterInput>
     // Call the Business Logic from the Service Layer
     const newUser = await authService.registerUser(data);
 
-    // Insert JWT Tokens into an HttpOnly Cookie
-    const { accessToken } = sendTokenAsCookie(res, newUser);
-
+    // Response will be returned to verify OTP without providing direct login
     res.status(201).json({
         success: true,
-        message: 'Registration successful. User logged in.',
+        message: "We've sent a verification code to your email.",
+        email: newUser.email,
+    });
+});
+
+/**
+ * @desc Verify OTP Email (POST /api/v1/auth/verify-email)
+ * @access Public
+ */
+export const verifyEmail = asyncHandler(async (req: Request<{}, {}, IVerifyOtpInput>, res: Response) => {
+    const { email, otp } = req.body;
+    const user = await authService.verifyEmailOTP(email, otp);
+
+    const { accessToken } = sendTokenAsCookie(res, user);
+
+    res.status(200).json({
+        success: true,
+        message: 'Email verified successfully. You are now logged in.',
         user: {
-            _id: newUser._id,
-            fullName: newUser.fullName,
-            email: newUser.email,
-            role: newUser.role
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            isVerified: user.isVerified
         },
         accessToken,
+    });
+});
+
+/**
+ * @desc Resend Verification OTP (POST /api/v1/auth/resend-otp)
+ * @access Public
+ */
+export const resendOTP = asyncHandler(async (req: Request<{}, {}, IResendOtpInput>, res: Response) => {
+    const { email } = req.body;
+    await authService.resendOTP(email);
+
+    res.status(200).json({
+        success: true,
+        message: 'A new OTP has been sent to your email.',
     });
 });
 
@@ -59,7 +90,23 @@ export const login = asyncHandler(async (req: Request<{}, {}, ILoginInput>, res:
 });
 
 /**
- * @desc User Logout လုပ်ခြင်း (POST /api/v1/auth/logout)
+ * @desc Google OAuth Callback Controller (GET /api/v1/auth/google/callback)
+ * @access Public
+ */
+export const googleCallback = asyncHandler(async (req: Request, res: Response) => {
+    const user = req.user as IUserDocument;
+    
+    if (!user) {
+        res.redirect(`${process.env.CLIENT_URL}/login?error=Google authentication failed`);
+        return;
+    }
+
+    sendTokenAsCookie(res, user);
+    res.redirect(`${process.env.CLIENT_URL}?auth=success`);
+});
+
+/**
+ * @desc User Logout (POST /api/v1/auth/logout)
  * @access Public (Client should clear cookies)
  */
 export const logout = asyncHandler(async (req: Request, res: Response) => {
@@ -78,7 +125,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
     const { email } = req.body;
 
-    if(!email) {
+    if (!email) {
         res.status(400);
         throw new Error('Please provide an email address');
     }

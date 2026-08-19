@@ -1,10 +1,10 @@
 import { useForm, type SubmitHandler } from 'react-hook-form';
-import { useAppDispatch } from '../../../hooks/redux.hooks';
 import { Link, useNavigate } from 'react-router-dom';
 import { useRegisterMutation } from '../authApiSlice';
 import { useState } from 'react';
-import { setCredentials } from '../authSlice';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { toast } from 'sonner';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 interface IRegisterForm {
     fullName: string;
@@ -32,8 +32,6 @@ const Register = () => {
         setError,
         formState: { errors } }
         = useForm<IRegisterForm>();
-
-    const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [registerUser, { isLoading }] = useRegisterMutation();
     const [apiError, setApiError] = useState<string | null>(null);
@@ -46,12 +44,10 @@ const Register = () => {
             const { confirmPassword, ...registerData } = data;
 
             const response = await registerUser(registerData).unwrap();
-            dispatch(setCredentials({
-                user: response.user,
-                accessToken: response.accessToken
-            }));
-
-            navigate('/');
+            toast.info(response.message || 'OTP Code sent to your email.');
+            navigate('/verify-email', {
+                state: { email: registerData.email }
+            });
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'status' in err) {
                 const fetchError = err as FetchBaseQueryError;
@@ -88,8 +84,23 @@ const Register = () => {
                     </p>
                 </div>
 
+                {/* GOOGLE AUTH BUTTON */}
+                <div className="mt-6">
+                    <GoogleAuthButton text="Sign up with Google" />
+                </div>
+
+                {/* DIVIDER SECTION */}
+                <div className="relative my-6">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white px-2 text-gray-500">Or continue with</span>
+                    </div>
+                </div>
+
                 {/* Form Section */}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
+                <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
                     {/* API Error Alert */}
                     {apiError && (
                         <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-200">
@@ -111,7 +122,7 @@ const Register = () => {
                         {/* Email Input */}
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Eamil Address
+                                Email Address
                             </label>
                             <input type="email" id="email" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'
                                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
