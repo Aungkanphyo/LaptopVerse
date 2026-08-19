@@ -13,6 +13,8 @@ import orderRouter from './routes/order.routes';
 import paymentRoutes from './routes/payment.routes';
 import adminRoutes from './routes/admin.routes';
 import { globalLimiter } from './middlewares/rateLimiter.middleware';
+import passport from 'passport';
+import './config/passport.config';
 
 const app: Express = express();
 
@@ -35,6 +37,9 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 
+// Initialize Passport Middleware
+app.use(passport.initialize());
+
 // Test route
 app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to LaptopVerse Backend API!');
@@ -55,11 +60,10 @@ app.use('/api/v1/admin', adminRoutes);
 
 // 404 Route Catcher
 app.use((req: Request, res: Response, next: NextFunction) => {
-    // 404 error ကို Global Error Handler သို့ ပို့ပေးရန် AppError ကို သုံး
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// Global Error Handler (Must be the last middleware)
+// Global Error Handler
 app.use(errorHandler);
 
 const PORT: number = parseInt(process.env.PORT || '5000', 10);

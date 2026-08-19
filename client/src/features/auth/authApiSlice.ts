@@ -1,3 +1,4 @@
+import type { IResendOtpPayload, IUser, IVerifyOtpPayload } from "@/types/auth.types";
 import { apiSlice } from "../../app/services/apiSlice";
 
 export const authApiSlice = apiSlice.injectEndpoints({
@@ -16,6 +17,22 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 body: { ...userData }
             }),
         }),
+        // OTP Verification Endpoint
+        verifyEmail: builder.mutation<{ user: IUser; accessToken: string; message: string }, IVerifyOtpPayload>({
+            query: (data) => ({
+                url: '/auth/verify-email',
+                method: 'POST',
+                body: data,
+            }),
+        }),
+        // Resend OTP Endpoint
+        resendOtp: builder.mutation<{ success: boolean; message: string }, IResendOtpPayload>({
+            query: (data) => ({
+                url: '/auth/resend-otp',
+                method: 'POST',
+                body: data,
+            }),
+        }),
         logout: builder.mutation({
             query: () => ({
                 url: '/auth/logout',
@@ -28,5 +45,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
 export const {
     useLoginMutation,
     useRegisterMutation,
+    useVerifyEmailMutation,
+    useResendOtpMutation,
     useLogoutMutation
 } = authApiSlice;

@@ -10,17 +10,17 @@ interface EmailOptions {
 const sendEmail = async (options: EmailOptions) => {
     // Create a Transporter
     const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
         auth: {
-            user: process.env.SMTP_EMAIL,
-            pass: process.env.SMTP_PASSWORD,
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
         },
     });
 
     // contents to be included in the email
     const mailOptions = {
-        from: `${process.env.SMTP_FROM_NAME} <${process.env.SMTP_FROM_EMAIL}>`,
+        from: process.env.EMAIL_FROM,
         to: options.email,
         subject: options.subject,
         text: options.message,

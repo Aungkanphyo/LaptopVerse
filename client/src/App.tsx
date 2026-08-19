@@ -14,6 +14,7 @@ import CreateProduct from "./pages/admin/CreateProduct";
 import EditProduct from "./pages/admin/EditProduct";
 
 import AdminLayout from "./components/layout/AdminLayout";
+import VerifyOtp from "./features/auth/pages/VerifyOtp";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "register",
         element: <Register/>,
+      },
+      {
+        path: "verify-email",
+        element: <VerifyOtp />,
       },
       {
         path: "products/:id",

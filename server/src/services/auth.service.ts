@@ -1,5 +1,6 @@
 import User, { IUserDocument } from "../models/user.model";
 import { ILoginInput, IRegisterInput } from "../types/auth.types";
+import { getOTPVerificationTemplate } from "../utils/emailTemplates";
 import { AppError } from "../utils/error.utils";
 import sendEmail from "../utils/sendEmail";
 import crypto from 'crypto';
@@ -7,22 +8,98 @@ import crypto from 'crypto';
 export const registerUser = async (data: IRegisterInput): Promise<IUserDocument> => {
     // check for email
     const existingUser = await User.findOne({ email: data.email });
-    if(existingUser) {
+
+    // already have account and verified, it will be blocked
+    if(existingUser && existingUser.isVerified) {
         // 409 Conflict Error
         throw new AppError('This email is already registered.', 409);
     }
 
-    // User is being created (Password Hashing is already handled by the pre-save hook in user.model.ts)
-    const newUser = await User.create({
-        fullName: data.fullName,
-        email: data.email,
-        password: data.password,
-        role: 'user', // default role
-        isVerified: false,
-    });
+    let newUser: IUserDocument;
+
+    // already have an unverified account, new OTP will be sent
+    if (existingUser && !existingUser.isVerified) {
+        existingUser.fullName = data.fullName;
+        existingUser.password = data.password;
+        newUser = existingUser;
+    } else {
+        newUser = new User({
+            fullName: data.fullName,
+            email: data.email,
+            password: data.password,
+            role: 'user',
+            isVerified: false,
+        });
+    }
+
+    // generate OTP
+    const otp = newUser.generateOTP();
+    await newUser.save();
+
+    // send verification Email
+    try {
+        await sendEmail({
+            email: newUser.email,
+            subject: 'Verify Your Email Address - LaptopVerse',
+            message: `Your verification code is: ${otp}`,
+            html: getOTPVerificationTemplate(newUser.fullName, otp),
+        });
+    } catch (error) {
+        console.error("Email Send Error:", error);
+        throw new AppError('Verification email could not be sent. Please try again.', 500);
+    }
 
     return newUser;
 };
+
+// Verify OTP Code Service
+export const verifyEmailOTP = async (email: string, otp: string): Promise<IUserDocument> => {
+    const hashedOTP = crypto.createHash('sha256').update(otp).digest('hex');
+
+    const user = await User.findOne({
+        email,
+        verificationOTP: hashedOTP,
+        otpExpires: { $gt: new Date(Date.now()) }
+    });
+
+    if (!user) {
+        throw new AppError('Invalid or expired OTP code', 400);
+    }
+
+    user.isVerified = true;
+    user.verificationOTP = undefined;
+    user.otpExpires = undefined;
+
+    await user.save({ validateBeforeSave: false });
+    return user;
+}
+
+// Resend OTP Service
+export const resendOTP = async (email: string): Promise<void> => {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new AppError('No account found with this email address.', 404);
+    }
+
+    if (user.isVerified) {
+        throw new AppError('This account is already verified. Please login.', 400);
+    }
+
+    const otp = user.generateOTP();
+    await user.save({ validateBeforeSave: false });
+
+    try {
+        await sendEmail({
+            email: user.email,
+            subject: 'New Verification Code - LaptopVerse',
+            message: `Your new verification code is: ${otp}`,
+            html: getOTPVerificationTemplate(user.fullName, otp),
+        });
+    } catch (error) {
+        throw new AppError('Email could not be sent. Please try again.', 500);
+    }
+}
 
 /**
  * @desc User Login Logic
@@ -38,8 +115,12 @@ export const loginUser = async (data: ILoginInput): Promise<IUserDocument> => {
         throw new AppError('Invalid email or password.', 401);
     }
 
-    // Login ပြီးမြောက်ပါက Password ကို ဖယ်ပြီး return ပြန်ပေးပါ
-    // Mongoose toObject() ကိုသုံးပြီး password ကို ဖယ်ထုတ်နိုင်သည်။
+    if (!user.isVerified) {
+        throw new AppError('Please verify your email address before logging in.', 403);
+    }
+
+    // Once logged in, remove the password and return it.
+    // remove the password using Mongoose's `toObject()`
     const userObject = user.toObject();
     delete userObject.password;
 

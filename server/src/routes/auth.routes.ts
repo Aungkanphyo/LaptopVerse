@@ -1,9 +1,11 @@
 import { Router } from "express";
 import * as authController from '../controllers/auth.controller';
-import { loginSchema, registerSchema, validate, ValidationSource } from "../middlewares/validation";
+import { loginSchema, registerSchema, resendOtpSchema, validate, ValidationSource, verifyOtpSchema } from "../middlewares/validation";
 import { authLimiter } from "../middlewares/rateLimiter.middleware";
 import * as userController from '../controllers/user.controller';
 import { protect } from "../middlewares/auth.middleware";
+import { resendOTP } from '../services/auth.service';
+import passport from "passport";
 
 const router = Router();
 
@@ -12,13 +14,26 @@ router.get('/me', protect, userController.getUserProfile);
 router.put('/me/update', protect, userController.updateProfile);
 
 
-// Register Route
-// POST /api/v1/auth/register
+// Register & OTP Routes
 router.post(
     '/register',
     authLimiter, // rate limiter to prevent brute-force attacks
     validate(registerSchema, ValidationSource.BODY), // validation
     authController.register // controller logic
+);
+
+router.post(
+    '/verify-email',
+    authLimiter,
+    validate(verifyOtpSchema, ValidationSource.BODY),
+    authController.verifyEmail
+);
+
+router.post(
+    '/resend-otp',
+    authLimiter,
+    validate(resendOtpSchema, ValidationSource.BODY),
+    authController.resendOTP
 );
 
 // Login Route
@@ -28,6 +43,18 @@ router.post(
     authLimiter, // rate limiter to prevent brute-force attacks
     validate(loginSchema, ValidationSource.BODY),
     authController.login
+);
+
+// Google OAuth Routes
+router.get(
+    '/google',
+    passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
+
+router.get(
+    '/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: `${process.env.CLIENT_URL}/login` }),
+    authController.googleCallback
 );
 
 // Forgot & Reset Password Routes

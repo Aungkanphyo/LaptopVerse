@@ -17,6 +17,7 @@ export const globalLimiter = rateLimit({
 export const authLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 5, // A maximum of 5 login attempts per IP will be allowed within 1 hour.
+    skip: () => process.env.NODE_ENV === 'development',
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req: Request, res: Response, next: NextFunction, options) => {

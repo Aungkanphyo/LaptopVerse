@@ -10,6 +10,8 @@ export interface IUser {
     isVerified: boolean;
     status: 'active' | 'banned' | 'deactivated';
     googleId?: string;
+    verificationOTP?: string;
+    otpExpires?: Date;
     resetPasswordToken?: string;
     resetPasswordExpire?: Date;
 }
@@ -19,6 +21,7 @@ export interface IUserDocument extends IUser, Document {
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
     getResetPasswordToken(): string;
+    generateOTP(): string;
 }
 
 const UserSchema = new Schema<IUserDocument>(
@@ -61,6 +64,8 @@ const UserSchema = new Schema<IUserDocument>(
             unique: true,
             sparse: true
         },
+        verificationOTP: String,
+        otpExpires: Date,
         resetPasswordToken: String,
         resetPasswordExpire: Date,
     },
@@ -99,6 +104,20 @@ UserSchema.methods.comparePassword = async function (candidatePassword: string):
     if (!this.password) return false;
     return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// Method to generate a random 6-digit OTP and store it in the DB using SHA-256
+UserSchema.methods.generateOTP = function(): string {
+    const plainOTP = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit number
+
+    this.verificationOTP = crypto
+        .createHash('sha256')
+        .update(plainOTP)
+        .digest('hex');
+
+    this.otpExpires = new Date(Date.now() + 10 * 60 * 1000); // Valid for 10 mins
+
+    return plainOTP; // Plain OTP returned to send to email
+}
 
 UserSchema.methods.getResetPasswordToken = function(): string {
     // Random bytes ထုတ်မယ် (Token အစစ်)
