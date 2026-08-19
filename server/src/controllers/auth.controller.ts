@@ -5,7 +5,7 @@ import * as authService from '../services/auth.service';
 import { clearTokensFromCookie, sendTokenAsCookie } from "../utils/jwt.utils";
 
 /**
- * @desc User အသစ် Register လုပ်ခြင်း (POST /api/v1/auth/register)
+ * @desc Registering a New User (POST /api/v1/auth/register)
  * @access Public
  */
 export const register = asyncHandler(async (req: Request<{}, {}, IRegisterInput>, res: Response) => {

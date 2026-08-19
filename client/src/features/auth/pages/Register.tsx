@@ -13,16 +13,30 @@ interface IRegisterForm {
     confirmPassword: string;
 }
 
+interface IValidationError {
+    field: string;
+    message: string;
+}
+
+interface IApiErrorResponse {
+    success?: boolean;
+    message?: string;
+    errors?: IValidationError[];
+}
+
 const Register = () => {
-    const { register, handleSubmit, watch, formState: { errors } } = useForm<IRegisterForm>();
+    const {
+        register,
+        handleSubmit,
+        getValues,
+        setError,
+        formState: { errors } }
+        = useForm<IRegisterForm>();
 
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [registerUser, { isLoading }] = useRegisterMutation();
     const [apiError, setApiError] = useState<string | null>(null);
-
-    // Pre-capturing Password for Form Validation
-    const currentPassword = watch('password');
 
     const onSubmit: SubmitHandler<IRegisterForm> = async (data) => {
         try {
@@ -41,8 +55,18 @@ const Register = () => {
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'status' in err) {
                 const fetchError = err as FetchBaseQueryError;
-                const errorData = fetchError.data as { success?: boolean; message?: string };
-                setApiError(errorData?.message || 'Registration failed. Please try again.');
+                const errorData = fetchError.data as IApiErrorResponse;
+                if (errorData?.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+                    errorData.errors.forEach((valErr) => {
+                        if (valErr.field) {
+                            setError(valErr.field as keyof IRegisterForm, {
+                                type: 'server',
+                                message: valErr.message,
+                            });
+                        }
+                    });
+                    setApiError(errorData.errors[0].message);
+                }
             } else if (err instanceof Error) {
                 setApiError(err.message);
             } else {
@@ -65,7 +89,7 @@ const Register = () => {
                 </div>
 
                 {/* Form Section */}
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
                     {/* API Error Alert */}
                     {apiError && (
                         <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-200">
@@ -80,8 +104,8 @@ const Register = () => {
                                 Full Name
                             </label>
                             <input type="text" id="fullName" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.fullName ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`} placeholder='John Doe' {...register('fullName', { required: 'Full name is required', minLength: { value: 3, message: 'Name must be at least 3 characters' } })} />
-                                {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName.message}</p> }
+                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`} placeholder='John Doe' {...register('fullName', { required: 'Full name is required', minLength: { value: 2, message: 'Full name must be at least 2 characters' } })} />
+                            {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName.message}</p>}
                         </div>
 
                         {/* Email Input */}
@@ -89,12 +113,11 @@ const Register = () => {
                             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                 Eamil Address
                             </label>
-                            <input type="email" id="email" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                                    errors.email ? 'border-red-300' : 'border-gray-300'
+                            <input type="email" id="email" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'
                                 } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
-                                placeholder="you@example.com" {...register('email',{required: 'Email is required', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email address" }})}
-                                />
-                                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p> }
+                                placeholder="you@example.com" {...register('email', { required: 'Email is required', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email format" } })}
+                            />
+                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
                         </div>
 
                         {/* Password Input */}
@@ -105,13 +128,22 @@ const Register = () => {
                             <input
                                 id="password"
                                 type="password"
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                                    errors.password ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
+                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.password ? 'border-red-300' : 'border-gray-300'
+                                    } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
                                 placeholder="••••••••"
-                                {...register('password', { 
+                                {...register('password', {
                                     required: 'Password is required',
-                                    minLength: { value: 6, message: "Password must be at least 6 characters" }
+                                    minLength: { value: 8, message: "Password must be at least 8 characters" },
+                                    validate: {
+                                        // Uppercase check
+                                        hasUppercase: (value) => /[A-Z]/.test(value) || "Password requires at least one uppercase letter",
+                                        // Lowercase check
+                                        hasLowercase: (value) => /[a-z]/.test(value) || "Password requires at least one lowercase letter",
+                                        // Number check
+                                        hasNumber: (value) => /[0-9]/.test(value) || "Password requires at least one number",
+                                        // Symbol check
+                                        hasSymbol: (value) => /[^a-zA-Z0-9]/.test(value) || "Password requires at least one symbol",
+                                    }
                                 })}
                             />
                             {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
@@ -125,13 +157,12 @@ const Register = () => {
                             <input
                                 id="confirmPassword"
                                 type="password"
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${
-                                    errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
+                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                                    } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
                                 placeholder="••••••••"
-                                {...register('confirmPassword', { 
+                                {...register('confirmPassword', {
                                     required: 'Please confirm your password',
-                                    validate: value => value === currentPassword || "Passwords do not match"
+                                    validate: value => value === getValues('password') || "Passwords do not match"
                                 })}
                             />
                             {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword.message}</p>}

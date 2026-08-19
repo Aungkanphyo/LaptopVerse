@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { AnyZodObject, ZodError, z } from "zod";
+import { AnyZodObject, ZodError, ZodTypeAny, z } from "zod";
 
 export enum ValidationSource {
     BODY = 'body',
@@ -13,7 +13,7 @@ export enum ValidationSource {
  * --------------------------------------------------------------------------
  */
 export const validate = (
-    schema: AnyZodObject, 
+    schema: ZodTypeAny, 
     source: ValidationSource = ValidationSource.BODY
 ) => (req: Request, res: Response, next: NextFunction) => {
     
@@ -34,10 +34,10 @@ export const validate = (
     }
 
     try {
-        // Zod ဖြင့် validation နှင့် transformation လုပ်ခြင်း
+        // Validation and transformation with Zod
         const parsedData = schema.parse(dataToValidate);
 
-        // Sanitized data ကို request object မှာ ပြန်အစားထိုးပေးခြင်း အ့ဒီ data ကို controller မှာဆက်လက်သုံးမယ်
+        // Replacing the data in the request object with the sanitized data allows that data to be used subsequently in the controller
         switch (source) {
             case ValidationSource.BODY:
                 req.body = parsedData;

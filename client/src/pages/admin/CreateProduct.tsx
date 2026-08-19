@@ -1,0 +1,45 @@
+import { useNavigate } from 'react-router-dom';
+import { useCreateProductMutation } from '../../features/products/productApiSlice';
+import ProductForm from '../../features/products/components/ProductForm';
+import { toast } from 'sonner';
+import { ChevronLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+const CreateProduct = () => {
+    const navigate = useNavigate();
+    const [createProduct, { isLoading }] = useCreateProductMutation();
+
+    const handleSubmit = async (formData: FormData) => {
+        try {
+            await createProduct(formData).unwrap();
+            toast.success('Product created successfully');
+            navigate('/admin/products');
+        } catch (error: unknown) {
+            const err = error as { data?: { message?: string } };
+            toast.error(err?.data?.message || 'Failed to create product');
+        }
+    };
+
+    return (
+        <div className="max-w-5xl mx-auto space-y-8">
+            <div className="flex flex-col gap-4">
+                <Button 
+                    variant="ghost" 
+                    className="w-fit -ml-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => navigate('/admin/products')}
+                >
+                    <ChevronLeft className="size-4 mr-1" />
+                    Back to Products
+                </Button>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Add New Product</h1>
+                    <p className="text-muted-foreground mt-1">Fill in the details to list a new laptop in your store.</p>
+                </div>
+            </div>
+
+            <ProductForm onSubmit={handleSubmit} isLoading={isLoading} />
+        </div>
+    );
+};
+
+export default CreateProduct;

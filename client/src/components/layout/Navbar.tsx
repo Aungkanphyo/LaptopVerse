@@ -54,9 +54,9 @@ const Navbar = () => {
                             <span className="text-sm font-medium text-gray-700">
                                 Hi, {user.fullName}
                             </span>
-                            {user.role === 'admin' && (
+                            {(user.role === 'admin' || user.role === 'manager') && (
                                 <Link
-                                    to="/admin/payment-settings"
+                                    to="/admin/products"
                                     className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors px-3 py-2 rounded-md hover:bg-gray-50"
                                 >
                                     Admin
