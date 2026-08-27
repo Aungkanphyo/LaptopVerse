@@ -17,7 +17,7 @@ const ProductList = () => {
     const { data, isLoading, isFetching } = useGetProductsQuery({
         page,
         keyword,
-        limit: 10,
+        limit
     });
 
     const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
@@ -167,7 +167,7 @@ const ProductList = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {isLoading || isFetching ? (
-                                Array.from({ length: 5 }).map((_, i) => (
+                                Array.from({ length: limit }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
