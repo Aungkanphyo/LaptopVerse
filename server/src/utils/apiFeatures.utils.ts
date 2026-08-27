@@ -101,7 +101,7 @@ export class APIFeatures {
     }
 
     paginate() {
-        const page = parseInt(this.queryString.page || '1') * 1 || 1; // Current Page
+        const page = Math.max(1, parseInt(String(this.queryString.page || '1'), 10) || 1); // Current Page
         const limit = parseInt(this.queryString.limit || '10') * 1 || 10; // Items per page
         const skip = (page - 1) * limit; // Number of items to skip
         this.query = this.query.skip(skip).limit(limit);

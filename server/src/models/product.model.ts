@@ -94,7 +94,7 @@ const productSchema = new mongoose.Schema<IProductDocument>({
     ],
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Cateory',
+        ref: 'Category',
         required: [true, 'Please select a category for this product'],
     },
     brand: {

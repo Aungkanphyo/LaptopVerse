@@ -15,23 +15,25 @@ import EditProduct from "./pages/admin/EditProduct";
 
 import AdminLayout from "./components/layout/AdminLayout";
 import VerifyOtp from "./features/auth/pages/VerifyOtp";
+import BrandList from "./pages/admin/BrandList";
+import CategoryList from "./pages/admin/CategoryList";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <MainLayout/>,
+    element: <MainLayout />,
     children: [
       {
         index: true,
-        element: <Home/>,
+        element: <Home />,
       },
       {
         path: "login",
-        element: <Login/>,
+        element: <Login />,
       },
       {
         path: "register",
-        element: <Register/>,
+        element: <Register />,
       },
       {
         path: "verify-email",
@@ -39,19 +41,19 @@ const router = createBrowserRouter([
       },
       {
         path: "products/:id",
-        element: <ProductDetails/>
+        element: <ProductDetails />
       },
       {
         path: "cart",
-        element: <CartScreen/>
+        element: <CartScreen />
       },
       {
         path: "/shipping",
-        element: <ShippingScreen/>
+        element: <ShippingScreen />
       },
       {
         path: "/payment",
-        element: <PaymentScreen/>
+        element: <PaymentScreen />
       },
     ]
   },
@@ -74,6 +76,14 @@ const router = createBrowserRouter([
       {
         path: "products/:id/edit",
         element: <EditProduct />,
+      },
+      {
+        path: "brands",
+        element: <BrandList />,
+      },
+      {
+        path: "categories",
+        element: <CategoryList />,
       },
       {
         path: "payment-settings",

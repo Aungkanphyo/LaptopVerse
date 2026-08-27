@@ -5,7 +5,9 @@ import {
     LogOut, 
     ChevronLeft, 
     ChevronRight,
-    Laptop
+    Laptop,
+    Bookmark,
+    Tags
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -64,6 +66,16 @@ export const AdminSidebar = ({ collapsed, setCollapsed }: AdminSidebarProps) => 
             to: '/admin/products',
             icon: Package,
             label: 'Manage Products',
+        },
+        {
+            to: '/admin/brands',
+            icon: Bookmark,
+            label: 'Manage Brands',
+        },
+        {
+            to: '/admin/categories',
+            icon: Tags,
+            label: 'Manage Categories',
         },
         {
             to: '/admin/payment-settings',

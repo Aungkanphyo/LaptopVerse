@@ -45,7 +45,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <CardHeader className="p-4 pb-2">
                 <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        {product.brand}
+                        {typeof product.brand === 'string'
+                            ? product.brand
+                            : product.brand?.name}
                     </span>
                     <div className="flex items-center gap-1 text-sm font-bold text-gray-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
                         <Star className="size-4 text-amber-500 fill-amber-400" />
@@ -60,7 +62,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </CardHeader>
 
             <CardContent className="p-4 pt-0 grow">
-                {/* 👉 Specs များကို Icons များဖြင့် ပိုမိုဆွဲဆောင်မှုရှိအောင် ပြုလုပ်ခြင်း */}
                 <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs text-gray-600 bg-gray-50 p-3 rounded-lg mb-4 border border-gray-100">
                     <div className="flex items-center gap-1.5">
                         <Cpu className="size-3.5 text-blue-500" />
@@ -75,8 +76,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                         <span className="truncate">{product.storage}</span>
                     </div>
                 </div>
-                
-                {/* ဈေးနှုန်း */}
+
                 <div className="text-2xl font-extrabold text-gray-950 tracking-tight">
                     {formatter.format(product.price)}
                 </div>
@@ -91,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 >
                     <GitCompare className="size-3.5" /> Compare
                 </Button>
-                <Button 
+                <Button
                     variant="default"
                     size="sm"
                     className="w-full text-xs"

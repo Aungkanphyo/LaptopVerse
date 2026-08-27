@@ -49,4 +49,16 @@ router.post('/brands', brandController.createBrand);
 router.get('/manual-payment', getManualPaymentSettingsAdmin);
 router.put('/manual-payment', validate(manualPaymentSettingsSchema), updateManualPaymentSettingsAdmin);
 
+// Category Routes
+router.get('/categories', categoryController.getAllCategoriesAdmin);
+router.post('/categories', categoryController.createCategory);
+router.put('/categories/:id', categoryController.updateCategory);
+router.patch('/categories/:id/toggle-status', categoryController.toggleCategoryStatus);
+
+// Brand Routes
+router.get('/brands', brandController.getAllBrandsAdmin);
+router.post('/brands', brandController.createBrand);
+router.put('/brands/:id', brandController.updateBrand);
+router.patch('/brands/:id/toggle-status', brandController.toggleBrandStatus);
+
 export default router;

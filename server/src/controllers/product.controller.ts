@@ -12,7 +12,7 @@ import { APIFeatures } from '../utils/apiFeatures.utils';
  * @route POST /api/v1/products/admin
  * @access Private (Admin, Manager)
  */
-export const createNewProduct = asyncHandler(async(req: Request, res: Response, next: NextFunction) => {
+export const createNewProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     // Retrieve Data from Request Body
     const {
         name, description, price, category, brand, stock,
@@ -37,7 +37,7 @@ export const createNewProduct = asyncHandler(async(req: Request, res: Response, 
     let imageUrls: { public_id: string; url: string }[] = [];
 
     // req.files is an Array of Files (Received from Multer)
-    if(req.files && Array.isArray(req.files)) {
+    if (req.files && Array.isArray(req.files)) {
         const files = req.files as Express.Multer.File[];
 
         // Loop through files and upload to Cloudinary concurrently
@@ -49,14 +49,14 @@ export const createNewProduct = asyncHandler(async(req: Request, res: Response, 
 
     // Create Product
     const product = await Product.create({
-        name, description, 
+        name, description,
         price: numericPrice, // Casted value
-        category, brand, 
+        category, brand,
         stock: numericStock, // Casted value
-        processor, ram, storage, 
+        processor, ram, storage,
         screenSize: numericScreenSize, // Casted value
         user: userId, // Creator (Admin/Manager)
-        images: imageUrls,  
+        images: imageUrls,
     });
 
     res.status(201).json({
@@ -78,15 +78,15 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response, ne
     // Search the product
     let product = await Product.findById(productId);
 
-    if(!product) {
+    if (!product) {
         return next(new AppError(`Product not found with ID: ${productId}`, 404));
     }
 
     let currentImages = [...product.images];
 
-    if(req.body.imagesToDelete) {
-        const imagesToDelete = Array.isArray(req.body.imagesToDelete) 
-            ? req.body.imagesToDelete 
+    if (req.body.imagesToDelete) {
+        const imagesToDelete = Array.isArray(req.body.imagesToDelete)
+            ? req.body.imagesToDelete
             : [req.body.imagesToDelete];
 
         const deletePromises = imagesToDelete.map((public_id: string) => deleteFromCloudinary(public_id));
@@ -95,7 +95,7 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response, ne
         currentImages = currentImages.filter(img => !imagesToDelete.includes(img.public_id));
     };
 
-    if(req.files && Array.isArray(req.files) && req.files.length > 0) {
+    if (req.files && Array.isArray(req.files) && req.files.length > 0) {
         const files = req.files as Express.Multer.File[];
         const uploadPromises = files.map(file => uploadToCloudinary(file.buffer, 'products'));
         const newImages = await Promise.all(uploadPromises);
@@ -135,7 +135,7 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response, ne
         return next(new AppError(`Product not found with ID: ${productId}`, 404));
     }
 
-    if(product.images && product.images.length > 0) {
+    if (product.images && product.images.length > 0) {
         const deletePromises = product.images.map(image => deleteFromCloudinary(image.public_id));
         await Promise.all(deletePromises);
     }
@@ -150,11 +150,13 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response, ne
 
 // Public Controller Functions
 /**
- * @desc View all product (Filter, Search, Pagination ပါဝင်မည်)
+ * @desc View all product (Filter, Search, Pagination )
  * @route GET /api/v1/products
  * @access Public
  */
 export const getAllProducts = asyncHandler(async (req: Request, res: Response) => {
+    const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit as string, 10) || 10);
     /**
      * Initialize APIFeatures
      * Pass to APIFeatures class along with req.query
@@ -163,15 +165,25 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
         .search()   // ?keyword=macbook
         .filter()   // ?category=gaming&price[gte]=1000
 
-    const countQuery = features.query.clone(); 
+    const countQuery = features.query.clone();
     const totalDocs = await countQuery.countDocuments();
 
-    const products = await features.sort().paginate().query;
+    const products = await features
+        .sort()
+        .paginate()
+        .query
+        .populate('category', 'name')
+        .populate('brand', 'name');
+
+    const totalPages = Math.ceil(totalDocs / limit);
 
     res.status(200).json({
         success: true,
-        count: products.length, // လက်ရှိ page မှာ ပါတဲ့ အရေအတွက်
-        total: totalDocs,       // Database တစ်ခုလုံးမှာရှိတဲ့ အရေအတွက်
+        count: products.length, // number of items on the current page
+        total: totalDocs,       // total count in the entire database
+        page,
+        limit,
+        totalPages,
         products,
     });
 });
@@ -184,7 +196,10 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
 export const getSingleProduct = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const productId = req.params.id;
 
-    const product = await Product.findById(productId).select('+reviews'); // show with reviews
+    const product = await Product.findById(productId)
+        .select('+reviews')
+        .populate('category', 'name')
+        .populate('brand', 'name');
 
     if (!product) {
         return next(new AppError(`Product not found with ID: ${productId}`, 404));

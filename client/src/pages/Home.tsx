@@ -7,7 +7,7 @@ import Pagination from '@/components/common/Pagination';
 
 const Home = () => {
     // Reading Query Parameters from a URL (e.g. ?keyword=macbook&category=gaming)
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const keyword = searchParams.get('keyword') || undefined;
     const category = searchParams.get('category') || undefined;
     const page = Number(searchParams.get('page')) || 1;
@@ -20,6 +20,14 @@ const Home = () => {
     });
 
     const showLoading = isLoading || isFetching;
+
+    const handlePageChange = (newPage: number) => {
+        setSearchParams((prev) => {
+            prev.set('page', newPage.toString());
+            return prev;
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -61,9 +69,14 @@ const Home = () => {
                 ) : null}
             </div>
 
-            {/* TODO: Pagination Component နေရာ */}
             {data && (
-                <Pagination totalItems={data.total} itemsPerPage={8}/>
+                <div className="mt-12 flex justify-center">
+                    <Pagination
+                        currentPage={page}
+                        totalPages={data.totalPages || Math.ceil((data.total || 0) / 8)}
+                        onPageChange={handlePageChange}
+                    />
+                </div>
             )}
 
         </div>

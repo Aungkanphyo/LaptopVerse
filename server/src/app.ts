@@ -28,7 +28,7 @@ app.use('/api', globalLimiter);
 app.use(cors({
     origin: ['http://localhost:5173'],
     credentials: true, // to accept cookies
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
 }));
 
 // Body Parsing
