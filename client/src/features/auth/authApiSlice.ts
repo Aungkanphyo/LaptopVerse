@@ -3,6 +3,9 @@ import { apiSlice } from "../../app/services/apiSlice";
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getMe: builder.query<{ user: IUser; accessToken?: string }, void>({
+            query: () => '/auth/me',
+        }),
         login: builder.mutation({
             query: (credentials) => ({
                 url: '/auth/login',
@@ -43,6 +46,8 @@ export const authApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+    useGetMeQuery,
+    useLazyGetMeQuery,
     useLoginMutation,
     useRegisterMutation,
     useVerifyEmailMutation,

@@ -126,9 +126,9 @@ const CheckoutSteps = ({ currentStep, className }: CheckoutStepsProps) => {
         {/* Labels */}
         <div className="mt-3 grid w-full grid-cols-[auto_minmax(12px,1fr)_auto_minmax(12px,1fr)_auto] items-start gap-x-1 sm:gap-x-2">
           <StepLabel item={STEPS[0]} currentStep={currentStep} />
-          <span aria-hidden className="min-h-[1px]" />
+          <span aria-hidden className="min-h-px" />
           <StepLabel item={STEPS[1]} currentStep={currentStep} />
-          <span aria-hidden className="min-h-[1px]" />
+          <span aria-hidden className="min-h-px" />
           <StepLabel item={STEPS[2]} currentStep={currentStep} />
         </div>
       </div>

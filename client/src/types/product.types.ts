@@ -1,3 +1,21 @@
+export interface IBrandItem {
+    _id: string;
+    name: string;
+    description?: string;
+    isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface ICategoryItem {
+    _id: string;
+    name: string;
+    description?: string;
+    isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
 export interface IProductImage {
     public_id: string;
     url: string;
@@ -23,8 +41,8 @@ export interface IProduct {
     name: string;
     description: string;
     price: number;
-    category: string;
-    brand: string;
+    category: string | { _id: string; name: string } | null;
+    brand: string | { _id: string; name: string } | null;
     stock: number;
     processor: string;
     ram: string;
@@ -43,6 +61,9 @@ export interface IProductResponse {
     success: boolean;
     count: number;
     total: number;
+    page?: number;
+    limit?: number;
+    totalPages?: number;
     products: IProduct[];
 }
 

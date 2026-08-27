@@ -46,7 +46,7 @@ export const generateRefreshToken = (userId: string, role: string): string => {
     });
 };
 
-// Tokens များကို HttpOnly Cookie တွင် ထည့်သွင်းပေးသည်
+// Tokens are stored in an HttpOnly cookie.
 export const sendTokenAsCookie = (res: Response, user: IUserDocument): { accessToken: string } => {
     const userId = user._id.toString();
     const userRole = user.role;
@@ -56,10 +56,10 @@ export const sendTokenAsCookie = (res: Response, user: IUserDocument): { accessT
     const refreshToken = generateRefreshToken(userId, userRole);
 
     const cookieOptions = {
-        httpOnly: true, // Frontend JS ကနေ ခိုးယူလို့မရအောင် (Security)
-        secure: NODE_ENV === 'production', // HTTPS မှာသာ ပို့မည်
-        sameSite: 'strict' as const, // Cross-Site Request Forgery (CSRF) protection
-        domain: COOKIE_DOMAIN
+        httpOnly: true,
+        secure: NODE_ENV === 'production',
+        sameSite: 'lax' as const,
+        ...(NODE_ENV === 'production' && { domain: COOKIE_DOMAIN })
     };
 
     // Cookies Set လုပ်
@@ -82,7 +82,7 @@ export const sendTokenAsCookie = (res: Response, user: IUserDocument): { accessT
     return { accessToken };
 };
 
-// Cookies များကို ဖျက်ပြီး Logout လုပ်
+// Delete cookies and log out
 export const clearTokensFromCookie = (res: Response): void => {
     res.clearCookie('accessToken', { domain: COOKIE_DOMAIN, httpOnly: true, sameSite: 'strict' as const });
     res.clearCookie('refreshToken', { domain: COOKIE_DOMAIN, httpOnly: true, sameSite: 'strict' as const });

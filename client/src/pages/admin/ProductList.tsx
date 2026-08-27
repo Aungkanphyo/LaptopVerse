@@ -12,6 +12,7 @@ const ProductList = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const page = Number(searchParams.get('page')) || 1;
     const keyword = searchParams.get('keyword') || '';
+    const limit = Number(searchParams.get('limit')) || 5;
 
     const { data, isLoading, isFetching } = useGetProductsQuery({
         page,
@@ -23,26 +24,26 @@ const ProductList = () => {
 
     // Calculate stats (in a real app, these might come from a separate API)
     const stats = [
-        { 
-            label: 'Total Products', 
-            value: data?.total || 0, 
-            icon: Package, 
-            color: 'text-blue-600', 
-            bg: 'bg-blue-50' 
+        {
+            label: 'Total Products',
+            value: data?.total || 0,
+            icon: Package,
+            color: 'text-blue-600',
+            bg: 'bg-blue-50'
         },
-        { 
-            label: 'In Stock', 
-            value: data?.products?.filter(p => p.stock > 0).length || 0, 
-            icon: CheckCircle2, 
-            color: 'text-emerald-600', 
-            bg: 'bg-emerald-50' 
+        {
+            label: 'In Stock',
+            value: data?.products?.filter(p => p.stock > 0).length || 0,
+            icon: CheckCircle2,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50'
         },
-        { 
-            label: 'Out of Stock', 
-            value: data?.products?.filter(p => p.stock === 0).length || 0, 
-            icon: AlertTriangle, 
-            color: 'text-rose-600', 
-            bg: 'bg-rose-50' 
+        {
+            label: 'Out of Stock',
+            value: data?.products?.filter(p => p.stock === 0).length || 0,
+            icon: AlertTriangle,
+            color: 'text-rose-600',
+            bg: 'bg-rose-50'
         },
     ];
 
@@ -59,6 +60,22 @@ const ProductList = () => {
         });
     };
 
+    const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLimit = e.target.value;
+        setSearchParams((prev) => {
+            prev.set('limit', newLimit);
+            prev.set('page', '1');
+            return prev;
+        });
+    };
+
+    const handlePageChange = (newPage: number) => {
+        setSearchParams((prev) => {
+            prev.set('page', newPage.toString());
+            return prev;
+        });
+    };
+
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
@@ -70,6 +87,10 @@ const ProductList = () => {
             }
         }
     };
+
+    const totalItems = data?.total || 0;
+    const startItem = totalItems > 0 ? (page - 1) * limit + 1 : 0;
+    const endItem = Math.min(page * limit, totalItems);
 
     return (
         <div className="space-y-8">
@@ -116,8 +137,19 @@ const ProductList = () => {
                             onChange={handleSearch}
                         />
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                        Showing {data?.products?.length || 0} of {data?.total || 0} products
+                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                        <span>Show</span>
+                        <select
+                            value={limit}
+                            onChange={handleLimitChange}
+                            className="h-9 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                        </select>
+                        <span>entries</span>
                     </div>
                 </div>
 
@@ -127,6 +159,7 @@ const ProductList = () => {
                             <tr>
                                 <th className="px-6 py-4">Product Details</th>
                                 <th className="px-6 py-4">Category</th>
+                                <th className="px-6 py-4">Brand</th>
                                 <th className="px-6 py-4">Price</th>
                                 <th className="px-6 py-4">Stock Status</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
@@ -143,6 +176,7 @@ const ProductList = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-20"></div></td>
                                         <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16"></div></td>
                                         <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-20"></div></td>
                                         <td className="px-6 py-4 text-right"><div className="h-8 bg-gray-100 rounded w-20 ml-auto"></div></td>
@@ -168,7 +202,16 @@ const ProductList = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <Badge variant="outline" className="font-medium bg-gray-50/50">
-                                                {product.category}
+                                                {typeof product.category === 'object' && product.category !== null
+                                                    ? product.category.name
+                                                    : product.category}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <Badge variant="secondary" className="font-medium bg-blue-50/50 text-blue-700 border-blue-100">
+                                                {typeof product.brand === 'object' && product.brand !== null
+                                                    ? product.brand.name
+                                                    : product.brand || '-'}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
@@ -195,9 +238,9 @@ const ProductList = () => {
                                                         <Edit className="size-4" />
                                                     </Link>
                                                 </Button>
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="icon" 
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
                                                     onClick={() => handleDelete(product._id)}
                                                     disabled={isDeleting}
                                                     className="rounded-full hover:bg-rose-50 hover:text-rose-600"
@@ -210,13 +253,12 @@ const ProductList = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center">
+                                    <td colSpan={6} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="size-16 rounded-full bg-gray-50 flex items-center justify-center">
                                                 <Package className="size-8 text-gray-300" />
                                             </div>
                                             <div className="text-gray-500 font-medium">No products found</div>
-                                            <p className="text-sm text-muted-foreground">Try adjusting your search or add a new product.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -225,8 +267,20 @@ const ProductList = () => {
                     </table>
                 </div>
 
-                <div className="p-6 border-t border-gray-100">
-                    {data && <Pagination totalItems={data.total} itemsPerPage={10} />}
+                <div className="p-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    {/* Bottom-Left Range Text */}
+                    <div className="text-sm font-medium text-gray-600">
+                        Show {startItem} to {endItem} of {totalItems} products
+                    </div>
+
+                    {/* Bottom-Right Pagination Controls */}
+                    {data && (
+                        <Pagination
+                            currentPage={page}
+                            totalPages={data.totalPages || Math.ceil(totalItems / limit)}
+                            onPageChange={handlePageChange}
+                        />
+                    )}
                 </div>
             </Card>
         </div>

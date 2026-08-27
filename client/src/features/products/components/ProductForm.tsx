@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Upload, Loader2, Plus } from 'lucide-react';
 import type { IProduct } from '@/types/product.types';
+import { useGetBrandsQuery, useGetCategoriesQuery } from '../productApiSlice';
+import { AddBrandModal } from './AddBrandModal';
+import { AddCategoryModal } from './AddCategoryModal';
 
 interface ProductFormProps {
     initialData?: IProduct;
@@ -28,13 +31,21 @@ interface FormValues {
 }
 
 const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoading }) => {
-    const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
+    // API Hooks for Brands & Categories
+    const { data: brandsData } = useGetBrandsQuery();
+    const { data: categoriesData } = useGetCategoriesQuery();
+
+    // Separate Modal Visibility States
+    const [showBrandModal, setShowBrandModal] = useState(false);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+    const { register, handleSubmit, setValue,formState: { errors } } = useForm<FormValues>({
         defaultValues: initialData ? {
             name: initialData.name,
             description: initialData.description,
             price: initialData.price,
-            category: initialData.category,
-            brand: initialData.brand,
+            category: typeof initialData.category === 'object' ? (initialData.category as { _id: string })._id : initialData.category,
+            brand: typeof initialData.brand === 'object' ? (initialData.brand as { _id: string })._id : initialData.brand,
             stock: initialData.stock,
             processor: initialData.processor,
             ram: initialData.ram,
@@ -96,216 +107,253 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
     };
 
     return (
-        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Basic Information */}
-                <Card className="lg:col-span-2 border-none shadow-sm p-6 space-y-6">
-                    <div>
-                        <h3 className="text-lg font-bold text-gray-900 tracking-tight">Basic Information</h3>
-                        <p className="text-sm text-muted-foreground">General details about the product.</p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                        <Label htmlFor="name" className="text-sm font-semibold">Product Name</Label>
-                        <Input 
-                            id="name" 
-                            {...register('name', { required: 'Name is required' })} 
-                            placeholder="e.g. MacBook Pro 14-inch"
-                            className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
-                        />
-                        {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="brand" className="text-sm font-semibold">Brand</Label>
-                            <Input 
-                                id="brand" 
-                                {...register('brand', { required: 'Brand is required' })} 
-                                placeholder="Apple" 
-                                className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
-                            />
-                            {errors.brand && <p className="text-xs text-red-500">{errors.brand.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
-                            <Input 
-                                id="category" 
-                                {...register('category', { required: 'Category is required' })} 
-                                placeholder="Professional" 
-                                className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
-                            />
-                            {errors.category && <p className="text-xs text-red-500">{errors.category.message}</p>}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="price" className="text-sm font-semibold">Price ($)</Label>
-                            <Input 
-                                id="price" 
-                                type="number" 
-                                step="0.01" 
-                                {...register('price', { required: 'Price is required', min: 0 })} 
-                                className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
-                            />
-                            {errors.price && <p className="text-xs text-red-500">{errors.price.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="stock" className="text-sm font-semibold">Stock Quantity</Label>
-                            <Input 
-                                id="stock" 
-                                type="number" 
-                                {...register('stock', { required: 'Stock is required', min: 0 })} 
-                                className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
-                            />
-                            {errors.stock && <p className="text-xs text-red-500">{errors.stock.message}</p>}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
-                        <Textarea 
-                            id="description" 
-                            rows={6} 
-                            {...register('description', { required: 'Description is required' })} 
-                            placeholder="Detailed product description..."
-                            className="rounded-2xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20 resize-none"
-                        />
-                        {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
-                    </div>
-                </Card>
-
-                {/* Sidebar of the form: Specs and Images */}
-                <div className="space-y-8">
-                    {/* Technical Specifications */}
-                    <Card className="border-none shadow-sm p-6 space-y-6">
+        <>
+            <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Basic Information */}
+                    <Card className="lg:col-span-2 border-none shadow-sm p-6 space-y-6">
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Specifications</h3>
-                            <p className="text-sm text-muted-foreground">Technical hardware details.</p>
+                            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Basic Information</h3>
+                            <p className="text-sm text-muted-foreground">General details about the product.</p>
                         </div>
                         
                         <div className="space-y-2">
-                            <Label htmlFor="processor" className="text-sm font-semibold">Processor</Label>
+                            <Label htmlFor="name" className="text-sm font-semibold">Product Name</Label>
                             <Input 
-                                id="processor" 
-                                {...register('processor', { required: 'Processor is required' })} 
-                                placeholder="M3 Pro, 11-core CPU" 
+                                id="name" 
+                                {...register('name', { required: 'Name is required' })} 
+                                placeholder="e.g. MacBook Pro 14-inch"
                                 className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
                             />
-                            {errors.processor && <p className="text-xs text-red-500">{errors.processor.message}</p>}
+                            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* BRAND SELECT */}
                             <div className="space-y-2">
-                                <Label htmlFor="ram" className="text-sm font-semibold">RAM</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="brand" className="text-sm font-semibold">Brand</Label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowBrandModal(true)}
+                                        className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5"
+                                    >
+                                        <Plus className="size-3" /> Add New Brand
+                                    </button>
+                                </div>
+                                <select 
+                                    id="brand" 
+                                    {...register('brand', { required: 'Brand is required' })}
+                                    className="w-full h-10 px-3 rounded-xl border border-gray-100 bg-gray-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                >
+                                    <option value="">Select Brand</option>
+                                    {brandsData?.brands.map((b) => (
+                                        <option key={b._id} value={b._id}>{b.name}</option>
+                                    ))}
+                                </select>
+                                {errors.brand && <p className="text-xs text-red-500">{errors.brand.message}</p>}
+                            </div>
+
+                            {/* CATEGORY SELECT */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCategoryModal(true)}
+                                        className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5"
+                                    >
+                                        <Plus className="size-3" /> Add New Category
+                                    </button>
+                                </div>
+                                <select 
+                                    id="category" 
+                                    {...register('category', { required: 'Category is required' })}
+                                    className="w-full h-10 px-3 rounded-xl border border-gray-100 bg-gray-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                >
+                                    <option value="">Select Category</option>
+                                    {categoriesData?.categories.map((c) => (
+                                        <option key={c._id} value={c._id}>{c.name}</option>
+                                    ))}
+                                </select>
+                                {errors.category && <p className="text-xs text-red-500">{errors.category.message}</p>}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="price" className="text-sm font-semibold">Price ($)</Label>
                                 <Input 
-                                    id="ram" 
-                                    {...register('ram', { required: 'RAM is required' })} 
-                                    placeholder="18GB" 
+                                    id="price" 
+                                    type="number" 
+                                    step="0.01" 
+                                    {...register('price', { required: 'Price is required', min: 0 })} 
                                     className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
                                 />
-                                {errors.ram && <p className="text-xs text-red-500">{errors.ram.message}</p>}
+                                {errors.price && <p className="text-xs text-red-500">{errors.price.message}</p>}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="storage" className="text-sm font-semibold">Storage</Label>
+                                <Label htmlFor="stock" className="text-sm font-semibold">Stock Quantity</Label>
                                 <Input 
-                                    id="storage" 
-                                    {...register('storage', { required: 'Storage is required' })} 
-                                    placeholder="512GB SSD" 
+                                    id="stock" 
+                                    type="number" 
+                                    {...register('stock', { required: 'Stock is required', min: 0 })} 
                                     className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
                                 />
-                                {errors.storage && <p className="text-xs text-red-500">{errors.storage.message}</p>}
+                                {errors.stock && <p className="text-xs text-red-500">{errors.stock.message}</p>}
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="screenSize" className="text-sm font-semibold">Screen Size (inches)</Label>
-                            <Input 
-                                id="screenSize" 
-                                type="number" 
-                                step="0.1" 
-                                {...register('screenSize', { required: 'Screen size is required', min: 0 })} 
-                                className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                            <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
+                            <Textarea 
+                                id="description" 
+                                rows={6} 
+                                {...register('description', { required: 'Description is required' })} 
+                                placeholder="Detailed product description..."
+                                className="rounded-2xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20 resize-none"
                             />
-                            {errors.screenSize && <p className="text-xs text-red-500">{errors.screenSize.message}</p>}
+                            {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
                         </div>
                     </Card>
 
-                    {/* Image Upload Area */}
-                    <Card className="border-none shadow-sm p-6 space-y-6">
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Images</h3>
-                            <p className="text-sm text-muted-foreground">Up to 5 product photos.</p>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-3">
-                            {/* Existing Images */}
-                            {existingImages.map((img) => (
-                                <div key={img.public_id} className="relative aspect-square rounded-xl border border-gray-100 overflow-hidden group">
-                                    <img src={img.url} alt="Preview" className="size-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeExistingImage(img.public_id)}
-                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <X className="size-5 text-white" />
-                                    </button>
-                                </div>
-                            ))}
+                    {/* Specifications & Images */}
+                    <div className="space-y-8">
+                        <Card className="border-none shadow-sm p-6 space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 tracking-tight">Specifications</h3>
+                                <p className="text-sm text-muted-foreground">Technical hardware details.</p>
+                            </div>
                             
-                            {/* New Image Previews */}
-                            {imagePreviews.map((preview, index) => (
-                                <div key={index} className="relative aspect-square rounded-xl border border-gray-100 overflow-hidden group">
-                                    <img src={preview} alt="Preview" className="size-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => removeNewImage(index)}
-                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                        <X className="size-5 text-white" />
-                                    </button>
-                                </div>
-                            ))}
+                            <div className="space-y-2">
+                                <Label htmlFor="processor" className="text-sm font-semibold">Processor</Label>
+                                <Input 
+                                    id="processor" 
+                                    {...register('processor', { required: 'Processor is required' })} 
+                                    placeholder="M3 Pro, 11-core CPU" 
+                                    className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                />
+                                {errors.processor && <p className="text-xs text-red-500">{errors.processor.message}</p>}
+                            </div>
 
-                            {/* Upload Button */}
-                            {existingImages.length + images.length < 5 && (
-                                <label className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-primary">
-                                    <Upload className="size-6" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">Add</span>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleImageChange}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="ram" className="text-sm font-semibold">RAM</Label>
+                                    <Input 
+                                        id="ram" 
+                                        {...register('ram', { required: 'RAM is required' })} 
+                                        placeholder="18GB" 
+                                        className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
                                     />
-                                </label>
-                            )}
-                        </div>
-                        <p className="text-[10px] text-muted-foreground text-center">JPG, PNG or WEBP. Max 5 images.</p>
-                    </Card>
-                </div>
-            </div>
+                                    {errors.ram && <p className="text-xs text-red-500">{errors.ram.message}</p>}
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="storage" className="text-sm font-semibold">Storage</Label>
+                                    <Input 
+                                        id="storage" 
+                                        {...register('storage', { required: 'Storage is required' })} 
+                                        placeholder="512GB SSD" 
+                                        className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                    />
+                                    {errors.storage && <p className="text-xs text-red-500">{errors.storage.message}</p>}
+                                </div>
+                            </div>
 
-            <div className="flex justify-end gap-4 pt-4 border-t">
-                <Button type="button" variant="ghost" onClick={() => window.history.back()} disabled={isLoading} className="rounded-full px-8">
-                    Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading} className="rounded-full px-10 min-w-40 shadow-md shadow-primary/20">
-                    {isLoading ? (
-                        <>
-                            <Loader2 className="size-4 mr-2 animate-spin" />
-                            Processing...
-                        </>
-                    ) : (
-                        <>
-                            {initialData ? 'Save Changes' : 'List Product'}
-                        </>
-                    )}
-                </Button>
-            </div>
-        </form>
+                            <div className="space-y-2">
+                                <Label htmlFor="screenSize" className="text-sm font-semibold">Screen Size (inches)</Label>
+                                <Input 
+                                    id="screenSize" 
+                                    type="number" 
+                                    step="0.1" 
+                                    {...register('screenSize', { required: 'Screen size is required', min: 0 })} 
+                                    className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                />
+                                {errors.screenSize && <p className="text-xs text-red-500">{errors.screenSize.message}</p>}
+                            </div>
+                        </Card>
+
+                        <Card className="border-none shadow-sm p-6 space-y-6">
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-900 tracking-tight">Images</h3>
+                                <p className="text-sm text-muted-foreground">Up to 5 product photos.</p>
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                {existingImages.map((img) => (
+                                    <div key={img.public_id} className="relative aspect-square rounded-xl border border-gray-100 overflow-hidden group">
+                                        <img src={img.url} alt="Preview" className="size-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExistingImage(img.public_id)}
+                                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="size-5 text-white" />
+                                        </button>
+                                    </div>
+                                ))}
+                                
+                                {imagePreviews.map((preview, index) => (
+                                    <div key={index} className="relative aspect-square rounded-xl border border-gray-100 overflow-hidden group">
+                                        <img src={preview} alt="Preview" className="size-full object-cover" />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeNewImage(index)}
+                                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="size-5 text-white" />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {existingImages.length + images.length < 5 && (
+                                    <label className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-primary">
+                                        <Upload className="size-6" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Add</span>
+                                        <input
+                                            type="file"
+                                            multiple
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageChange}
+                                        />
+                                    </label>
+                                )}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground text-center">JPG, PNG or WEBP. Max 5 images.</p>
+                        </Card>
+                    </div>
+                </div>
+
+                <div className="flex justify-end gap-4 pt-4 border-t">
+                    <Button type="button" variant="ghost" onClick={() => window.history.back()} disabled={isLoading} className="rounded-full px-8">
+                        Cancel
+                    </Button>
+                    <Button type="submit" disabled={isLoading} className="rounded-full px-10 min-w-40 shadow-md shadow-primary/20">
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="size-4 mr-2 animate-spin" />
+                                Processing...
+                            </>
+                        ) : (
+                            <>{initialData ? 'Save Changes' : 'List Product'}</>
+                        )}
+                    </Button>
+                </div>
+            </form>
+
+            {/* EXTRACTED MODAL COMPONENTS */}
+            <AddBrandModal 
+                isOpen={showBrandModal} 
+                onClose={() => setShowBrandModal(false)} 
+                onSuccess={(newBrandId) => setValue('brand', newBrandId)}
+            />
+
+            <AddCategoryModal 
+                isOpen={showCategoryModal} 
+                onClose={() => setShowCategoryModal(false)} 
+                onSuccess={(newCategoryId) => setValue('category', newCategoryId)}
+            />
+        </>
     );
 };
 

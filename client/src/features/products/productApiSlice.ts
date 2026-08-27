@@ -1,5 +1,5 @@
 import { apiSlice } from "../../app/services/apiSlice";
-import type { IProductQueryParams, IProductResponse, IReviewResponse, ISingleProductResponse } from "../../types/product.types";
+import type { IBrandItem, ICategoryItem, IProductQueryParams, IProductResponse, IReviewResponse, ISingleProductResponse } from "../../types/product.types";
 
 export const productApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -17,7 +17,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
                         ...result.products.map(({ _id }) => ({ type: 'Product' as const, id: _id })),
                         { type: 'Product', id: 'LIST' },
                     ]
-                    : [{ type: 'Product', id: 'LIST'}]
+                    : [{ type: 'Product', id: 'LIST' }]
         }),
 
         getSingleProduct: builder.query<ISingleProductResponse, string>({
@@ -65,6 +65,64 @@ export const productApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: [{ type: 'Product', id: 'LIST' }],
         }),
+
+        // Categories Endpoints
+        getCategories: builder.query<{ categories: ICategoryItem[] }, void>({
+            query: () => '/admin/categories',
+            providesTags: ['Category'],
+        }),
+        createCategory: builder.mutation<{ category: ICategoryItem }, { name: string; description?: string }>({
+            query: (body) => ({
+                url: '/admin/categories',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Category'],
+        }),
+        updateCategory: builder.mutation<{ category: ICategoryItem }, { id: string; name: string; description?: string }>({
+            query: ({ id, ...body }) => ({
+                url: `/admin/categories/${id}`,
+                method: 'PUT',
+                body,
+            }),
+            invalidatesTags: ['Category'],
+        }),
+        toggleCategoryStatus: builder.mutation<{ category: ICategoryItem }, string>({
+            query: (id) => ({
+                url: `/admin/categories/${id}/toggle-status`,
+                method: 'PATCH',
+            }),
+            invalidatesTags: ['Category'],
+        }),
+
+        // Brands Endpoints
+        getBrands: builder.query<{ brands: IBrandItem[] }, void>({
+            query: () => '/admin/brands',
+            providesTags: ['Brand'],
+        }),
+        createBrand: builder.mutation<{ brand: IBrandItem }, { name: string; description?: string }>({
+            query: (body) => ({
+                url: '/admin/brands',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: ['Brand'],
+        }),
+        updateBrand: builder.mutation<{ brand: IBrandItem }, { id: string; name: string; description?: string }>({
+            query: ({ id, ...body }) => ({
+                url: `/admin/brands/${id}`,
+                method: 'PUT',
+                body,
+            }),
+            invalidatesTags: ['Brand'],
+        }),
+        toggleBrandStatus: builder.mutation<{ brand: IBrandItem }, string>({
+            query: (id) => ({
+                url: `/admin/brands/${id}/toggle-status`,
+                method: 'PATCH',
+            }),
+            invalidatesTags: ['Brand'],
+        }),
     })
 });
 
@@ -75,4 +133,12 @@ export const {
     useCreateProductMutation,
     useUpdateProductMutation,
     useDeleteProductMutation,
+    useGetCategoriesQuery,
+    useCreateCategoryMutation,
+    useUpdateCategoryMutation,
+    useToggleCategoryStatusMutation,
+    useGetBrandsQuery,
+    useCreateBrandMutation,
+    useUpdateBrandMutation,
+    useToggleBrandStatusMutation,
 } = productApiSlice;
