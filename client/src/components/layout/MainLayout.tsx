@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux.hooks";
 import { useEffect } from "react";
 import { initializeCart } from "@/features/cart/cartSlice";
 import OAuthHandler from "../common/OAuthHandler";
+import CompareBar from "@/features/compare/components/CompareBar";
 
 const MainLayout = () => {
     const dispatch = useAppDispatch();
@@ -23,6 +24,7 @@ const MainLayout = () => {
             <main className="grow">
                 <Outlet />
             </main>
+            <CompareBar />
 
             <footer className="bg-white border-t border-gray-200 py-6 text-center text-sm text-gray-500">
                 &copy; {new Date().getFullYear()} LaptopVerse. All rights reserved.

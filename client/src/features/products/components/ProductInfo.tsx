@@ -16,6 +16,10 @@ export const ProductInfo = ({ product }: { product: IProduct }) => {
     const [qty, setQty] = useState(1);
     const dispatch = useAppDispatch();
 
+    const brandName = typeof product.brand === 'object' && product.brand !== null
+        ? product.brand.name
+        : (product.brand || '');
+
     const addToCartHandler = () => {
         dispatch(addToCart({ ...product, qty }));
 
@@ -28,7 +32,7 @@ export const ProductInfo = ({ product }: { product: IProduct }) => {
     return (
         <div className="flex flex-col gap-6">
             <div>
-                <h4 className="text-blue-600 font-semibold uppercase tracking-wider text-sm mb-2">{product.brand}</h4>
+                <h4 className="text-blue-600 font-semibold uppercase tracking-wider text-sm mb-2">{brandName}</h4>
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight">{product.name}</h1>
                 <div className="flex items-center gap-4 mt-4">
                     <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded border border-amber-100">
