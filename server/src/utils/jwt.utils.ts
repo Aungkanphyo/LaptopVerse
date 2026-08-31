@@ -25,12 +25,30 @@ const REFRESH_EXPIRY: string = getRequiredEnv('JWT_REFRESH_EXPIRY');
 const COOKIE_DOMAIN: string = process.env.COOKIE_DOMAIN || 'localhost';
 const NODE_ENV: string = process.env.NODE_ENV || 'development';
 
+const parseExpiryToMs = (expiry: string): number => {
+    const unit = expiry.slice(-1);
+    const value = parseInt(expiry.slice(0, -1));
+
+    if (isNaN(value)) {
+        const rawValue = parseInt(expiry);
+        return isNaN(rawValue) ? 15 * 60 * 1000 : rawValue * 1000;
+    }
+
+    switch (unit) {
+        case 'd': return value * 24 * 60 * 60 * 1000;
+        case 'h': return value * 60 * 60 * 1000;
+        case 'm': return value * 60 * 1000;
+        case 's': return value * 1000;
+        default: return parseInt(expiry) * 1000;
+    }
+};
+
 interface TokenPayload {
     id: string;
     role: string;
 }
 
-// Access Token ကို generate လုပ်
+// Access Token generate
 export const generateAccessToken = (userId: string, role: string): string => {
     const payload: TokenPayload = { id: userId, role };
     return jwt.sign(payload, ACCESS_SECRET, {
@@ -38,7 +56,7 @@ export const generateAccessToken = (userId: string, role: string): string => {
     });
 }
 
-// Refresh Token ကို generate လုပ်သည်
+// Refresh Token generate
 export const generateRefreshToken = (userId: string, role: string): string => {
     const payload: TokenPayload = { id: userId, role };
     return jwt.sign(payload, REFRESH_SECRET, {
@@ -62,23 +80,16 @@ export const sendTokenAsCookie = (res: Response, user: IUserDocument): { accessT
         ...(NODE_ENV === 'production' && { domain: COOKIE_DOMAIN })
     };
 
-    // Cookies Set လုပ်
+    // Cookies Set
     res.cookie('accessToken', accessToken, {
         ...cookieOptions,
-        maxAge: (typeof ACCESS_EXPIRY === 'string' 
-         ? parseInt(ACCESS_EXPIRY.replace('s', '')) // '900s' -> 900
-         : ACCESS_EXPIRY || 900) * 1000,
+        maxAge: parseExpiryToMs(ACCESS_EXPIRY),
     });
 
-    // Refresh Token ကို 7 ရက် ထား
     res.cookie('refreshToken', refreshToken, {
         ...cookieOptions,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        maxAge: parseExpiryToMs(REFRESH_EXPIRY),
     });
-
-    // Security အရ client ကို Access Token ကို body နဲ့ ပြန်မပို့သင့်ပါ။
-    // ဒါပေမဲ့ client-side development လွယ်ကူစေဖို့အတွက် accessToken ကို ပြန်ပို့ပေးနိုင်ပါသည်။ 
-    // (ဥပမာ - Redux state/memory မှာ ခဏထားရန်)
     return { accessToken };
 };
 
@@ -88,12 +99,12 @@ export const clearTokensFromCookie = (res: Response): void => {
     res.clearCookie('refreshToken', { domain: COOKIE_DOMAIN, httpOnly: true, sameSite: 'strict' as const });
 };
 
-// Refresh Token ကို verify လုပ်ရန် function (Auth Middleware အတွက်)
+// Function to verify the refresh token (for Auth Middleware)
 export const verifyRefreshToken = (token: string) => {
     return jwt.verify(token, REFRESH_SECRET);
 };
 
-// Access Token ကို verify လုပ်ရန် function
+// Access Token verify function
 export const verifyAccessToken = (token: string) => {
     return jwt.verify(token, ACCESS_SECRET);
 }

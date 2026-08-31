@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import CheckoutSteps from "@/components/layout/CheckoutSteps";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux.hooks";
-import { saveManualTransferPayment } from "./cartSlice";
+import { clearCartItems, saveManualTransferPayment } from "./cartSlice";
 import { useGetPublicManualPaymentInfoQuery } from "@/features/payment/paymentApiSlice";
 import { useCreateOrderMutation } from "@/features/orders/orderApiSlice";
 import { toast } from "sonner";
@@ -172,13 +172,14 @@ const PaymentScreen = () => {
         totalPrice: cart.totalPrice,
       }).unwrap();
 
+      dispatch(clearCartItems());
       toast.success("Order placed. We’ll confirm your transfer soon.");
       navigate("/");
     } catch (err: unknown) {
       const message =
         typeof err === "object" && err !== null && "data" in err
           ? // @ts-expect-error RTK Query error shape
-            (err.data?.message as string | undefined)
+          (err.data?.message as string | undefined)
           : undefined;
       toast.error(message || "Failed to place order");
     } finally {
@@ -235,8 +236,8 @@ const PaymentScreen = () => {
                     {isLoading
                       ? "Loading…"
                       : isError
-                      ? "Failed to load payment instructions."
-                      : data?.instructions}
+                        ? "Failed to load payment instructions."
+                        : data?.instructions}
                   </div>
                   {data?.enabled === false && (
                     <div className="mt-3 text-sm font-semibold text-rose-700">
