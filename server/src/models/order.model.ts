@@ -32,7 +32,6 @@ export interface IOrder {
     paidAt: Date; // Date when payment was successful
 
     itemsPrice: number; // Sum of all orderItems prices
-    taxPrice: number;
     shippingPrice: number;
     totalPrice: number; // Grand total (itemsPrice + tax + shipping)
 
@@ -81,7 +80,6 @@ const orderSchema: Schema<IOrder> = new Schema({
     paidAt: { type: Date },
 
     itemsPrice: { type: Number, required: true, default: 0.0 },
-    taxPrice: { type: Number, required: true, default: 0.0 },
     shippingPrice: { type: Number, required: true, default: 0.0 },
     totalPrice: { type: Number, required: true, default: 0.0 },
 

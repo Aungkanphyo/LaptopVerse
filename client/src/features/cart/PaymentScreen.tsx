@@ -167,7 +167,6 @@ const PaymentScreen = () => {
                     status: "pending",
                 },
                 itemsPrice: cart.itemsPrice,
-                taxPrice: cart.taxPrice,
                 shippingPrice: cart.shippingPrice,
                 totalPrice: cart.totalPrice,
             }).unwrap();

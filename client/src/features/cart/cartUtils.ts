@@ -15,11 +15,8 @@ export const updateCart = (state: ICartState) => {
     // calculate shipping price
     state.shippingPrice = addDecimals(state.itemsPrice > 1000 ? 0 : 25);
 
-    // calculate tax price
-    state.taxPrice = addDecimals(Number((0.15 * state.itemsPrice).toFixed(2)));
-
     // calculate total price
-    state.totalPrice = addDecimals(state.itemsPrice + state.shippingPrice + state.taxPrice);
+    state.totalPrice = addDecimals(state.itemsPrice + state.shippingPrice);
 
     const cartKey = getCartKey(state.userId);
     // save to localStorage

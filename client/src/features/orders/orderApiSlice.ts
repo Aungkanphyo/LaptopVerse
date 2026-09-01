@@ -20,7 +20,6 @@ export interface ICreateOrderRequest {
         status: string;
     };
     itemsPrice: number;
-    taxPrice: number;
     shippingPrice: number;
     totalPrice: number;
 }

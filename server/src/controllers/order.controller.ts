@@ -18,7 +18,6 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
         orderItems,
         paymentInfo,
         itemsPrice,
-        taxPrice,
         shippingPrice,
         totalPrice,
     } = req.body;
@@ -30,7 +29,6 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
         orderItems,
         paymentInfo,
         itemsPrice,
-        taxPrice,
         shippingPrice,
         totalPrice,
         ...(isPaid ? { paidAt: Date.now() } : {}),

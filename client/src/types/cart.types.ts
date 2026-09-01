@@ -18,7 +18,6 @@ export interface ICartState {
     shippingInfo: IShippingInfo | null;
     itemsPrice: number;
     shippingPrice: number;
-    taxPrice: number;
     totalPrice: number;
     paymentMethod?: 'manual_transfer';
     manualTransferProvider?: string;

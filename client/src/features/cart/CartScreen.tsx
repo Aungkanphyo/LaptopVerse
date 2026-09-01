@@ -10,7 +10,7 @@ import type { ICartItem } from "@/types/cart.types";
 const CartScreen = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const { cartItems, itemsPrice, totalPrice, shippingPrice, taxPrice } = useAppSelector((state) => state.cart);
+    const { cartItems, itemsPrice, totalPrice, shippingPrice } = useAppSelector((state) => state.cart);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateQtyHandler = (item: any, newQty: number) => {
@@ -106,10 +106,6 @@ const CartScreen = () => {
                             <div className="flex justify-between">
                                 <span>Shipping</span>
                                 <span className="text-white">${shippingPrice === 0 ? "Free" : `$${shippingPrice}`}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Tax (15%)</span>
-                                <span className="text-white">${taxPrice}</span>
                             </div>
                             <Separator className="bg-gray-700" />
                             <div className="flex justify-between text-lg font-bold text-white">
