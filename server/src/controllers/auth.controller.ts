@@ -1,9 +1,11 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ILoginInput, IRegisterInput, IResendOtpInput, IVerifyOtpInput } from "../types/auth.types";
 import * as authService from '../services/auth.service';
-import { clearTokensFromCookie, sendTokenAsCookie } from "../utils/jwt.utils";
-import { IUserDocument } from "../models/user.model";
+import { clearTokensFromCookie, generateAccessToken, sendTokenAsCookie, verifyRefreshToken } from "../utils/jwt.utils";
+import User, { IUserDocument } from "../models/user.model";
+import { AppError } from "../utils/error.utils";
+import { JwtPayload } from "jsonwebtoken";
 
 /**
  * @desc Registering a New User (POST /api/v1/auth/register)
@@ -87,6 +89,49 @@ export const login = asyncHandler(async (req: Request<{}, {}, ILoginInput>, res:
         },
         accessToken,
     });
+});
+
+/**
+ * @desc Refresh Access Token (POST /api/v1/auth/refresh)
+ * @access Public (Requires valid Refresh Token in Cookie)
+ */
+export const refreshToken = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        return next(new AppError('Refresh token missing. Please log in again.', 401));
+    }
+
+    let decoded: JwtPayload | string;
+    try {
+        decoded = verifyRefreshToken(refreshToken);
+    } catch (error) {
+        return next(new AppError('Invalid or expired refresh token. Please log in again.', 401));
+    }
+
+    if (typeof decoded !== 'string' && decoded.id) {
+        const user = await User.findById(decoded.id);
+
+        if (!user) {
+            return next(new AppError('User belonging to this token no longer exists.', 401));
+        }
+
+        // Generate a new Access Token using existing helper
+        const accessToken = generateAccessToken(user._id.toString(), user.role);
+
+        res.status(200).json({
+            success: true,
+            accessToken,
+            user: {
+                _id: user._id,
+                fullName: user.fullName,
+                email: user.email,
+                role: user.role,
+            },
+        });
+    } else {
+        return next(new AppError('Invalid token structure.', 401));
+    }
 });
 
 /**

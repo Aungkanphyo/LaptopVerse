@@ -45,6 +45,13 @@ router.post(
     authController.login
 );
 
+// Silent Refresh Flow: Refresh Access Token Route
+// POST /api/v1/auth/refresh
+router.post(
+    '/refresh',
+    authController.refreshToken
+);
+
 // Google OAuth Routes
 router.get(
     '/google',
