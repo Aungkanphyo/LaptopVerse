@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import Order from "../models/order.model";
+import Order, { IOrder, OrderStatus } from "../models/order.model";
 import { AppError } from "../utils/error.utils";
 import Product from "../models/product.model";
+import sendEmail from "../utils/sendEmail";
+import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
 
 // User Controller function
 /**
@@ -95,20 +97,17 @@ export const myOrders = asyncHandler(async (req: Request, res: Response, next: N
  * @access Private (Admin)
  */
 export const getAllOrders = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const filter: { orderStatus?: string } = {};
+    const filter: Partial<IOrder> = {};
 
     // Get orderStatus from URL Query Parameter (e.g: ?status=Processing)
     if(req.query.status) {
-        filter.orderStatus = req.query.status.toString();
+        filter.orderStatus = req.query.status.toString() as OrderStatus;
     }
 
     const orders = await Order.find(filter);
 
     // Calculate Total Amount of all orders (For Dashboard Analytics)
-    let totalAmount = 0;
-    orders.forEach((order) => {
-        totalAmount += order.totalPrice;
-    });
+    const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
 
     res.status(200).json({
         success: true,
@@ -171,6 +170,54 @@ export const deleteOrder = asyncHandler(async (req: Request, res: Response, next
     res.status(200).json({
         success: true,
         message: 'Order Deleted Successfully',
+    });
+});
+
+/**
+ * @desc    Verify Payment Status (Admin) & Send Email Notification
+ * @route   PUT /api/v1/orders/admin/:id/verify-payment
+ * @access  Private (Admin)
+ */
+// Admin Payment Verification Endpoint
+export const verifyPayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { paymentStatus, rejectionReason } = req.body; // paymentStatus: 'succeeded' | 'failed'
+    
+    const order = await Order.findById(req.params.id).populate<{ user: { fullName: string; email: string } }>('user', 'fullName email');
+
+    if (!order) {
+        return next(new AppError('Order not found', 404));
+    }
+
+    order.paymentInfo.status = paymentStatus;
+    if (paymentStatus === 'succeeded') {
+        order.paidAt = new Date(Date.now());
+    }
+    await order.save();
+
+    // Send Email to User
+    try {
+        const orderIdString = order._id.toString();
+        if (paymentStatus === 'succeeded') {
+            await sendEmail({
+                email: order.user.email,
+                subject: `Payment Confirmed - Order #${order._id}`,
+                html: getPaymentApprovedTemplate(order.user.fullName, orderIdString, order.totalPrice),
+            });
+        } else if (paymentStatus === 'failed') {
+            await sendEmail({
+                email: order.user.email,
+                subject: `Payment Verification Issue - Order #${order._id}`,
+                html: getPaymentRejectedTemplate(order.user.fullName, orderIdString, rejectionReason),
+            });
+        }
+    } catch (error) {
+        console.error("Payment notification email failed to send:", error);
+    }
+
+    res.status(200).json({
+        success: true,
+        message: `Payment status updated to ${paymentStatus}`,
+        order,
     });
 });
 

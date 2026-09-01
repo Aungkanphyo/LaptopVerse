@@ -17,6 +17,7 @@ import AdminLayout from "./components/layout/AdminLayout";
 import VerifyOtp from "./features/auth/pages/VerifyOtp";
 import BrandList from "./pages/admin/BrandList";
 import CategoryList from "./pages/admin/CategoryList";
+import Profile from "./features/auth/pages/Profile";
 
 const router = createBrowserRouter([
   {
@@ -54,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: "/payment",
         element: <PaymentScreen />
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
       },
     ]
   },

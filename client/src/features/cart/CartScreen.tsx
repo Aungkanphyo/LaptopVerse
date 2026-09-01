@@ -5,6 +5,7 @@ import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import type { ICartItem } from "@/types/cart.types";
 
 const CartScreen = () => {
     const navigate = useNavigate();
@@ -13,13 +14,21 @@ const CartScreen = () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateQtyHandler = (item: any, newQty: number) => {
-        if (newQty > 0 || newQty <= item.stock) {
+        if (newQty > 0 && newQty <= item.stock) {
             dispatch(addToCart({ ...item, qty: newQty }));
         }
     };
 
     const removeFromCartHandler = (id: string) => {
         dispatch(removeFromCart(id));
+    };
+
+    const renderBrandName = (brand: ICartItem["brand"]) => {
+        if (!brand) return null;
+        if (typeof brand === "object" && "name" in brand) {
+            return brand.name;
+        }
+        return brand;
     };
 
     if (cartItems.length === 0) {
@@ -45,13 +54,13 @@ const CartScreen = () => {
                     {cartItems.map((item) => (
                         <Card key={item._id} className="border-none shadow-sm bg-white overflow-hidden">
                             <CardContent className="p-4 flex items-center gap-4">
-                                <img src={item.images[0].url} alt={item.name} className="size-24 object-contain bg-gray-50 rounded-lg" />
+                                <img src={item.images?.[0].url} alt={item.name} className="size-24 object-contain bg-gray-50 rounded-lg" />
 
                                 <div className="flex-1 min-w-0">
                                     <Link to={`/products/${item._id}`} className="font-bold text-gray-900 hover:text-blue-600 truncate block">
                                         {item.name}
                                     </Link>
-                                    <p className="text-sm text-gray-500">{item.brand}</p>
+                                    <p className="text-sm text-gray-500">{renderBrandName(item.brand)}</p>
                                     <div className="mt-2 text-lg font-black">${item.price}</div>
                                 </div>
 

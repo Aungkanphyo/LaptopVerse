@@ -46,3 +46,36 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response, ne
         user: updatedUser
     });
 });
+
+/**
+ * @desc    Update user password
+ * @route   PUT /api/v1/auth/password/update
+ * @access  Private
+ */
+// Change Password Controller
+export const updatePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+        return next(new AppError('Please provide both old and new passwords', 400));
+    }
+
+    const user = await User.findById(req.userId).select('+password');
+    if (!user) {
+        return next(new AppError('User not found', 404));
+    }
+
+    // Check if old password matches
+    const isMatched = await user.comparePassword(oldPassword);
+    if (!isMatched) {
+        return next(new AppError('Incorrect old password', 400));
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({
+        success: true,
+        message: 'Password updated successfully',
+    });
+});

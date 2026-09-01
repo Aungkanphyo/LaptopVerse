@@ -40,3 +40,36 @@ export const getRefundRejectionTemplate = (userName: string, orderId: string, re
         <p>Best regards,<br/>LaptopVerse Team</p>
     </div>
 `;
+
+// Payment Status Email Templates
+export const getPaymentApprovedTemplate = (userName: string, orderId: string, amount: number) => `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #16a34a; text-align: center;">Payment Verified & Order Confirmed! 🎉</h2>
+        <p>Hi <b>${userName}</b>,</p>
+        <p>We have successfully verified your manual transfer of <strong>${amount.toLocaleString()} MMK</strong> for Order <b>#${orderId}</b>.</p>
+        <p>Your order is now being processed and will be shipped soon.</p>
+        <div style="text-align: center; margin: 25px 0;">
+            <span style="font-size: 14px; color: #15803d; background: #f0fdf4; padding: 10px 20px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                Status: Payment Confirmed (Paid)
+            </span>
+        </div>
+        <p style="font-size: 0.9em; color: #666;">Thank you for shopping with LaptopVerse!</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="text-align: center; font-size: 0.8em; color: #888;">&copy; ${new Date().getFullYear()} LaptopVerse Inc. All rights reserved.</p>
+    </div>
+`;
+
+export const getPaymentRejectedTemplate = (userName: string, orderId: string, reason?: string) => `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #dc2626; text-align: center;">Payment Verification Update ⚠️</h2>
+        <p>Hi <b>${userName}</b>,</p>
+        <p>We reviewed your payment submission for Order <b>#${orderId}</b>, but we were unable to confirm the transaction.</p>
+        ${reason ? `
+        <blockquote style="background: #fef2f2; padding: 12px; border-left: 4px solid #dc2626; color: #991b1b; margin: 15px 0;">
+            <b>Reason:</b> ${reason}
+        </blockquote>` : ''}
+        <p>Please check your Transaction ID or contact our support team to re-verify.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="text-align: center; font-size: 0.8em; color: #888;">&copy; ${new Date().getFullYear()} LaptopVerse Inc. All rights reserved.</p>
+    </div>
+`;

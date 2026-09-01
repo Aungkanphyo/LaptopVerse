@@ -1,5 +1,7 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
+export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+
 interface IOrderItem {
     name: string;
     quantity: number;
@@ -16,7 +18,7 @@ interface IShippingInfo {
     country: string;
 }
 
-export interface IOrderDocument extends Document {
+export interface IOrder {
     shippingInfo: IShippingInfo;
     orderItems: IOrderItem[];
 
@@ -34,7 +36,7 @@ export interface IOrderDocument extends Document {
     shippingPrice: number;
     totalPrice: number; // Grand total (itemsPrice + tax + shipping)
 
-    orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    orderStatus: OrderStatus;
     deliveredAt: Date; // Date when the order was delivered
 
     createdAt: Date;
@@ -61,7 +63,7 @@ const shippingInfoSchema: Schema<IShippingInfo> = new Schema({
     country: { type: String, required: true },
 });
 
-const orderSchema: Schema<IOrderDocument> = new Schema({
+const orderSchema: Schema<IOrder> = new Schema({
     shippingInfo: { type: shippingInfoSchema, required: true },
     orderItems: [orderItemSchema], // Array of Order Items
 
@@ -94,6 +96,6 @@ const orderSchema: Schema<IOrderDocument> = new Schema({
     timestamps: true,
 });
 
-const Order: Model<IOrderDocument> = mongoose.model('Order', orderSchema);
+export const Order: Model<IOrder> = mongoose.model('Order', orderSchema);
 
 export default Order;
