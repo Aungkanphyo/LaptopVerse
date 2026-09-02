@@ -1,5 +1,5 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { useGetProductsQuery, useDeleteProductMutation } from '../../features/products/productApiSlice';
+import { useGetProductsQuery, useDeleteProductMutation, useGetProductStatsQuery } from '../../features/products/productApiSlice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,27 +20,28 @@ const ProductList = () => {
         limit
     });
 
+    const { data: statsData } = useGetProductStatsQuery();
     const [deleteProduct, { isLoading: isDeleting }] = useDeleteProductMutation();
 
     // Calculate stats (in a real app, these might come from a separate API)
     const stats = [
         {
             label: 'Total Products',
-            value: data?.total || 0,
+            value: statsData?.stats?.totalProducts || 0,
             icon: Package,
             color: 'text-blue-600',
             bg: 'bg-blue-50'
         },
         {
             label: 'In Stock',
-            value: data?.products?.filter(p => p.stock > 0).length || 0,
+            value: statsData?.stats?.inStock || 0,
             icon: CheckCircle2,
             color: 'text-emerald-600',
             bg: 'bg-emerald-50'
         },
         {
             label: 'Out of Stock',
-            value: data?.products?.filter(p => p.stock === 0).length || 0,
+            value: statsData?.stats?.outOfStock || 0,
             icon: AlertTriangle,
             color: 'text-rose-600',
             bg: 'bg-rose-50'

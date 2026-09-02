@@ -18,6 +18,7 @@ import VerifyOtp from "./features/auth/pages/VerifyOtp";
 import BrandList from "./pages/admin/BrandList";
 import CategoryList from "./pages/admin/CategoryList";
 import Profile from "./features/auth/pages/Profile";
+import TransactionVerification from "./pages/admin/TransactionVerification";
 
 const router = createBrowserRouter([
   {
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
       {
         path: "products/:id/edit",
         element: <EditProduct />,
+      },
+      {
+        path: "transactions",
+        element: <TransactionVerification />,
       },
       {
         path: "brands",

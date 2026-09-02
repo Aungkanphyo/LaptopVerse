@@ -62,7 +62,7 @@ export const getSingleOrder = asyncHandler(async (req: Request, res: Response, n
     const isOwner = orderOwnerId === currentUserId;
     const isAdmin = currentUserRole === 'admin';
 
-    if(!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin) {
         return next(
             new AppError('You are not authorized to view this order details.', 403)
         );
@@ -98,11 +98,11 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
     const filter: Partial<IOrder> = {};
 
     // Get orderStatus from URL Query Parameter (e.g: ?status=Processing)
-    if(req.query.status) {
+    if (req.query.status) {
         filter.orderStatus = req.query.status.toString() as OrderStatus;
     }
 
-    const orders = await Order.find(filter);
+    const orders = await Order.find(filter).populate('user', 'fullName name email').sort({ createdAt: -1 });
 
     // Calculate Total Amount of all orders (For Dashboard Analytics)
     const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
@@ -179,7 +179,7 @@ export const deleteOrder = asyncHandler(async (req: Request, res: Response, next
 // Admin Payment Verification Endpoint
 export const verifyPayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { paymentStatus, rejectionReason } = req.body; // paymentStatus: 'succeeded' | 'failed'
-    
+
     const order = await Order.findById(req.params.id).populate<{ user: { fullName: string; email: string } }>('user', 'fullName email');
 
     if (!order) {
@@ -222,7 +222,7 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response, ne
 // Helper function
 async function updateStock(id: string, quantity: number) {
     const product = await Product.findById(id);
-    if(product) {
+    if (product) {
         product.stock -= quantity;
         await product.save({ validateBeforeSave: false });
     }

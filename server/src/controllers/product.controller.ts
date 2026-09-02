@@ -189,6 +189,28 @@ export const getAllProducts = asyncHandler(async (req: Request, res: Response) =
 });
 
 /**
+ * @desc Get overall product statistics (Total, In Stock, Out of Stock)
+ * @route GET /api/v1/products/admin/stats
+ * @access Private (Admin, Manager)
+ */
+export const getProductStats = asyncHandler(async (req: Request, res: Response) => {
+    const [totalProducts, inStock, outOfStock] = await Promise.all([
+        Product.countDocuments(),
+        Product.countDocuments({ stock: { $gt: 0 } }),
+        Product.countDocuments({ stock: 0 }),
+    ]);
+
+    res.status(200).json({
+        success: true,
+        stats: {
+            totalProducts,
+            inStock,
+            outOfStock,
+        },
+    });
+});
+
+/**
  * @desc Viewing a single product
  * @route GET /api/v1/products/:id
  * @access Public

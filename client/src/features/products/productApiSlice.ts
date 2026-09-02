@@ -36,6 +36,11 @@ export const productApiSlice = apiSlice.injectEndpoints({
             ],
         }),
 
+        getProductStats: builder.query<{ stats: { totalProducts: number; inStock: number; outOfStock: number } }, void>({
+            query: () => '/products/admin/stats',
+            providesTags: [{ type: 'Product', id: 'STATS' }],
+        }),
+
         // Admin-related mutations (Create, Update, Delete)
         createProduct: builder.mutation<ISingleProductResponse, FormData>({
             query: (formData) => ({
@@ -43,7 +48,10 @@ export const productApiSlice = apiSlice.injectEndpoints({
                 method: 'POST',
                 body: formData,
             }),
-            invalidatesTags: [{ type: 'Product', id: 'LIST' }],
+            invalidatesTags: [
+                { type: 'Product', id: 'LIST' },
+                { type: 'Product', id: 'STATS' }
+            ],
         }),
 
         updateProduct: builder.mutation<ISingleProductResponse, { id: string; formData: FormData }>({
@@ -128,6 +136,7 @@ export const productApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useGetProductsQuery,
+    useGetProductStatsQuery,
     useGetSingleProductQuery,
     useCreateReviewMutation,
     useCreateProductMutation,

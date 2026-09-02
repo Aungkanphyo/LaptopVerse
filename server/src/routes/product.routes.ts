@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createNewProduct, deleteProduct, getAllProducts, getSingleProduct, updateProduct, createProductReview, getProductReviews, deleteReview } from "../controllers/product.controller";
+import { createNewProduct, deleteProduct, getAllProducts, getSingleProduct, updateProduct, createProductReview, getProductReviews, deleteReview, getProductStats } from "../controllers/product.controller";
 import { authorize, protect } from "../middlewares/auth.middleware";
 import { upload } from "../middlewares/upload.middleware";
 
@@ -21,6 +21,9 @@ router.route('/review').put(protect, createProductReview); // Only logged-in use
 router.route('/reviews').delete(protect, deleteReview);
 
 // Admin/Manager Routes (Protected Routes for CRUD operations)
+router
+    .route('/admin/stats')
+    .get(protect, authorize('admin', 'manager'), getProductStats);
 
 router
     .route('/admin')

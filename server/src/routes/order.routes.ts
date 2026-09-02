@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authorize, protect } from "../middlewares/auth.middleware";
-import { deleteOrder, getAllOrders, getSingleOrder, myOrders, newOrder, updateOrder } from "../controllers/order.controller";
+import { deleteOrder, getAllOrders, getSingleOrder, myOrders, newOrder, updateOrder, verifyPayment } from "../controllers/order.controller";
 
 const router = Router();
 
@@ -10,6 +10,9 @@ router.route('/my/orders').get(protect, myOrders); // GET /api/v1/orders/my/orde
 
 // Admin Routes
 router.route('/admin/all').get(protect, authorize('admin'), getAllOrders); // GET /api/v1/orders/admin/all
+
+// Payment verification admin route
+router.route('/admin/:id/verify-payment').put(protect, authorize('admin'), verifyPayment);
 
 router
     .route('/admin/:id')
