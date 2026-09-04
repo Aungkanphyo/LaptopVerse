@@ -10,6 +10,8 @@ import * as categoryController from "../controllers/category.controller";
 import * as brandController from "../controllers/brand.controller";
 import { manualPaymentSettingsSchema, validate } from "../middlewares/validation";
 import { getManualPaymentSettingsAdmin, updateManualPaymentSettingsAdmin } from "../controllers/manualPaymentSettings.controller";
+import * as guideController from "../controllers/guide.controller";
+import * as contactSettingsController from "../controllers/contactSettings.controller"
 
 const router = Router();
 
@@ -60,5 +62,15 @@ router.get('/brands', brandController.getAllBrandsAdmin);
 router.post('/brands', brandController.createBrand);
 router.put('/brands/:id', brandController.updateBrand);
 router.patch('/brands/:id/toggle-status', brandController.toggleBrandStatus);
+
+// Guide Routes
+router.get("/guides", guideController.getAllGuidesAdmin);
+router.post("/guides", guideController.createGuide);
+router.put("/guides/:id", guideController.updateGuide);
+router.delete("/guides/:id", guideController.deleteGuide);
+
+// Contact Settings Route
+router.get("/contact-settings", contactSettingsController.getContactSettings);
+router.put("/contact-settings", contactSettingsController.updateContactSettingsAdmin);
 
 export default router;

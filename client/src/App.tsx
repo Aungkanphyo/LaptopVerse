@@ -19,6 +19,9 @@ import BrandList from "./pages/admin/BrandList";
 import CategoryList from "./pages/admin/CategoryList";
 import Profile from "./features/auth/pages/Profile";
 import TransactionVerification from "./pages/admin/TransactionVerification";
+import BuyingGuides from "./pages/BuyingGuides";
+import GuideManagement from "./pages/admin/GuideManagement";
+import ContactSettingsPage from "./pages/admin/ContactSettingsPage";
 
 const router = createBrowserRouter([
   {
@@ -61,6 +64,10 @@ const router = createBrowserRouter([
         path: "/profile",
         element: <Profile />,
       },
+      {
+        path: "buying-guides",
+        element: <BuyingGuides />,
+      },
     ]
   },
   {
@@ -98,7 +105,15 @@ const router = createBrowserRouter([
       {
         path: "payment-settings",
         element: <ManualPaymentSettings />,
-      }
+      },
+      {
+        path: "guides",
+        element: <GuideManagement />,
+      },
+      {
+        path: "contact-settings",
+        element: <ContactSettingsPage />,
+      },
     ]
   }
 ]);

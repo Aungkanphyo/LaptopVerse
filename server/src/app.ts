@@ -13,6 +13,8 @@ import orderRouter from './routes/order.routes';
 import paymentRoutes from './routes/payment.routes';
 import adminRoutes from './routes/admin.routes';
 import { globalLimiter } from './middlewares/rateLimiter.middleware';
+import guideRoutes from "./routes/guide.routes";
+import contactSettingsRoutes from "./routes/contactSettings.routes";
 import passport from 'passport';
 import './config/passport.config';
 
@@ -57,6 +59,9 @@ app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/payment', paymentRoutes);
 
 app.use('/api/v1/admin', adminRoutes);
+
+app.use("/api/v1/guides", guideRoutes);
+app.use("/api/v1/contact-settings", contactSettingsRoutes);
 
 // 404 Route Catcher
 app.use((req: Request, res: Response, next: NextFunction) => {

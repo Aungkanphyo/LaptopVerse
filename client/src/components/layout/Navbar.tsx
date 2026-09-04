@@ -33,6 +33,21 @@ const Navbar = () => {
                         <span className="text-2xl font-extrabold text-blue-600">LaptopVerse</span>
                     </Link>
 
+                    <div className="hidden md:flex items-center gap-6 mx-4">
+                        <Link 
+                            to="/buying-guides" 
+                            className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                        >
+                            Buying Guides
+                        </Link>
+                        <Link 
+                            to="/#contact" 
+                            className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                        >
+                            Contact Us
+                        </Link>
+                    </div>
+
                     <div className="flex-1 flex justify-center">
                         <Search />
                     </div>
