@@ -27,7 +27,7 @@ const BuyingGuides = () => {
             <div key={guide._id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all flex flex-col group">
               {guide.image && (
                 <div className="h-48 overflow-hidden">
-                  <img src={guide.image} alt={guide.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <img src={guide.image.url} alt={guide.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                 </div>
               )}
               <div className="p-6 flex-1 flex flex-col justify-between">
@@ -50,12 +50,12 @@ const BuyingGuides = () => {
 
       {/* Full Article Modal */}
       <Dialog open={!!activeGuide} onOpenChange={() => setActiveGuide(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="bg-white sm:max-w-4xl max-h-[85vh] overflow-y-auto p-6 md:p-8">
           <DialogHeader>
             <span className="text-xs font-semibold text-blue-600 uppercase">{activeGuide?.category}</span>
             <DialogTitle className="text-2xl font-bold">{activeGuide?.title}</DialogTitle>
           </DialogHeader>
-          {activeGuide?.image && <img src={activeGuide.image} alt={activeGuide.title} className="w-full h-56 object-cover rounded-xl" />}
+          {activeGuide?.image && <img src={activeGuide.image.url} alt={activeGuide.title} className="w-full h-56 object-cover rounded-xl" />}
           <div className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{activeGuide?.content}</div>
         </DialogContent>
       </Dialog>
