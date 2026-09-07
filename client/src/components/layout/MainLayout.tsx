@@ -5,7 +5,6 @@ import { useEffect } from "react";
 import { initializeCart } from "@/features/cart/cartSlice";
 import OAuthHandler from "../common/OAuthHandler";
 import CompareBar from "@/features/compare/components/CompareBar";
-import ScrollToHashElement from "../common/ScrollToHashElement";
 
 const MainLayout = () => {
     const dispatch = useAppDispatch();
@@ -21,7 +20,6 @@ const MainLayout = () => {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50">
             <OAuthHandler />
-            <ScrollToHashElement/>
             <Navbar />
             <main className="grow">
                 <Outlet />

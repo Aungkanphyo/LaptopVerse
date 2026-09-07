@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { NavHashLink } from "react-router-hash-link";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux.hooks"
 import { useLogoutMutation } from "../../features/auth/authApiSlice";
 import { logout } from "../../features/auth/authSlice";
@@ -34,18 +35,19 @@ const Navbar = () => {
                     </Link>
 
                     <div className="hidden md:flex items-center gap-6 mx-4">
-                        <Link 
-                            to="/buying-guides" 
+                        <Link
+                            to="/buying-guides"
                             className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                         >
                             Buying Guides
                         </Link>
-                        <Link 
-                            to="/#contact" 
+                        <NavHashLink
+                            smooth
+                            to="/#contact"
                             className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
                         >
                             Contact Us
-                        </Link>
+                        </NavHashLink>
                     </div>
 
                     <div className="flex-1 flex justify-center">
