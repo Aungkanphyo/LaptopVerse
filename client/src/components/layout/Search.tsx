@@ -28,7 +28,7 @@ const Search = () => {
   // call live data 
   const { data, isFetching } = useGetProductsQuery(
     { keyword: debouncedTerm, limit: 5 },
-    { skip: debouncedTerm.length < 2 } // စာလုံး ၂ လုံးပြည့်မှ စရှာမယ်
+    { skip: debouncedTerm.length < 2 }
   );
 
   // for close dropdown when click outside
@@ -55,7 +55,7 @@ const Search = () => {
           type="text"
           value={searchTerm}
           placeholder="Search for laptops..."
-          className="w-full pl-10 pr-4 rounded-full bg-gray-100 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+          className="w-full pl-10 pr-4 rounded-full bg-gray-100 text-slate-900 placeholder:text-slate-400 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
           onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
         />
