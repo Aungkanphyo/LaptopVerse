@@ -8,15 +8,11 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux.hooks";
 import { addToCompare, removeFromCompare } from "@/features/compare/compareSlice";
 import { addToCart } from "@/features/cart/cartSlice";
 import { toast } from "sonner";
+import { formatPrice } from "@/utils/formatCurrency";
 
 interface ProductCardProps {
     product: IProduct;
 };
-
-const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-});
 
 const ProductCard = ({ product }: ProductCardProps) => {
     const dispatch = useAppDispatch();
@@ -115,7 +111,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 <div className="flex items-center justify-between">
                     <span className="text-[11px] font-medium text-slate-500">Price</span>
                     <span className="text-lg font-black text-white tracking-tight">
-                        {formatter.format(product.price)}
+                        {formatPrice(product.price)}
                     </span>
                 </div>
 

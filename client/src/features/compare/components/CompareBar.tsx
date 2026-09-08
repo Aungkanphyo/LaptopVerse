@@ -3,11 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux.hooks';
 import { removeFromCompare, clearCompare } from '../compareSlice';
 import { Button } from '@/components/ui/button';
 import { X, GitCompare, Cpu, MemoryStick, HardDrive, Monitor, Star } from 'lucide-react';
-
-const formatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-});
+import { formatPrice } from '@/utils/formatCurrency';
 
 const CompareBar = () => {
     const dispatch = useAppDispatch();
@@ -98,7 +94,7 @@ const CompareBar = () => {
                                         />
                                         <h3 className="font-bold text-sm text-gray-900 line-clamp-1">{item.name}</h3>
                                         <p className="text-blue-600 font-extrabold text-base mt-1">
-                                            {formatter.format(item.price)}
+                                            {formatPrice(item.price)}
                                         </p>
                                     </div>
                                 ))}
