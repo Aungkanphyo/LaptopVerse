@@ -18,32 +18,32 @@ const providerBrand: Record<
     { badge: string; accent: string; initials: string }
 > = {
     KPay: {
-        badge: "bg-blue-50 text-blue-700 border-blue-200",
+        badge: "bg-blue-500/10 text-blue-400 border-blue-500/30",
         accent: "from-blue-600 to-blue-500",
         initials: "K",
     },
     "AYA Pay": {
-        badge: "bg-violet-50 text-violet-700 border-violet-200",
+        badge: "bg-violet-500/10 text-violet-400 border-violet-500/30",
         accent: "from-violet-600 to-violet-500",
         initials: "A",
     },
     "Wave Money": {
-        badge: "bg-yellow-50 text-yellow-800 border-yellow-200",
-        accent: "from-yellow-500 to-amber-500",
+        badge: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+        accent: "from-amber-500 to-yellow-500",
         initials: "W",
     },
     "UAB Pay": {
-        badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
         accent: "from-emerald-600 to-emerald-500",
         initials: "U",
     },
     "CB Pay": {
-        badge: "bg-rose-50 text-rose-700 border-rose-200",
+        badge: "bg-rose-500/10 text-rose-400 border-rose-500/30",
         accent: "from-rose-600 to-rose-500",
         initials: "C",
     },
     Other: {
-        badge: "bg-slate-50 text-slate-700 border-slate-200",
+        badge: "bg-slate-500/10 text-slate-400 border-slate-500/30",
         accent: "from-slate-600 to-slate-500",
         initials: "O",
     },
@@ -187,20 +187,20 @@ const PaymentScreen = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC]">
-            <div className="container max-w-2xl mx-auto px-4 py-8">
+        <div className="min-h-screen bg-[#070913] text-slate-100 py-10">
+            <div className="container max-w-2xl mx-auto px-4">
                 {/* Nav */}
                 <div className="flex items-center justify-between gap-3 mb-6">
                     <button
                         type="button"
                         onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-[#0e1322] px-4 py-2 text-sm font-semibold text-slate-300 shadow-sm hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
                     >
                         <ArrowLeft className="size-4" />
                         Back
                     </button>
 
-                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-bold tracking-widest uppercase text-emerald-700">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold tracking-widest uppercase text-emerald-400">
                         <Lock className="size-4" />
                         Secure
                     </div>
@@ -209,29 +209,29 @@ const PaymentScreen = () => {
                 {/* Steps */}
                 <CheckoutSteps currentStep={2} className="mb-8" />
 
-                {/* Main */}
-                <Card className="rounded-[2.5rem] border border-slate-200 bg-white shadow-xl overflow-hidden">
+                {/* Main Card */}
+                <Card className="rounded-3xl border border-slate-800/80 bg-[#0e1322] shadow-2xl overflow-hidden">
                     <CardHeader className="pb-4">
-                        <CardTitle className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+                        <CardTitle className="text-2xl md:text-3xl font-black tracking-tight text-white">
                             Manual Transfer
                         </CardTitle>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-slate-400">
                             Choose an account, transfer the total, then enter your transaction ID to place the order.
                         </p>
                     </CardHeader>
 
                     <CardContent className="space-y-6 pb-8">
                         {/* Instructions */}
-                        <div className="rounded-[2rem] border border-blue-100 bg-blue-50/60 p-5">
+                        <div className="rounded-2xl border border-blue-900/40 bg-blue-950/30 p-5">
                             <div className="flex items-start gap-3">
-                                <div className="mt-0.5 inline-flex size-10 items-center justify-center rounded-2xl bg-white border border-blue-100 text-blue-700 shadow-sm">
+                                <div className="mt-0.5 inline-flex size-10 items-center justify-center rounded-2xl bg-[#070913] border border-blue-800/50 text-blue-400 shadow-sm shrink-0">
                                     <Info className="size-5" />
                                 </div>
                                 <div className="flex-1">
-                                    <div className="text-[11px] font-semibold tracking-widest uppercase text-blue-700">
+                                    <div className="text-[11px] font-semibold tracking-widest uppercase text-blue-400">
                                         Instructions
                                     </div>
-                                    <div className="mt-1 text-sm text-slate-700">
+                                    <div className="mt-1 text-sm text-slate-300 leading-relaxed">
                                         {isLoading
                                             ? "Loading…"
                                             : isError
@@ -239,7 +239,7 @@ const PaymentScreen = () => {
                                                 : data?.instructions}
                                     </div>
                                     {data?.enabled === false && (
-                                        <div className="mt-3 text-sm font-semibold text-rose-700">
+                                        <div className="mt-3 text-sm font-semibold text-rose-400">
                                             Manual transfer is currently disabled by admin.
                                         </div>
                                     )}
@@ -251,17 +251,17 @@ const PaymentScreen = () => {
                         <div>
                             <div className="flex items-end justify-between gap-3 mb-3">
                                 <div>
-                                    <div className="text-[11px] font-semibold tracking-widest uppercase text-slate-500">
+                                    <div className="text-[11px] font-semibold tracking-widest uppercase text-slate-400">
                                         Select an account
                                     </div>
-                                    <div className="text-sm text-slate-700">
+                                    <div className="text-sm text-slate-300">
                                         Tap to select. You can copy the account number.
                                     </div>
                                 </div>
                             </div>
 
                             {accounts.length === 0 ? (
-                                <div className="rounded-[2rem] border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-slate-600">
+                                <div className="rounded-2xl border border-dashed border-slate-800 bg-[#070913] p-8 text-center text-slate-500">
                                     No payment accounts configured yet.
                                 </div>
                             ) : (
@@ -278,10 +278,10 @@ const PaymentScreen = () => {
                                                 type="button"
                                                 onClick={() => setUserPickedIndex(idx)}
                                                 className={cn(
-                                                    "text-left rounded-[2rem] border bg-white p-5 shadow-sm transition-all",
+                                                    "text-left rounded-2xl border p-5 shadow-sm transition-all cursor-pointer",
                                                     selected
-                                                        ? "border-[#2563EB] ring-4 ring-blue-100"
-                                                        : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+                                                        ? "border-blue-500 bg-blue-950/20 ring-1 ring-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.2)]"
+                                                        : "border-slate-800/90 bg-[#070913] hover:border-slate-700"
                                                 )}
                                             >
                                                 <div className="flex items-start justify-between gap-4">
@@ -306,20 +306,20 @@ const PaymentScreen = () => {
                                                                     {a.provider}
                                                                 </span>
                                                                 {selected && (
-                                                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-[#2563EB]">
+                                                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-400">
                                                                         <Check className="size-4" />
                                                                         Selected
                                                                     </span>
                                                                 )}
                                                             </div>
-                                                            <div className="mt-2 font-black text-slate-900 truncate">
+                                                            <div className="mt-2 font-black text-white truncate">
                                                                 {a.accountName}
                                                             </div>
-                                                            <div className="mt-1 text-sm text-slate-600 font-mono tracking-tight">
+                                                            <div className="mt-1 text-sm text-slate-300 font-mono tracking-tight">
                                                                 {a.accountNumber}
                                                             </div>
                                                             {(a.phoneNumber || a.note) && (
-                                                                <div className="mt-2 text-xs text-slate-500">
+                                                                <div className="mt-2 text-xs text-slate-400">
                                                                     {a.phoneNumber ? <span>Phone: {a.phoneNumber}</span> : null}
                                                                     {a.phoneNumber && a.note ? <span> · </span> : null}
                                                                     {a.note ? <span>{a.note}</span> : null}
@@ -332,7 +332,7 @@ const PaymentScreen = () => {
                                                         <Button
                                                             type="button"
                                                             variant="ghost"
-                                                            className="rounded-full border border-slate-200 bg-white hover:bg-slate-50"
+                                                            className="rounded-xl border border-slate-800 bg-[#0e1322] text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
                                                             onClick={async (e) => {
                                                                 e.preventDefault();
                                                                 e.stopPropagation();
@@ -355,20 +355,20 @@ const PaymentScreen = () => {
 
                         {/* Reference input */}
                         <div className="relative">
-                            <div className="absolute -top-2 left-5 bg-white px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-500">
+                            <div className="absolute -top-2 left-5 bg-[#0e1322] px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-400">
                                 Transaction ID
                             </div>
                             <Input
                                 value={reference}
                                 onChange={(e) => setReference(e.target.value)}
                                 placeholder="Enter transaction / reference number"
-                                className="h-14 rounded-[2rem] border-slate-200 bg-white shadow-sm focus-visible:ring-4 focus-visible:ring-blue-100 focus-visible:border-[#2563EB]"
+                                className="h-14 rounded-2xl border-slate-800 bg-[#070913] text-slate-100 placeholder:text-slate-600 shadow-sm focus-visible:ring-blue-500 focus-visible:border-blue-500"
                             />
                         </div>
 
                         {/* Primary action */}
                         <Button
-                            className="w-full h-14 rounded-[2rem] text-base md:text-lg font-black bg-[#2563EB] hover:bg-blue-700 shadow-xl"
+                            className="w-full h-14 rounded-2xl text-base md:text-lg font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all cursor-pointer"
                             onClick={placeOrderHandler}
                             disabled={
                                 mockLoading || isPlacingOrder || data?.enabled === false || accounts.length === 0
@@ -380,7 +380,7 @@ const PaymentScreen = () => {
                                     Placing Order…
                                 </>
                             ) : (
-                                <span className="text-white">Place Order</span>
+                                <span>Place Order</span>
                             )}
                         </Button>
                     </CardContent>

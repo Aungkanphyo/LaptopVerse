@@ -29,33 +29,33 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
     };
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-center gap-2 py-4">
             <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 px-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md disabled:opacity-40"
+                className="h-10 px-4 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-all cursor-pointer"
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
             >
                 Previous
             </Button>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
                 {getPageNumbers().map((pageNum, idx) => (
                     <React.Fragment key={idx}>
                         {typeof pageNum === 'number' ? (
                             <button
                                 onClick={() => onPageChange(pageNum)}
-                                className={`h-8 w-8 text-sm font-medium rounded-md transition-colors ${
+                                className={`h-10 w-10 text-sm font-bold rounded-xl transition-all cursor-pointer ${
                                     currentPage === pageNum
-                                        ? 'border border-gray-300 bg-white text-gray-900 shadow-xs'
-                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                        ? 'bg-white text-slate-950 shadow-lg scale-105'
+                                        : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
                                 }`}
                             >
                                 {pageNum}
                             </button>
                         ) : (
-                            <span className="px-1 text-xs text-gray-400">...</span>
+                            <span className="px-1 text-sm font-medium text-slate-500">...</span>
                         )}
                     </React.Fragment>
                 ))}
@@ -64,9 +64,9 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
             <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 px-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md disabled:opacity-40"
+                className="h-10 px-4 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-all cursor-pointer"
                 onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
+                disabled={currentPage >= safeTotalPages}
             >
                 Next
             </Button>

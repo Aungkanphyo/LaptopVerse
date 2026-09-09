@@ -15,7 +15,7 @@ const AdminLayout = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50 flex">
+       <div className="min-h-screen bg-[#070913] text-slate-100 flex">
             {/* Sidebar */}
             <AdminSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
@@ -24,17 +24,16 @@ const AdminLayout = () => {
                 "flex-1 flex flex-col transition-all duration-300",
                 collapsed ? "lg:ml-20" : "lg:ml-64"
             )}>
-                {/* Optional Top Header for Admin */}
-                <header className="h-16 border-b bg-white flex items-center justify-between px-8 sticky top-0 z-30">
+                <header className="h-16 border-b border-slate-800/80 bg-[#0e1322] flex items-center justify-between px-8 sticky top-0 z-30 shadow-sm">
                     <div className="flex items-center gap-4">
-                        <h2 className="text-sm font-medium text-muted-foreground">Admin Dashboard</h2>
+                        <h2 className="text-sm font-semibold text-slate-400">Admin Dashboard</h2>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col items-end">
-                            <span className="text-sm font-semibold text-gray-900">{user.fullName}</span>
-                            <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                            <span className="text-sm font-bold text-white">{user.fullName}</span>
+                            <span className="text-xs text-slate-400 capitalize">{user.role}</span>
                         </div>
-                        <div className="size-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        <div className="size-9 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shadow-sm">
                             {user.fullName.charAt(0).toUpperCase()}
                         </div>
                     </div>

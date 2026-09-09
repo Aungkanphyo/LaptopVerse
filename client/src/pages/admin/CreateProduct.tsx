@@ -21,19 +21,19 @@ const CreateProduct = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div className="max-w-5xl mx-auto space-y-8 p-6 text-slate-100">
             <div className="flex flex-col gap-4">
                 <Button 
                     variant="ghost" 
-                    className="w-fit -ml-2 text-muted-foreground hover:text-foreground"
+                    className="w-fit -ml-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl"
                     onClick={() => navigate('/admin/products')}
                 >
                     <ChevronLeft className="size-4 mr-1" />
                     Back to Products
                 </Button>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Add New Product</h1>
-                    <p className="text-muted-foreground mt-1">Fill in the details to list a new laptop in your store.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Add New Product</h1>
+                    <p className="text-slate-400 mt-1 text-sm">Fill in the details to list a new laptop in your store.</p>
                 </div>
             </div>
 
