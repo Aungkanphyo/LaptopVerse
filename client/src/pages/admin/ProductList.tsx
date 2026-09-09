@@ -29,22 +29,22 @@ const ProductList = () => {
             label: 'Total Products',
             value: statsData?.stats?.totalProducts || 0,
             icon: Package,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50'
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/10 border-blue-500/20'
         },
         {
             label: 'In Stock',
             value: statsData?.stats?.inStock || 0,
             icon: CheckCircle2,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50'
+            color: 'text-emerald-400',
+            bg: 'bg-emerald-500/10 border-emerald-500/20'
         },
         {
             label: 'Out of Stock',
             value: statsData?.stats?.outOfStock || 0,
             icon: AlertTriangle,
-            color: 'text-rose-600',
-            bg: 'bg-rose-50'
+            color: 'text-rose-400',
+            bg: 'bg-rose-500/10 border-rose-500/20'
         },
     ];
 
@@ -95,12 +95,13 @@ const ProductList = () => {
 
     return (
         <div className="space-y-8">
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Products</h1>
-                    <p className="text-muted-foreground mt-1">Manage your catalog, inventory and product information.</p>
+                    <h1 className="text-3xl font-black tracking-tight text-white">Products</h1>
+                    <p className="text-slate-400 mt-1 text-sm">Manage your catalog, inventory and product information.</p>
                 </div>
-                <Button asChild className="rounded-full px-6">
+                <Button asChild className="rounded-full px-6 bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-[0_0_15px_rgba(37,99,235,0.35)] transition-all cursor-pointer">
                     <Link to="/admin/products/new">
                         <Plus className="size-4 mr-2" />
                         Add New Product
@@ -111,15 +112,15 @@ const ProductList = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {stats.map((stat, idx) => (
-                    <Card key={idx} className="border-none shadow-sm bg-white overflow-hidden">
+                    <Card key={idx} className="border border-slate-800/80 bg-[#0e1322] shadow-xl overflow-hidden rounded-2xl">
                         <CardContent className="p-6">
                             <div className="flex items-center gap-4">
-                                <div className={`size-12 rounded-2xl ${stat.bg} flex items-center justify-center`}>
+                                <div className={`size-12 rounded-2xl ${stat.bg} border flex items-center justify-center`}>
                                     <stat.icon className={`size-6 ${stat.color}`} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                                    <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                                    <h3 className="text-2xl font-black text-white mt-0.5">{stat.value}</h3>
                                 </div>
                             </div>
                         </CardContent>
@@ -127,23 +128,26 @@ const ProductList = () => {
                 ))}
             </div>
 
-            <Card className="border-none shadow-sm overflow-hidden bg-white">
-                <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Table Container Card */}
+            <Card className="border border-slate-800/80 shadow-2xl overflow-hidden bg-[#0e1322] rounded-3xl">
+                <div className="p-6 border-b border-slate-800/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    {/* Search Input Box */}
                     <div className="relative max-w-sm w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-500" />
                         <Input
                             placeholder="Search by name or category..."
-                            className="pl-9 rounded-full bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-primary/20"
+                            className="pl-10 h-11 rounded-full bg-[#070913] border-slate-800 text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                             value={keyword}
                             onChange={handleSearch}
                         />
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                    {/* Show Limit Select */}
+                    <div className="flex items-center gap-2 text-sm text-slate-400 font-medium">
                         <span>Show</span>
                         <select
                             value={limit}
                             onChange={handleLimitChange}
-                            className="h-9 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-primary/20 cursor-pointer"
+                            className="h-10 rounded-xl border border-slate-800 bg-[#070913] px-3 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
                         >
                             <option value={5}>5</option>
                             <option value={10}>10</option>
@@ -156,7 +160,7 @@ const ProductList = () => {
 
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-gray-50/50 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b border-gray-100">
+                        <thead className="bg-[#070913]/60 text-[11px] uppercase tracking-wider text-slate-400 font-bold border-b border-slate-800/80">
                             <tr>
                                 <th className="px-6 py-4">Product Details</th>
                                 <th className="px-6 py-4">Category</th>
@@ -166,75 +170,76 @@ const ProductList = () => {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-slate-800/60">
                             {isLoading || isFetching ? (
                                 Array.from({ length: limit }).map((_, i) => (
                                     <tr key={i} className="animate-pulse">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="size-10 rounded-lg bg-gray-100"></div>
-                                                <div className="h-4 bg-gray-100 rounded w-48"></div>
+                                                <div className="size-12 rounded-xl bg-slate-800/60"></div>
+                                                <div className="h-4 bg-slate-800/60 rounded w-48"></div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-24"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-20"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-16"></div></td>
-                                        <td className="px-6 py-4"><div className="h-4 bg-gray-100 rounded w-20"></div></td>
-                                        <td className="px-6 py-4 text-right"><div className="h-8 bg-gray-100 rounded w-20 ml-auto"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-800/60 rounded w-24"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-800/60 rounded w-20"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-800/60 rounded w-16"></div></td>
+                                        <td className="px-6 py-4"><div className="h-4 bg-slate-800/60 rounded w-20"></div></td>
+                                        <td className="px-6 py-4 text-right"><div className="h-8 bg-slate-800/60 rounded w-20 ml-auto"></div></td>
                                     </tr>
                                 ))
                             ) : data?.products && data.products.length > 0 ? (
                                 data.products.map((product) => (
-                                    <tr key={product._id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <tr key={product._id} className="hover:bg-slate-800/40 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="size-12 rounded-xl border border-gray-100 overflow-hidden shrink-0 bg-gray-50 flex items-center justify-center">
+                                                {/* Product Image Box */}
+                                                <div className="size-12 rounded-xl border border-slate-800 overflow-hidden shrink-0 bg-[#070913] flex items-center justify-center p-1">
                                                     {product.images?.[0] ? (
-                                                        <img src={product.images[0].url} alt={product.name} className="size-full object-contain p-1" />
+                                                        <img src={product.images[0].url} alt={product.name} className="size-full object-contain" />
                                                     ) : (
-                                                        <Package className="size-5 text-gray-300" />
+                                                        <Package className="size-5 text-slate-600" />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <div className="font-semibold text-gray-900 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</div>
-                                                    <div className="text-xs text-muted-foreground mt-0.5">ID: {product._id.slice(-6).toUpperCase()}</div>
+                                                    <div className="font-bold text-white line-clamp-1 group-hover:text-blue-400 transition-colors">{product.name}</div>
+                                                    <div className="text-xs font-mono text-slate-500 mt-0.5">ID: {product._id.slice(-6).toUpperCase()}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge variant="outline" className="font-medium bg-gray-50/50">
+                                            <Badge variant="outline" className="font-semibold bg-slate-800/80 text-slate-300 border-slate-700/80">
                                                 {typeof product.category === 'object' && product.category !== null
                                                     ? product.category.name
                                                     : product.category}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge variant="secondary" className="font-medium bg-blue-50/50 text-blue-700 border-blue-100">
+                                            <Badge variant="secondary" className="font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
                                                 {typeof product.brand === 'object' && product.brand !== null
                                                     ? product.brand.name
                                                     : product.brand || '-'}
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-gray-900">${product.price.toLocaleString()}</div>
+                                            <div className="font-black text-white">${product.price.toLocaleString()}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {product.stock > 0 ? (
                                                 <div className="flex flex-col gap-1">
-                                                    <Badge className="w-fit bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100 shadow-none">
+                                                    <Badge className="w-fit bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-none font-semibold">
                                                         In Stock
                                                     </Badge>
-                                                    <span className="text-[10px] text-muted-foreground ml-1">{product.stock} units left</span>
+                                                    <span className="text-[10px] text-slate-500 font-medium ml-1">{product.stock} units left</span>
                                                 </div>
                                             ) : (
-                                                <Badge variant="destructive" className="bg-rose-50 text-rose-700 hover:bg-rose-50 border-rose-100 shadow-none">
+                                                <Badge variant="destructive" className="bg-rose-500/10 text-rose-400 border border-rose-500/30 shadow-none font-semibold">
                                                     Out of Stock
                                                 </Badge>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button variant="ghost" size="icon" asChild className="rounded-full hover:bg-blue-50 hover:text-blue-600">
+                                                <Button variant="ghost" size="icon" asChild className="rounded-xl text-slate-400 hover:bg-blue-500/10 hover:text-blue-400">
                                                     <Link to={`/admin/products/${product._id}/edit`}>
                                                         <Edit className="size-4" />
                                                     </Link>
@@ -244,7 +249,7 @@ const ProductList = () => {
                                                     size="icon"
                                                     onClick={() => handleDelete(product._id)}
                                                     disabled={isDeleting}
-                                                    className="rounded-full hover:bg-rose-50 hover:text-rose-600"
+                                                    className="rounded-xl text-slate-400 hover:bg-rose-500/10 hover:text-rose-400"
                                                 >
                                                     <Trash2 className="size-4" />
                                                 </Button>
@@ -256,10 +261,10 @@ const ProductList = () => {
                                 <tr>
                                     <td colSpan={6} className="px-6 py-20 text-center">
                                         <div className="flex flex-col items-center gap-3">
-                                            <div className="size-16 rounded-full bg-gray-50 flex items-center justify-center">
-                                                <Package className="size-8 text-gray-300" />
+                                            <div className="size-16 rounded-2xl bg-slate-800/50 border border-slate-800 flex items-center justify-center">
+                                                <Package className="size-8 text-slate-600" />
                                             </div>
-                                            <div className="text-gray-500 font-medium">No products found</div>
+                                            <div className="text-slate-400 font-semibold">No products found</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -268,13 +273,12 @@ const ProductList = () => {
                     </table>
                 </div>
 
-                <div className="p-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    {/* Bottom-Left Range Text */}
-                    <div className="text-sm font-medium text-gray-600">
+                {/* Footer Pagination */}
+                <div className="p-6 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="text-sm font-semibold text-slate-400">
                         Show {startItem} to {endItem} of {totalItems} products
                     </div>
 
-                    {/* Bottom-Right Pagination Controls */}
                     {data && (
                         <Pagination
                             currentPage={page}

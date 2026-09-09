@@ -21,13 +21,14 @@ const providerOptions: ManualPaymentProvider[] = [
   "Other",
 ];
 
+// IMPROVEMENT: Updated provider badge themes for dark contrast
 const providerBrand: Record<ManualPaymentProvider, { label: string; badge: string; ring: string }> = {
-  KPay: { label: "KPay", badge: "bg-blue-50 text-blue-700 border-blue-200", ring: "focus-visible:ring-blue-200" },
-  "AYA Pay": { label: "AYA Pay", badge: "bg-violet-50 text-violet-700 border-violet-200", ring: "focus-visible:ring-violet-200" },
-  "Wave Money": { label: "Wave Money", badge: "bg-yellow-50 text-yellow-800 border-yellow-200", ring: "focus-visible:ring-yellow-200" },
-  "UAB Pay": { label: "UAB Pay", badge: "bg-emerald-50 text-emerald-700 border-emerald-200", ring: "focus-visible:ring-emerald-200" },
-  "CB Pay": { label: "CB Pay", badge: "bg-rose-50 text-rose-700 border-rose-200", ring: "focus-visible:ring-rose-200" },
-  Other: { label: "Other", badge: "bg-slate-50 text-slate-700 border-slate-200", ring: "focus-visible:ring-slate-200" },
+  KPay: { label: "KPay", badge: "bg-blue-500/10 text-blue-400 border-blue-500/20", ring: "focus-visible:ring-blue-500/30" },
+  "AYA Pay": { label: "AYA Pay", badge: "bg-violet-500/10 text-violet-400 border-violet-500/20", ring: "focus-visible:ring-violet-500/30" },
+  "Wave Money": { label: "Wave Money", badge: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20", ring: "focus-visible:ring-yellow-500/30" },
+  "UAB Pay": { label: "UAB Pay", badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", ring: "focus-visible:ring-emerald-500/30" },
+  "CB Pay": { label: "CB Pay", badge: "bg-rose-500/10 text-rose-400 border-rose-500/20", ring: "focus-visible:ring-rose-500/30" },
+  Other: { label: "Other", badge: "bg-slate-800 text-slate-300 border-slate-700", ring: "focus-visible:ring-slate-700" },
 };
 
 function TogglePill({
@@ -57,14 +58,14 @@ function TogglePill({
     >
       <span
         className={cn(
-          "inline-flex size-5 items-center justify-center rounded-full bg-white/80 border",
-          checked ? "border-emerald-200" : "border-rose-200"
+          "inline-flex size-5 items-center justify-center rounded-full border",
+          checked ? "border-emerald-500/30 bg-emerald-950/80" : "border-rose-500/30 bg-rose-950/80"
         )}
       >
         <span
           className={cn(
             "size-2.5 rounded-full",
-            checked ? "bg-emerald-500" : "bg-rose-500"
+            checked ? "bg-emerald-400" : "bg-rose-400"
           )}
         />
       </span>
@@ -90,14 +91,14 @@ function FloatingField({
 }) {
   return (
     <div className={cn("group relative", className)}>
-      <div className="absolute -top-2 left-3 z-10 bg-white px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-500">
+      <div className="absolute -top-2 left-3 z-10 bg-slate-900 px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-400">
         {label}
       </div>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-3xl border-slate-200 bg-white shadow-sm focus-visible:ring-slate-200"
+        className="h-12 rounded-2xl border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus-visible:ring-slate-700"
       />
     </div>
   );
@@ -200,23 +201,23 @@ const ManualPaymentSettingsForm = ({
     } catch (err: unknown) {
       const message =
         typeof err === "object" && err !== null && "data" in err
-          ? // @ts-expect-error RTK Query error shape
-          (err.data?.message as string | undefined)
+          ? (err as { data?: { message?: string } }).data?.message
           : undefined;
       toast.error(message || "Failed to update settings");
     }
   };
 
   return (
-    <div className="relative">
-      <Card className="border border-slate-200/70 bg-white/70 backdrop-blur-xl shadow-[0_10px_30px_rgba(15,23,42,0.08)] rounded-[2rem] overflow-hidden">
-        <CardHeader className="pb-3">
+    <div className="relative text-slate-100">
+      {/* IMPROVEMENT: Glassmorphism Card in Dark Theme */}
+      <Card className="border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl rounded-3xl overflow-hidden">
+        <CardHeader className="pb-3 border-b border-slate-800/60">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <CardTitle className="text-2xl md:text-3xl font-black tracking-tight text-slate-900">
+              <CardTitle className="text-2xl md:text-3xl font-black tracking-tight text-white">
                 Manual Payment Settings
               </CardTitle>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-slate-400 text-sm mt-1">
                 Premium checkout transfer options (KPay, AYA Pay, Wave Money, UAB Pay, CB Pay).
               </p>
             </div>
@@ -226,29 +227,29 @@ const ManualPaymentSettingsForm = ({
               onChange={(next) => setDraft((d) => ({ ...d, enabled: next }))}
               activeLabel="Payment Active"
               inactiveLabel="Payment Disabled"
-              activeClassName="border-emerald-200 bg-emerald-50 text-emerald-700"
-              inactiveClassName="border-rose-200 bg-rose-50 text-rose-700"
+              activeClassName="border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              inactiveClassName="border-rose-500/30 bg-rose-500/10 text-rose-400"
             />
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-8 pb-28">
+        <CardContent className="space-y-8 p-6 pb-28">
           {/* Instructions */}
-          <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm p-6">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 inline-flex size-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm">
+              <div className="mt-0.5 inline-flex size-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 text-slate-400">
                 <Info className="size-5" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-extrabold text-slate-900 tracking-tight">
+                  <h3 className="font-extrabold text-white tracking-tight">
                     Customer Instructions
                   </h3>
-                  <span className="text-[10px] font-semibold tracking-widest uppercase text-slate-400">
+                  <span className="text-[10px] font-semibold tracking-widest uppercase text-slate-500">
                     Checkout-facing
                   </span>
                 </div>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-400 mt-1">
                   This text appears on the payment page. Keep it short, clear, and action-oriented.
                 </p>
                 <Textarea
@@ -256,7 +257,7 @@ const ManualPaymentSettingsForm = ({
                   onChange={(e) =>
                     setDraft((d) => ({ ...d, instructions: e.target.value }))
                   }
-                  className="mt-4 min-h-28 rounded-[2rem] border-slate-200 bg-white shadow-sm focus-visible:ring-slate-200"
+                  className="mt-4 min-h-28 rounded-2xl border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus-visible:ring-slate-700"
                   placeholder="Example: Transfer the total amount to one account below, then enter your transaction reference to place the order."
                 />
               </div>
@@ -264,20 +265,20 @@ const ManualPaymentSettingsForm = ({
           </div>
 
           {/* Accounts */}
-          <div className="rounded-[2rem] border border-slate-200 bg-white shadow-sm p-6">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <h3 className="font-extrabold text-slate-900 tracking-tight">
+                <h3 className="font-extrabold text-white tracking-tight">
                   Payment Accounts
                 </h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="text-sm text-slate-400 mt-1">
                   Add multiple providers. Each account can be independently enabled/disabled.
                 </p>
               </div>
               <Button
                 type="button"
                 onClick={addAccount}
-                className="h-11 rounded-[2rem] bg-slate-900 text-white hover:bg-slate-800 shadow-sm"
+                className="h-11 rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md shadow-blue-950/20"
               >
                 <Plus className="size-4 mr-2" />
                 Add Account
@@ -286,14 +287,14 @@ const ManualPaymentSettingsForm = ({
 
             <div className="mt-6 space-y-5">
               {draft.accounts.length === 0 ? (
-                <div className="rounded-[2rem] border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
-                  <div className="mx-auto mb-3 inline-flex size-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm">
+                <div className="rounded-2xl border border-dashed border-slate-800 bg-slate-950/50 p-8 text-center">
+                  <div className="mx-auto mb-3 inline-flex size-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-slate-400 shadow-sm">
                     <BadgeCheck className="size-6" />
                   </div>
-                  <div className="font-bold text-slate-900">
+                  <div className="font-bold text-white">
                     No accounts yet
                   </div>
-                  <div className="text-sm text-slate-500 mt-1">
+                  <div className="text-sm text-slate-400 mt-1">
                     Add at least one account so customers can transfer using Myanmar payment providers.
                   </div>
                 </div>
@@ -309,7 +310,7 @@ const ManualPaymentSettingsForm = ({
                     return (
                       <div
                         key={`${idx}-${account.sortOrder}`}
-                        className="rounded-[2rem] border border-slate-200 bg-white shadow-sm p-5"
+                        className="rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-sm"
                       >
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                           <div className="flex items-center gap-3">
@@ -321,7 +322,7 @@ const ManualPaymentSettingsForm = ({
                             >
                               {brand.label}
                             </span>
-                            <div className="text-sm text-slate-500">
+                            <div className="text-sm text-slate-400">
                               Account #{idx + 1}
                             </div>
                           </div>
@@ -334,14 +335,14 @@ const ManualPaymentSettingsForm = ({
                               }
                               activeLabel="Active"
                               inactiveLabel="Disabled"
-                              activeClassName="border-emerald-200 bg-emerald-50 text-emerald-700"
-                              inactiveClassName="border-rose-200 bg-rose-50 text-rose-700"
+                              activeClassName="border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                              inactiveClassName="border-rose-500/30 bg-rose-500/10 text-rose-400"
                             />
                             <Button
                               type="button"
                               variant="ghost"
                               onClick={() => removeAccount(idx)}
-                              className="h-10 rounded-full border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-700"
+                              className="h-10 rounded-full border border-slate-800 bg-slate-950 text-slate-400 hover:bg-rose-950/40 hover:text-rose-400"
                             >
                               <Trash2 className="size-4" />
                             </Button>
@@ -351,7 +352,7 @@ const ManualPaymentSettingsForm = ({
                         <div className="mt-5 grid grid-cols-1 md:grid-cols-12 gap-4">
                           <div className="md:col-span-3">
                             <div className="relative">
-                              <div className="absolute -top-2 left-3 z-10 bg-white px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-500">
+                              <div className="absolute -top-2 left-3 z-10 bg-slate-900 px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-400">
                                 Provider
                               </div>
                               <select
@@ -362,12 +363,12 @@ const ManualPaymentSettingsForm = ({
                                   })
                                 }
                                 className={cn(
-                                  "h-12 w-full rounded-3xl border border-slate-200 bg-white px-4 text-sm shadow-sm outline-none focus-visible:ring-4",
+                                  "h-12 w-full rounded-2xl border border-slate-800 bg-slate-950 text-slate-100 px-4 text-sm shadow-sm outline-none focus-visible:ring-2",
                                   brand.ring
                                 )}
                               >
                                 {providerOptions.map((p) => (
-                                  <option key={p} value={p}>
+                                  <option key={p} value={p} className="bg-slate-900 text-slate-100">
                                     {p}
                                   </option>
                                 ))}
@@ -395,14 +396,14 @@ const ManualPaymentSettingsForm = ({
 
                           <div className="md:col-span-12">
                             <div className="group relative">
-                              <div className="absolute -top-2 left-3 z-10 bg-white px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-500">
+                              <div className="absolute -top-2 left-3 z-10 bg-slate-900 px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-400">
                                 Note (optional)
                               </div>
                               <Input
                                 value={account.note || ""}
                                 onChange={(e) => updateAccount(idx, { note: e.target.value })}
                                 placeholder="Optional: branch, transfer note, limits, hours…"
-                                className="h-12 rounded-3xl border-slate-200 bg-white shadow-sm focus-visible:ring-slate-200"
+                                className="h-12 rounded-2xl border-slate-800 bg-slate-950 text-slate-100 placeholder:text-slate-600 focus-visible:ring-slate-700"
                               />
                             </div>
                           </div>
@@ -416,21 +417,21 @@ const ManualPaymentSettingsForm = ({
         </CardContent>
       </Card>
 
-      {/* Sticky action bar */}
-      <div className="sticky bottom-4 z-50 mt-8">
+      {/* IMPROVEMENT: Sticky Action Bar in Dark Theme */}
+      <div className="sticky bottom-4 z-40 mt-8">
         <div className="mx-auto max-w-4xl px-4">
-          <div className="rounded-[2rem] border border-slate-200 bg-white/80 backdrop-blur-xl shadow-[0_12px_40px_rgba(15,23,42,0.12)] px-5 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 backdrop-blur-xl shadow-2xl px-5 py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
-              <div className="inline-flex size-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 shadow-sm">
+              <div className="inline-flex size-10 items-center justify-center rounded-xl border border-slate-800 bg-slate-950 text-slate-400 shadow-sm">
                 <Save className="size-5" />
               </div>
               <div>
-                <div className="font-bold text-slate-900">
+                <div className="font-bold text-white">
                   {activeCount} active account{activeCount === 1 ? "" : "s"}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-slate-400">
                   Payment system is{" "}
-                  <span className={cn("font-semibold", draft.enabled ? "text-emerald-700" : "text-rose-700")}>
+                  <span className={cn("font-semibold", draft.enabled ? "text-emerald-400" : "text-rose-400")}>
                     {draft.enabled ? "Active" : "Disabled"}
                   </span>
                 </div>
@@ -441,7 +442,7 @@ const ManualPaymentSettingsForm = ({
               type="button"
               onClick={saveHandler}
               disabled={isSaving}
-              className="h-12 rounded-[2rem] bg-slate-900 text-white hover:bg-slate-800 shadow-sm px-6"
+              className="h-12 rounded-xl bg-blue-600 text-white hover:bg-blue-500 shadow-md shadow-blue-950/20 px-6"
             >
               {isSaving ? (
                 <>
@@ -467,23 +468,23 @@ const ManualPaymentSettings = () => {
     useGetAdminManualPaymentSettingsQuery();
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto p-6 text-slate-100">
       {isLoading ? (
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="flex items-center gap-3 text-slate-700">
-              <Loader2 className="size-5 animate-spin" />
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-8 shadow-sm">
+            <div className="flex items-center gap-3 text-slate-300">
+              <Loader2 className="size-5 animate-spin text-blue-500" />
               <span className="font-semibold">Loading manual payment settings…</span>
             </div>
           </div>
         ) : isError ? (
-          <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 shadow-sm text-rose-800">
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-8 shadow-sm text-rose-300">
             <div className="font-extrabold text-lg">Failed to load settings</div>
             <div className="text-sm mt-1">
               Please refresh and ensure you are logged in as an admin.
             </div>
           </div>
         ) : !data?.settings ? (
-          <div className="rounded-[2rem] border border-rose-200 bg-rose-50 p-8 shadow-sm text-rose-800">
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-8 shadow-sm text-rose-300">
             <div className="font-extrabold text-lg">Settings not found</div>
             <div className="text-sm mt-1">Try again in a moment.</div>
           </div>

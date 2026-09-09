@@ -25,17 +25,17 @@ const EditProduct = () => {
 
     if (isFetching) {
         return (
-            <div className="min-h-[400px] flex items-center justify-center">
-                <Loader2 className="size-8 animate-spin text-primary" />
+            <div className="min-h-100 flex items-center justify-center">
+                <Loader2 className="size-8 animate-spin text-blue-500" />
             </div>
         );
     }
 
     if (!data?.product) {
         return (
-            <div className="max-w-5xl mx-auto py-12 text-center space-y-4">
-                <p className="text-muted-foreground">Product not found.</p>
-                <Button variant="outline" onClick={() => navigate('/admin/products')}>
+            <div className="max-w-5xl mx-auto py-12 text-center space-y-4 text-slate-300">
+                <p className="text-slate-400">Product not found.</p>
+                <Button variant="outline" className="border-slate-800 text-slate-200 hover:bg-slate-800" onClick={() => navigate('/admin/products')}>
                     Go back to list
                 </Button>
             </div>
@@ -43,19 +43,19 @@ const EditProduct = () => {
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8">
+        <div className="max-w-5xl mx-auto space-y-8 p-6 text-slate-100">
             <div className="flex flex-col gap-4">
                 <Button 
                     variant="ghost" 
-                    className="w-fit -ml-2 text-muted-foreground hover:text-foreground"
+                    className="w-fit -ml-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl"
                     onClick={() => navigate('/admin/products')}
                 >
                     <ChevronLeft className="size-4 mr-1" />
                     Back to Products
                 </Button>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-gray-900">Edit Product</h1>
-                    <p className="text-muted-foreground mt-1">Update the details for "{data.product.name}"</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-white">Edit Product</h1>
+                    <p className="text-slate-400 mt-1 text-sm">Update the details for "{data.product.name}"</p>
                 </div>
             </div>
 

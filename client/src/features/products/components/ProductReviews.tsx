@@ -9,11 +9,11 @@ import { Link } from 'react-router-dom';
 const ProductReviews = ({ product }: { product: IProduct }) => {
     const { user } = useSelector((state: RootState) => state.auth);
     return (
-        <div className="mt-16 grid grid-cols-1 lg:grid-cols-3 gap-12 border-t border-gray-100 pt-12">
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-12 border-t border-slate-800/80 pt-8">
             <div className="lg:col-span-2">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
                     Customer Reviews
-                    <span className="text-sm font-normal text-gray-500">({product.numOfReviews})</span>
+                    <span className="text-sm font-normal text-slate-400">({product.numOfReviews || 0})</span>
                 </h2>
 
                 <div className="space-y-2">
@@ -22,9 +22,10 @@ const ProductReviews = ({ product }: { product: IProduct }) => {
                             <ReviewCard key={review._id} review={review} />
                         ))
                     ) : (
-                        <div className="py-12 text-center bg-gray-50 rounded-2xl border border-dashed">
-                            <MessageSquareOff className="size-10 text-gray-300 mx-auto mb-3" />
-                            <p className="text-gray-500">No reviews yet. Be the first to share your experience!</p>
+                        // empty card that when show not reviews
+                        <div className="py-12 text-center bg-[#0e1322] rounded-2xl border border-dashed border-slate-800">
+                            <MessageSquareOff className="size-10 text-slate-600 mx-auto mb-3" />
+                            <p className="text-slate-400 text-sm">No reviews yet. Be the first to share your experience!</p>
                         </div>
                     )}
                 </div>
@@ -36,10 +37,14 @@ const ProductReviews = ({ product }: { product: IProduct }) => {
                         <ReviewForm productId={product._id} />
                     </div>
                 ) : (
-                    <div className="bg-blue-50 mt-14 p-6 rounded-2xl border border-blue-100 text-center">
-                        <p className="text-blue-900 font-medium mb-3">Want to review this product?</p>
-                        <p className="text-sm text-blue-700 mb-4">Please log in to share your feedback with the community.</p>
-                        <Link to="/login" className="inline-block bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                    // show not login
+                    <div className="bg-[#0e1322] mt-14 p-6 rounded-2xl border border-slate-800 text-center">
+                        <p className="text-white font-medium mb-2">Want to review this product?</p>
+                        <p className="text-xs text-slate-400 mb-5 leading-relaxed">Please log in to share your feedback with the community.</p>
+                        <Link 
+                            to="/login" 
+                            className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm py-2.5 px-6 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+                        >
                             Login
                         </Link>
                     </div>
