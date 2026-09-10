@@ -35,35 +35,51 @@ export const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, onCl
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full space-y-5 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-slate-100">
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                 >
                     <X className="size-4" />
                 </button>
+
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900">Add New Category</h3>
-                    <p className="text-xs text-muted-foreground">Create a new product category.</p>
+                    <h3 className="text-lg font-bold text-white">Add New Category</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Create a new product category.</p>
                 </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="categoryName" className="text-xs font-semibold">Category Name</Label>
+                        <Label htmlFor="categoryName" className="text-xs font-semibold text-slate-300">
+                            Category Name <span className="text-rose-500">*</span>
+                        </Label>
                         <Input
                             id="categoryName"
                             placeholder="e.g. Gaming"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                            className="bg-slate-800/60 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500 rounded-xl"
                             autoFocus
                         />
                     </div>
+
                     <div className="flex justify-end gap-2 pt-2">
-                        <Button type="button" variant="ghost" onClick={onClose} disabled={isLoading}>
+                        <Button 
+                            type="button" 
+                            variant="ghost" 
+                            onClick={onClose} 
+                            disabled={isLoading}
+                            className="text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl"
+                        >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isLoading || !name.trim()}>
+                        <Button 
+                            type="submit" 
+                            disabled={isLoading || !name.trim()}
+                            className="bg-blue-600 hover:bg-blue-500 text-white rounded-xl px-4 disabled:opacity-50"
+                        >
                             {isLoading ? <Loader2 className="size-4 animate-spin" /> : 'Add Category'}
                         </Button>
                     </div>

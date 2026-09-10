@@ -95,8 +95,8 @@ const GuideFormContent = ({
     return (
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
             <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Title <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Title <span className="text-rose-500">*</span>
                 </label>
                 <input
                     type="text"
@@ -104,14 +104,14 @@ const GuideFormContent = ({
                     placeholder="e.g. Best Gaming Laptops to Buy in 2026"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-600"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Category <span className="text-red-500">*</span>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                        Category <span className="text-rose-500">*</span>
                     </label>
                     <input
                         type="text"
@@ -119,11 +119,11 @@ const GuideFormContent = ({
                         placeholder="e.g. Gaming, Business, General"
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-600"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
                 </div>
                 <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                         Read Time
                     </label>
                     <input
@@ -131,17 +131,17 @@ const GuideFormContent = ({
                         placeholder="e.g. 5 min read"
                         value={formData.readTime}
                         onChange={(e) => setFormData({ ...formData, readTime: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-600"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
                 </div>
             </div>
 
             <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Cover Image (Upload File)
                 </label>
                 <div className="mt-1 flex items-center gap-4">
-                    <div className="relative size-20 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center bg-gray-50 overflow-hidden shrink-0 group">
+                    <div className="relative size-20 rounded-xl border-2 border-dashed border-slate-700 flex items-center justify-center bg-slate-800/40 overflow-hidden shrink-0 group">
                         {imagePreview ? (
                             <>
                                 <img
@@ -152,18 +152,18 @@ const GuideFormContent = ({
                                 <button
                                     type="button"
                                     onClick={handleRemoveImage}
-                                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
                                     title="Remove Image"
                                 >
-                                    <Trash2 className="size-5 text-red-400 hover:text-red-300" />
+                                    <Trash2 className="size-5 text-rose-400 hover:text-rose-300" />
                                 </button>
                             </>
                         ) : (
-                            <ImageIcon className="size-8 text-gray-400" />
+                            <ImageIcon className="size-8 text-slate-500" />
                         )}
                     </div>
-                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors">
-                        <Upload className="size-4" />
+                    <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors">
+                        <Upload className="size-4 text-slate-400" />
                         Choose New Image
                         <input
                             type="file"
@@ -176,8 +176,8 @@ const GuideFormContent = ({
             </div>
 
             <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Short Summary <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Short Summary <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                     rows={2}
@@ -185,13 +185,13 @@ const GuideFormContent = ({
                     placeholder="A brief overview of this guide..."
                     value={formData.summary}
                     onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-600 resize-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none transition-all"
                 />
             </div>
 
             <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Article Content <span className="text-red-500">*</span>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Article Content <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                     rows={6}
@@ -199,38 +199,38 @@ const GuideFormContent = ({
                     placeholder="Write full article details here..."
                     value={formData.content}
                     onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-blue-600"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                 />
             </div>
 
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2.5 pt-2">
                 <input
                     type="checkbox"
                     id="isPublished"
                     checked={formData.isPublished}
                     onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
-                    className="size-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    className="size-4 rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-pointer"
                 />
                 <label
                     htmlFor="isPublished"
-                    className="text-xs font-semibold text-gray-700 cursor-pointer"
+                    className="text-xs font-semibold text-slate-300 cursor-pointer select-none"
                 >
                     Publish article immediately
                 </label>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
                 <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl text-gray-600 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                    className="px-4 py-2.5 rounded-xl text-slate-300 text-sm font-semibold hover:bg-slate-800 hover:text-white transition-colors"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={isCreating || isUpdating}
-                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-all flex items-center gap-2"
+                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                     {(isCreating || isUpdating) && (
                         <Loader2 className="size-4 animate-spin" />
@@ -262,23 +262,23 @@ const GuideFormModal = ({
         : "create-new";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-xl border border-gray-100 my-8">
-                <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+            <div className="bg-slate-900 rounded-3xl max-w-2xl w-full p-6 shadow-2xl border border-slate-800 my-8 text-slate-100">
+                <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <h2 className="text-lg font-bold text-white">
                         {selectedGuide ? "Edit Buying Guide" : "Create Buying Guide"}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                     >
                         <X className="size-5" />
                     </button>
                 </div>
 
                 {isFetchingDetail ? (
-                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-gray-500">
-                        <Loader2 className="size-8 animate-spin text-blue-600" />
+                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                        <Loader2 className="size-8 animate-spin text-blue-500" />
                         <p className="text-xs font-medium">Loading guide details...</p>
                     </div>
                 ) : (
