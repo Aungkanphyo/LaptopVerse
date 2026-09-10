@@ -21,11 +21,12 @@ const CreateProduct = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 p-6 text-slate-100">
-            <div className="flex flex-col gap-4">
+        <div className="max-w-6xl mx-auto space-y-6 p-6 text-slate-100 pb-12">
+            <div className="flex flex-col gap-2">
                 <Button 
                     variant="ghost" 
-                    className="w-fit -ml-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl"
+                    size="sm"
+                    className="w-fit -ml-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-xl transition-colors"
                     onClick={() => navigate('/admin/products')}
                 >
                     <ChevronLeft className="size-4 mr-1" />

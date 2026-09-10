@@ -110,33 +110,33 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
         <>
             <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Basic Information */}
-                    <Card className="lg:col-span-2 border-none shadow-sm p-6 space-y-6">
+                    {/* Basic Information Section */}
+                    <Card className="lg:col-span-2 bg-slate-900/80 border border-slate-800 shadow-sm p-6 space-y-6">
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900 tracking-tight">Basic Information</h3>
-                            <p className="text-sm text-muted-foreground">General details about the product.</p>
+                            <h3 className="text-lg font-bold text-white tracking-tight">Basic Information</h3>
+                            <p className="text-sm text-slate-400">General details about the product.</p>
                         </div>
                         
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="text-sm font-semibold">Product Name</Label>
+                            <Label htmlFor="name" className="text-sm font-semibold text-slate-300">Product Name</Label>
                             <Input 
                                 id="name" 
                                 {...register('name', { required: 'Name is required' })} 
                                 placeholder="e.g. MacBook Pro 14-inch"
-                                className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                             />
-                            {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
+                            {errors.name && <p className="text-xs text-rose-400">{errors.name.message}</p>}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* BRAND SELECT */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="brand" className="text-sm font-semibold">Brand</Label>
+                                    <Label htmlFor="brand" className="text-sm font-semibold text-slate-300">Brand</Label>
                                     <button
                                         type="button"
                                         onClick={() => setShowBrandModal(true)}
-                                        className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5"
+                                        className="text-xs text-blue-400 font-semibold hover:text-blue-300 hover:underline flex items-center gap-0.5 transition-colors"
                                     >
                                         <Plus className="size-3" /> Add New Brand
                                     </button>
@@ -144,24 +144,24 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
                                 <select 
                                     id="brand" 
                                     {...register('brand', { required: 'Brand is required' })}
-                                    className="w-full h-10 px-3 rounded-xl border border-gray-100 bg-gray-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    className="w-full h-10 px-3 rounded-xl border border-slate-700 bg-slate-800/80 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 >
-                                    <option value="">Select Brand</option>
+                                    <option value="" className="bg-slate-900 text-slate-400">Select Brand</option>
                                     {brandsData?.brands.map((b) => (
-                                        <option key={b._id} value={b._id}>{b.name}</option>
+                                        <option key={b._id} value={b._id} className="bg-slate-900 text-white">{b.name}</option>
                                     ))}
                                 </select>
-                                {errors.brand && <p className="text-xs text-red-500">{errors.brand.message}</p>}
+                                {errors.brand && <p className="text-xs text-rose-400">{errors.brand.message}</p>}
                             </div>
 
                             {/* CATEGORY SELECT */}
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <Label htmlFor="category" className="text-sm font-semibold">Category</Label>
+                                    <Label htmlFor="category" className="text-sm font-semibold text-slate-300">Category</Label>
                                     <button
                                         type="button"
                                         onClick={() => setShowCategoryModal(true)}
-                                        className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5"
+                                        className="text-xs text-blue-400 font-semibold hover:text-blue-300 hover:underline flex items-center gap-0.5 transition-colors"
                                     >
                                         <Plus className="size-3" /> Add New Category
                                     </button>
@@ -169,144 +169,146 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
                                 <select 
                                     id="category" 
                                     {...register('category', { required: 'Category is required' })}
-                                    className="w-full h-10 px-3 rounded-xl border border-gray-100 bg-gray-50/30 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    className="w-full h-10 px-3 rounded-xl border border-slate-700 bg-slate-800/80 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
                                 >
-                                    <option value="">Select Category</option>
+                                    <option value="" className="bg-slate-900 text-slate-400">Select Category</option>
                                     {categoriesData?.categories.map((c) => (
-                                        <option key={c._id} value={c._id}>{c.name}</option>
+                                        <option key={c._id} value={c._id} className="bg-slate-900 text-white">{c.name}</option>
                                     ))}
                                 </select>
-                                {errors.category && <p className="text-xs text-red-500">{errors.category.message}</p>}
+                                {errors.category && <p className="text-xs text-rose-400">{errors.category.message}</p>}
                             </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <Label htmlFor="price" className="text-sm font-semibold">Price ($)</Label>
+                                <Label htmlFor="price" className="text-sm font-semibold text-slate-300">Price ($)</Label>
                                 <Input 
                                     id="price" 
                                     type="number" 
                                     step="0.01" 
                                     {...register('price', { required: 'Price is required', min: 0 })} 
-                                    className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                    className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                                 />
-                                {errors.price && <p className="text-xs text-red-500">{errors.price.message}</p>}
+                                {errors.price && <p className="text-xs text-rose-400">{errors.price.message}</p>}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="stock" className="text-sm font-semibold">Stock Quantity</Label>
+                                <Label htmlFor="stock" className="text-sm font-semibold text-slate-300">Stock Quantity</Label>
                                 <Input 
                                     id="stock" 
                                     type="number" 
                                     {...register('stock', { required: 'Stock is required', min: 0 })} 
-                                    className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                    className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                                 />
-                                {errors.stock && <p className="text-xs text-red-500">{errors.stock.message}</p>}
+                                {errors.stock && <p className="text-xs text-rose-400">{errors.stock.message}</p>}
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description" className="text-sm font-semibold">Description</Label>
+                            <Label htmlFor="description" className="text-sm font-semibold text-slate-300">Description</Label>
                             <Textarea 
                                 id="description" 
                                 rows={6} 
                                 {...register('description', { required: 'Description is required' })} 
                                 placeholder="Detailed product description..."
-                                className="rounded-2xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20 resize-none"
+                                className="rounded-2xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500 resize-none"
                             />
-                            {errors.description && <p className="text-xs text-red-500">{errors.description.message}</p>}
+                            {errors.description && <p className="text-xs text-rose-400">{errors.description.message}</p>}
                         </div>
                     </Card>
 
-                    {/* Specifications & Images */}
+                    {/* Specifications & Images Side Section */}
                     <div className="space-y-8">
-                        <Card className="border-none shadow-sm p-6 space-y-6">
+                        {/* Specifications Card */}
+                        <Card className="bg-slate-900/80 border border-slate-800 shadow-sm p-6 space-y-6">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900 tracking-tight">Specifications</h3>
-                                <p className="text-sm text-muted-foreground">Technical hardware details.</p>
+                                <h3 className="text-lg font-bold text-white tracking-tight">Specifications</h3>
+                                <p className="text-sm text-slate-400">Technical hardware details.</p>
                             </div>
                             
                             <div className="space-y-2">
-                                <Label htmlFor="processor" className="text-sm font-semibold">Processor</Label>
+                                <Label htmlFor="processor" className="text-sm font-semibold text-slate-300">Processor</Label>
                                 <Input 
                                     id="processor" 
                                     {...register('processor', { required: 'Processor is required' })} 
                                     placeholder="M3 Pro, 11-core CPU" 
-                                    className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                    className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                                 />
-                                {errors.processor && <p className="text-xs text-red-500">{errors.processor.message}</p>}
+                                {errors.processor && <p className="text-xs text-rose-400">{errors.processor.message}</p>}
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="ram" className="text-sm font-semibold">RAM</Label>
+                                    <Label htmlFor="ram" className="text-sm font-semibold text-slate-300">RAM</Label>
                                     <Input 
                                         id="ram" 
                                         {...register('ram', { required: 'RAM is required' })} 
                                         placeholder="18GB" 
-                                        className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                        className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                                     />
-                                    {errors.ram && <p className="text-xs text-red-500">{errors.ram.message}</p>}
+                                    {errors.ram && <p className="text-xs text-rose-400">{errors.ram.message}</p>}
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="storage" className="text-sm font-semibold">Storage</Label>
+                                    <Label htmlFor="storage" className="text-sm font-semibold text-slate-300">Storage</Label>
                                     <Input 
                                         id="storage" 
                                         {...register('storage', { required: 'Storage is required' })} 
                                         placeholder="512GB SSD" 
-                                        className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                        className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                                     />
-                                    {errors.storage && <p className="text-xs text-red-500">{errors.storage.message}</p>}
+                                    {errors.storage && <p className="text-xs text-rose-400">{errors.storage.message}</p>}
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="screenSize" className="text-sm font-semibold">Screen Size (inches)</Label>
+                                <Label htmlFor="screenSize" className="text-sm font-semibold text-slate-300">Screen Size (inches)</Label>
                                 <Input 
                                     id="screenSize" 
                                     type="number" 
                                     step="0.1" 
                                     {...register('screenSize', { required: 'Screen size is required', min: 0 })} 
-                                    className="rounded-xl border-gray-100 bg-gray-50/30 focus-visible:ring-primary/20"
+                                    className="rounded-xl border-slate-700 bg-slate-800/60 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500"
                                 />
-                                {errors.screenSize && <p className="text-xs text-red-500">{errors.screenSize.message}</p>}
+                                {errors.screenSize && <p className="text-xs text-rose-400">{errors.screenSize.message}</p>}
                             </div>
                         </Card>
 
-                        <Card className="border-none shadow-sm p-6 space-y-6">
+                        {/* Images Upload Card */}
+                        <Card className="bg-slate-900/80 border border-slate-800 shadow-sm p-6 space-y-6">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900 tracking-tight">Images</h3>
-                                <p className="text-sm text-muted-foreground">Up to 5 product photos.</p>
+                                <h3 className="text-lg font-bold text-white tracking-tight">Images</h3>
+                                <p className="text-sm text-slate-400">Up to 5 product photos.</p>
                             </div>
 
                             <div className="grid grid-cols-3 gap-3">
                                 {existingImages.map((img) => (
-                                    <div key={img.public_id} className="relative aspect-square rounded-xl border border-gray-100 overflow-hidden group">
+                                    <div key={img.public_id} className="relative aspect-square rounded-xl border border-slate-700 bg-slate-800/40 overflow-hidden group">
                                         <img src={img.url} alt="Preview" className="size-full object-cover" />
                                         <button
                                             type="button"
                                             onClick={() => removeExistingImage(img.public_id)}
-                                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            <X className="size-5 text-white" />
+                                            <X className="size-5 text-rose-400 hover:text-rose-300" />
                                         </button>
                                     </div>
                                 ))}
                                 
                                 {imagePreviews.map((preview, index) => (
-                                    <div key={index} className="relative aspect-square rounded-xl border border-gray-100 overflow-hidden group">
+                                    <div key={index} className="relative aspect-square rounded-xl border border-slate-700 bg-slate-800/40 overflow-hidden group">
                                         <img src={preview} alt="Preview" className="size-full object-cover" />
                                         <button
                                             type="button"
                                             onClick={() => removeNewImage(index)}
-                                            className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                         >
-                                            <X className="size-5 text-white" />
+                                            <X className="size-5 text-rose-400 hover:text-rose-300" />
                                         </button>
                                     </div>
                                 ))}
 
                                 {existingImages.length + images.length < 5 && (
-                                    <label className="relative aspect-square rounded-xl border-2 border-dashed border-gray-200 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-primary">
+                                    <label className="relative aspect-square rounded-xl border-2 border-dashed border-slate-700 hover:border-blue-500/50 hover:bg-slate-800/80 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 text-slate-400 hover:text-blue-400">
                                         <Upload className="size-6" />
                                         <span className="text-[10px] font-bold uppercase tracking-wider">Add</span>
                                         <input
@@ -319,16 +321,27 @@ const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoad
                                     </label>
                                 )}
                             </div>
-                            <p className="text-[10px] text-muted-foreground text-center">JPG, PNG or WEBP. Max 5 images.</p>
+                            <p className="text-[10px] text-slate-500 text-center">JPG, PNG or WEBP. Max 5 images.</p>
                         </Card>
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-4 pt-4 border-t">
-                    <Button type="button" variant="ghost" onClick={() => window.history.back()} disabled={isLoading} className="rounded-full px-8">
+                {/* Bottom Action Buttons */}
+                <div className="flex justify-end gap-4 pt-4 border-t border-slate-800">
+                    <Button 
+                        type="button" 
+                        variant="ghost" 
+                        onClick={() => window.history.back()} 
+                        disabled={isLoading} 
+                        className="rounded-full px-8 text-slate-300 hover:bg-slate-800 hover:text-white"
+                    >
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={isLoading} className="rounded-full px-10 min-w-40 shadow-md shadow-primary/20">
+                    <Button 
+                        type="submit" 
+                        disabled={isLoading} 
+                        className="rounded-full px-10 min-w-40 bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 disabled:opacity-50"
+                    >
                         {isLoading ? (
                             <>
                                 <Loader2 className="size-4 mr-2 animate-spin" />
