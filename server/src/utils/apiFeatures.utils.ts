@@ -1,4 +1,6 @@
 import { Query } from "mongoose";
+import Brand from "../models/brand.model";
+import Category from "../models/category.model";
 
 interface QueryString {
     keyword?: string,
@@ -19,19 +21,35 @@ export class APIFeatures {
 
     /**
      * Search functionality (Dynamic Fields Support)
-     * @param searchFields - ရှာဖွေလိုသော field နာမည်များ (Default: ['name'])
      */
-    search(searchFields: string[] = ['name']) {
+    async search(searchFields: string[] = ['name', 'description']) {
         if (this.queryString.keyword) {
-            const keyword = {
-                $or: searchFields.map((field) => ({
-                    [field]: {
-                        $regex: this.queryString.keyword,
-                        $options: 'i' // case-insensitive
-                    }
-                }))
-            };
-            this.query = this.query.find(keyword);
+            const keyword = this.queryString.keyword;
+            const keywordRegex = new RegExp(keyword, 'i');
+            const [matchingBrands, matchingCategories] = await Promise.all([
+                Brand.find({ name: keywordRegex }).select('_id'),
+                Category.find({ name: keywordRegex }).select('_id')
+            ]);
+
+            const brandIds = matchingBrands.map((b) => b._id);
+            const categoryIds = matchingCategories.map((c) => c._id);
+
+            const searchConditions: any[] = searchFields.map((field) => ({
+                [field]: {
+                    $regex: keyword,
+                    $options: 'i',
+                },
+            }));
+
+            if (brandIds.length > 0) {
+                searchConditions.push({ brand: { $in: brandIds } });
+            }
+
+            if (categoryIds.length > 0) {
+                searchConditions.push({ category: { $in: categoryIds } });
+            }
+
+            this.query = this.query.find({ $or: searchConditions });
         }
         
         return this;
@@ -66,7 +84,7 @@ export class APIFeatures {
         
         const parsedQueryObj = JSON.parse(queryStr);
 
-        // 4. Type Casting (String -> Number) for specific fields
+        // Type Casting (String -> Number) for specific fields
         for (const key in parsedQueryObj) {
             // Handle Nested Objects (e.g., price: { $gte: '1000' })
             if (typeof parsedQueryObj[key] === 'object' && parsedQueryObj[key] !== null) {

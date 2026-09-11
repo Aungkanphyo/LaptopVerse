@@ -157,13 +157,9 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response, ne
 export const getAllProducts = asyncHandler(async (req: Request, res: Response) => {
     const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
     const limit = Math.max(1, parseInt(req.query.limit as string, 10) || 10);
-    /**
-     * Initialize APIFeatures
-     * Pass to APIFeatures class along with req.query
-    */
-    const features = new APIFeatures(Product.find(), req.query)
-        .search()   // ?keyword=macbook
-        .filter()   // ?category=gaming&price[gte]=1000
+    const features = new APIFeatures(Product.find(), req.query);
+    await features.search();
+    features.filter();
 
     const countQuery = features.query.clone();
     const totalDocs = await countQuery.countDocuments();
