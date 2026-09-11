@@ -1,4 +1,4 @@
-import { ArrowRight, ShieldCheck, Truck, RotateCcw, Bot } from 'lucide-react';
+import { ShieldCheck, Truck, RotateCcw, Bot } from 'lucide-react';
 
 const HeroSection = () => {
     return (
@@ -20,13 +20,11 @@ const HeroSection = () => {
                     Unsure which specs suit your work or gaming? Describe your needs to our AI Advisor or compare top laptops side by side.
                 </p>
 
-                {/* Hero CTA Buttons */}
-                <div className="flex flex-wrap justify-center items-center gap-4 pt-2">
-                    <button className="px-6 py-3 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-[0_0_25px_rgba(79,70,229,0.4)] transition-all flex items-center gap-2 group cursor-pointer">
-                        <span>Ask AI Matchmaker</span>
-                        <ArrowRight className="size-4 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                    <a href="#explore" className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-sm transition-all">
+                <div className="flex justify-center items-center gap-4 pt-2">
+                    <a 
+                        href="#explore" 
+                        className="px-8 py-3.5 rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-[0_0_25px_rgba(79,70,229,0.4)] hover:shadow-[0_0_30px_rgba(79,70,229,0.6)] transition-all inline-block"
+                    >
                         Browse Laptops
                     </a>
                 </div>
