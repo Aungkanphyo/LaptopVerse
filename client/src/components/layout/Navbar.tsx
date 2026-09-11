@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { NavHashLink } from "react-router-hash-link";
+import { HashLink } from "react-router-hash-link";
 import { useAppDispatch, useAppSelector } from "../../hooks/redux.hooks"
 import { useLogoutMutation } from "../../features/auth/authApiSlice";
 import { logout } from "../../features/auth/authSlice";
@@ -49,13 +49,13 @@ const Navbar = () => {
                         >
                             Buying Guides
                         </Link>
-                        <NavHashLink
+                        <HashLink
                             smooth
                             to="/#contact"
                             className="text-xs font-semibold text-slate-300 hover:text-white transition-colors"
                         >
                             Contact Us
-                        </NavHashLink>
+                        </HashLink>
                     </div>
 
                     {/* Search Input Container */}
