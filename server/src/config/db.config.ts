@@ -8,7 +8,7 @@ const MONGO_URI: string | undefined = process.env.MONGO_URI;
 export const connectDB = async (): Promise<void> => {
     if(!MONGO_URI) {
         console.error("MONGO_URI is not defined in environment variables.");
-        // Non-recoverable error ဖြစ်လို့ process ကို terminate လုပ်
+        // Terminate the process due to a non-recoverable error
         process.exit(1);
     }
 
@@ -16,7 +16,7 @@ export const connectDB = async (): Promise<void> => {
         const conn = await mongoose.connect(MONGO_URI);
         console.log(`🔌 MongoDB Connected: ${conn.connection.host}`);
 
-        // Error handling ကို global မှာ စောင့်ကြည့်
+        // Monitor error handling globally
         mongoose.connection.on('error', (err) => {
             console.error(`MongoDB connection error: ${err.message}`);
         });
@@ -30,7 +30,7 @@ export const connectDB = async (): Promise<void> => {
         
         console.error(`💥 DB Connection Error: ${errorMessage}`);
         
-        // ချက်ချင်း ထွက်ခွာခြင်း (Fail Fast approach)
+        // Terminate the process due to a non-recoverable error
         process.exit(1);
     }
 };
