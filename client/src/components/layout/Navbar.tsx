@@ -4,7 +4,8 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux.hooks"
 import { useLogoutMutation } from "../../features/auth/authApiSlice";
 import { logout } from "../../features/auth/authSlice";
 import Search from "./Search";
-import { GitCompare, ShoppingCart, Sparkles } from "lucide-react";
+import { GitCompare, ShoppingCart } from "lucide-react";
+import { AiAdvisorModal } from "@/features/ai/components/AiAdvisorModal";
 
 const Navbar = () => {
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
@@ -29,7 +30,7 @@ const Navbar = () => {
         <nav className="bg-[#0a0d18]/90 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-50 transition-all">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-20 items-center gap-6">
-                    
+
                     {/* Brand Logo */}
                     <Link to="/" className="flex items-center gap-2 shrink-0">
                         <div className="size-10 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white text-sm shadow-[0_0_15px_rgba(37,99,235,0.5)]">
@@ -64,19 +65,12 @@ const Navbar = () => {
 
                     {/* Right Menu Action Buttons */}
                     <div className="flex items-center gap-4 shrink-0">
-                        
-                        {/* Target Design: AI Advisor Sparkle Button */}
-                        <button 
-                            onClick={() => navigate('/#ai-matchmaker')}
-                            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 text-white text-sm font-semibold shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:opacity-95 transition-all"
-                        >
-                            <Sparkles className="size-3.5 fill-white/20 animate-pulse" />
-                            <span>Ask AI Advisor</span>
-                        </button>
+
+                        <AiAdvisorModal />
 
                         {/* Compare Icon */}
-                        <div 
-                            className="relative p-2 hover:bg-slate-800/60 rounded-full transition-colors group cursor-pointer border border-transparent hover:border-slate-700" 
+                        <div
+                            className="relative p-2 hover:bg-slate-800/60 rounded-full transition-colors group cursor-pointer border border-transparent hover:border-slate-700"
                             title="Compare Laptops"
                         >
                             <GitCompare className="size-6 text-slate-300 group-hover:text-blue-400 transition-colors" />
@@ -88,8 +82,8 @@ const Navbar = () => {
                         </div>
 
                         {/* Cart Icon */}
-                        <Link 
-                            to="/cart" 
+                        <Link
+                            to="/cart"
                             className="relative p-2 hover:bg-slate-800/60 rounded-full transition-colors group border border-transparent hover:border-slate-700"
                         >
                             <ShoppingCart className="size-6 text-slate-300 group-hover:text-blue-400 transition-colors" />
@@ -117,7 +111,7 @@ const Navbar = () => {
                                         Admin
                                     </Link>
                                 )}
-                                <button 
+                                <button
                                     onClick={handleLogout}
                                     className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors px-2 py-1"
                                 >
@@ -125,8 +119,8 @@ const Navbar = () => {
                                 </button>
                             </div>
                         ) : (
-                            <Link 
-                                to="/login" 
+                            <Link
+                                to="/login"
                                 className="text-sm font-semibold text-slate-200 bg-slate-800 hover:bg-slate-700 px-4 py-2.5 rounded-xl border border-slate-700 transition-all"
                             >
                                 Sign In

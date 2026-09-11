@@ -17,6 +17,7 @@ import guideRoutes from "./routes/guide.routes";
 import contactSettingsRoutes from "./routes/contactSettings.routes";
 import passport from 'passport';
 import './config/passport.config';
+import aiRoutes from './routes/ai.routes';
 
 const app: Express = express();
 
@@ -62,6 +63,9 @@ app.use('/api/v1/admin', adminRoutes);
 
 app.use("/api/v1/guides", guideRoutes);
 app.use("/api/v1/contact-settings", contactSettingsRoutes);
+
+// AI Advisor API Endpoint Registration
+app.use("/api/v1/ai", aiRoutes);
 
 // 404 Route Catcher
 app.use((req: Request, res: Response, next: NextFunction) => {
