@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from "@/components/ui/input";
 import { Laptop, Loader2, SearchIcon } from 'lucide-react';
 import { useGetProductsQuery } from '@/features/products/productApiSlice';
+import { formatPrice } from '@/utils/formatCurrency';
 
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,18 +50,18 @@ const Search = () => {
   };
 
   return (
-    <div className="relative w-full max-w-md mx-4" ref={searchRef}>
-      <div className="relative">
+    <div className="relative w-full min-w-70 md:min-w-90" ref={searchRef}>
+      <div className="relative w-full">
         <Input
           type="text"
           value={searchTerm}
           placeholder="Search for laptops..."
-          className="w-full pl-10 pr-4 rounded-full bg-gray-100 text-slate-900 placeholder:text-slate-400 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+          className="w-full h-12 pl-11 pr-10 text-base rounded-full bg-gray-100 text-slate-900 placeholder:text-slate-400 border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all shadow-sm"
           onChange={handleInputChange}
           onFocus={() => setIsOpen(true)}
         />
-        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 size-4" />
-        {isFetching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 animate-spin size-4" />}
+        <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 size-4 md:size-4.5 pointer-events-none" />
+        {isFetching && <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 animate-spin size-4 md:size-4.5" />}
       </div>
 
       {/* Results Dropdown */}
@@ -82,8 +83,8 @@ const Search = () => {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900 line-clamp-1">{product.name}</p>
-                    <p className="text-xs text-blue-600 font-semibold">${product.price}</p>
+                    <p className="text-base font-semibold text-gray-900 line-clamp-1">{product.name}</p>
+                    <p className="text-sm text-blue-600 font-bold">{formatPrice(product.price)}</p>
                   </div>
                 </li>
               ))}
