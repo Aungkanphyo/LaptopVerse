@@ -54,32 +54,47 @@ const EditCategoryForm: React.FC<{ category: ICategoryItem; onClose: () => void 
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-                <Label htmlFor="edit-cat-name" className="text-sm font-semibold">Category Name</Label>
+                <Label htmlFor="edit-cat-name" className="text-sm font-semibold text-slate-200">
+                    Category Name
+                </Label>
                 <Input
                     id="edit-cat-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter category name"
                     required
-                    className="rounded-xl bg-gray-50/50"
+                    className="rounded-xl bg-slate-800/60 border-slate-700/80 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
                 />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="edit-cat-desc" className="text-sm font-semibold">Description</Label>
+                <Label htmlFor="edit-cat-desc" className="text-sm font-semibold text-slate-200">
+                    Description
+                </Label>
                 <Textarea
                     id="edit-cat-desc"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter category description"
                     rows={3}
-                    className="rounded-xl bg-gray-50/50 resize-none"
+                    className="rounded-xl bg-slate-800/60 border-slate-700/80 text-white placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none transition-all"
                 />
             </div>
-            <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button type="button" variant="ghost" onClick={onClose} className="rounded-full">
+            <div className="flex justify-end gap-3 pt-5 border-t border-slate-800">
+                <Button 
+                    type="button" 
+                    variant="ghost" 
+                    onClick={onClose} 
+                    className="rounded-xl text-slate-300 hover:text-white hover:bg-slate-800"
+                >
                     Cancel
                 </Button>
-                <Button type="submit" disabled={isSaveDisabled} className="rounded-full px-6">
+                <Button 
+                    type="submit" 
+                    disabled={isSaveDisabled} 
+                    className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     {isLoading ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
                     Save Changes
                 </Button>
@@ -92,16 +107,19 @@ export const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ isOpen, ca
     if (!isOpen || !category) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-center justify-between border-b pb-4">
-                    <h2 className="text-xl font-bold text-gray-900">Edit Category</h2>
-                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-[#0f172a] border border-slate-800 rounded-2xl p-6 max-w-md w-full space-y-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-150 text-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                    <h2 className="text-xl font-bold text-white">Edit Category</h2>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={onClose} 
+                        className="rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                    >
                         <X className="size-5" />
                     </Button>
                 </div>
-
-                {/* category._id is used as the key, the state automatically resets whenever the category changes */}
                 <EditCategoryForm key={category._id} category={category} onClose={onClose} />
             </div>
         </div>
