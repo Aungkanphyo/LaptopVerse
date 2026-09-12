@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 interface ButtonProps extends React.ComponentProps<"button"> {
   asChild?: boolean
   variant?: "default" | "secondary" | "outline" | "ghost"
-  size?: "default" | "sm" | "lg"
+  size?: "default" | "sm" | "lg" | "icon"
 }
 
 function Button({
@@ -29,7 +29,8 @@ function Button({
   const sizes = {
     default: "px-4 py-2.5 text-xs",
     sm: "px-3 py-2 text-[11px]",
-    lg: "px-6 py-3.5 text-sm"
+    lg: "px-6 py-3.5 text-sm",
+    icon: "h-9 w-9 p-0"
   }
 
   return (

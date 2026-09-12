@@ -22,6 +22,7 @@ import TransactionVerification from "./pages/admin/TransactionVerification";
 import BuyingGuides from "./pages/BuyingGuides";
 import GuideManagement from "./pages/admin/GuideManagement";
 import ContactSettingsPage from "./pages/admin/ContactSettingsPage";
+import InquiryManagement from "./pages/admin/InquiryManagement";
 
 const router = createBrowserRouter([
   {
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
       {
         path: "products",
         element: <ProductList />,
+      },
+      {
+        path: "inquiries",
+        element: <InquiryManagement />,
       },
       {
         path: "products/new",
