@@ -28,8 +28,8 @@ const Navbar = () => {
     };
     return (
         <nav className="bg-[#0a0d18]/90 backdrop-blur-xl border-b border-slate-800/80 sticky top-0 z-50 transition-all">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex justify-between h-24 items-center gap-6">
+            <div className="max-w-360 mx-auto px-4 sm:px-6 lg:px-10">
+                <div className="flex justify-between h-24 items-center gap-4 lg:gap-8">
 
                     {/* Brand Logo */}
                     <Link to="/" className="flex items-center gap-2 shrink-0">
@@ -42,17 +42,18 @@ const Navbar = () => {
                     </Link>
 
                     {/* Navigation Links */}
-                    <div className="hidden lg:flex items-center gap-8">
-                        <Link
-                            to="/buying-guides"
-                            className="text-base font-semibold text-slate-300 hover:text-white transition-colors"
+                    <div className="hidden lg:flex items-center gap-6 xl:gap-8 shrink-0">
+                        <HashLink
+                            smooth
+                            to="/#buying-guides"
+                            className="text-base font-semibold text-slate-300 hover:text-white transition-colors whitespace-nowrap"
                         >
                             Buying Guides
-                        </Link>
+                        </HashLink>
                         <HashLink
                             smooth
                             to="/#contact"
-                            className="text-base font-semibold text-slate-300 hover:text-white transition-colors"
+                            className="text-base font-semibold text-slate-300 hover:text-white transition-colors whitespace-nowrap"
                         >
                             Contact Us
                         </HashLink>
