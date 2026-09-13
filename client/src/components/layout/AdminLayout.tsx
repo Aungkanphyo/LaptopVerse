@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { AdminSidebar } from "./AdminSidebar";
 import { useAppSelector } from "@/hooks/redux.hooks";
 import { Navigate } from "react-router-dom";
@@ -29,13 +29,19 @@ const AdminLayout = () => {
                         <h2 className="text-sm font-semibold text-slate-400">Admin Dashboard</h2>
                     </div>
                     <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-end">
-                            <span className="text-sm font-bold text-white">{user.fullName}</span>
-                            <span className="text-xs text-slate-400 capitalize">{user.role}</span>
-                        </div>
-                        <div className="size-9 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shadow-sm">
-                            {user.fullName.charAt(0).toUpperCase()}
-                        </div>
+                        <Link to="/admin/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                            <div className="flex flex-col items-end">
+                                <span className="text-sm font-bold text-white">{user.fullName}</span>
+                                <span className="text-xs text-slate-400 capitalize">{user.role}</span>
+                            </div>
+                            <div className="size-9 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shadow-sm overflow-hidden">
+                                {user.avatar?.url ? (
+                                    <img src={user.avatar.url} alt={user.fullName} className="size-full object-cover" />
+                                ) : (
+                                    user.fullName.charAt(0).toUpperCase()
+                                )}
+                            </div>
+                        </Link>
                     </div>
                 </header>
 
