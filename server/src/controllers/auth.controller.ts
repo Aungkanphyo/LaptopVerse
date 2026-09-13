@@ -6,6 +6,7 @@ import { clearTokensFromCookie, generateAccessToken, sendTokenAsCookie, verifyRe
 import User, { IUserDocument } from "../models/user.model";
 import { AppError } from "../utils/error.utils";
 import { JwtPayload } from "jsonwebtoken";
+import { authenticator } from "otplib";
 
 /**
  * @desc Registering a New User (POST /api/v1/auth/register)
@@ -45,6 +46,7 @@ export const verifyEmail = asyncHandler(async (req: Request<{}, {}, IVerifyOtpIn
             fullName: user.fullName,
             email: user.email,
             role: user.role,
+            avatar: user.avatar,
             isVerified: user.isVerified
         },
         accessToken,
@@ -75,6 +77,23 @@ export const login = asyncHandler(async (req: Request<{}, {}, ILoginInput>, res:
 
     // call login logic from service layer
     const user = await authService.loginUser(data);
+    if (user.twoFactorEnabled) {
+        return res.status(200).json({
+            success: true,
+            require2FA: true,
+            message: 'Please enter your 2FA authentication code',
+            userId: user._id
+        });
+    }
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+    const ip = req.ip || req.socket.remoteAddress || 'Unknown IP';
+    user.sessions.push({
+        userAgent,
+        ip,
+        lastActive: new Date()
+    } as any);
+
+    await user.save();
 
     const { accessToken } = sendTokenAsCookie(res, user);
 
@@ -86,6 +105,61 @@ export const login = asyncHandler(async (req: Request<{}, {}, ILoginInput>, res:
             fullName: user.fullName,
             email: user.email,
             role: user.role,
+            avatar: user.avatar,
+            twoFactorEnabled: user.twoFactorEnabled
+        },
+        accessToken,
+    });
+});
+
+/**
+ * @desc    Verify 2FA TOTP Code during Login Flow
+ * @route   POST /api/v1/auth/login/2fa
+ * @access  Public
+ */
+export const verify2FALogin = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { userId, token } = req.body;
+
+    if (!userId || !token) {
+        return next(new AppError('User ID and 2FA code are required', 400));
+    }
+
+    const user = await User.findById(userId).select('+twoFactorSecret');
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+        return next(new AppError('Invalid 2FA authentication request', 400));
+    }
+
+    const isValid = authenticator.verify({
+        token,
+        secret: user.twoFactorSecret
+    });
+
+    if (!isValid) {
+        return next(new AppError('Invalid or expired 2FA code. Please try again.', 400));
+    }
+
+    const userAgent = req.headers['user-agent'] || 'Unknown Device';
+    const ip = req.ip || req.socket.remoteAddress || 'Unknown IP';
+    user.sessions.push({
+        userAgent,
+        ip,
+        lastActive: new Date()
+    } as any);
+
+    await user.save();
+
+    const { accessToken } = sendTokenAsCookie(res, user);
+
+    res.status(200).json({
+        success: true,
+        message: 'Login successful.',
+        user: {
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            role: user.role,
+            avatar: user.avatar,
+            twoFactorEnabled: user.twoFactorEnabled
         },
         accessToken,
     });
@@ -127,6 +201,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response, nex
                 fullName: user.fullName,
                 email: user.email,
                 role: user.role,
+                avatar: user.avatar
             },
         });
     } else {

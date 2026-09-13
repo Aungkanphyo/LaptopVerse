@@ -2,6 +2,12 @@ import mongoose, { Schema, Model, Document } from "mongoose";
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
+export interface ISession {
+    _id: mongoose.Types.ObjectId;
+    userAgent: string;
+    ip: string;
+    lastActive: Date;
+}
 export interface IUser {
     fullName: string;
     email: string;
@@ -10,6 +16,13 @@ export interface IUser {
     isVerified: boolean;
     status: 'active' | 'banned' | 'deactivated';
     googleId?: string;
+    avatar?: {
+        public_id: string;
+        url: string;
+    };
+    twoFactorEnabled: boolean;
+    twoFactorSecret?: string;
+    sessions: ISession[];
     verificationOTP?: string;
     otpExpires?: Date;
     resetPasswordToken?: string;
@@ -45,6 +58,10 @@ const UserSchema = new Schema<IUserDocument>(
             minLength: 6,
             select: false // Default query တွေမှာ password ကို မပါလာစေရန် (Security)
         },
+        avatar: {
+            public_id: { type: String, default: "" },
+            url: { type: String, default: "" }
+        },
         role: {
             type: String,
             enum: ['admin', 'manager', 'user'],
@@ -59,6 +76,21 @@ const UserSchema = new Schema<IUserDocument>(
             enum: ['active', 'banned', 'deactivated'],
             default: 'active'
         },
+        twoFactorEnabled: {
+            type: Boolean,
+            default: false
+        },
+        twoFactorSecret: {
+            type: String,
+            select: false // Security: Exclude from standard queries
+        },
+        sessions: [
+            {
+                userAgent: { type: String, required: true },
+                ip: { type: String, required: true },
+                lastActive: { type: Date, default: Date.now }
+            }
+        ],
         googleId: {
             type: String,
             unique: true,
@@ -76,7 +108,7 @@ const UserSchema = new Schema<IUserDocument>(
 
 // Pre-save Hook (Hashing Password)
 UserSchema.pre<IUserDocument>('save', async function (next) {
-    // Password အသစ်ထည့်တာ သို့မဟုတ် ပြင်တာမျိုး မဟုတ်ရင် ကျော်သွားမယ်
+    // skip this unless you are setting or changing the password
     if(!this.isModified('password') || !this.password) {
         return;
     }
@@ -85,8 +117,6 @@ UserSchema.pre<IUserDocument>('save', async function (next) {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
     } catch (error) {
-        // Hashing လုပ်ရင်း Error ဖြစ်ရင် Mongoose save operation ကို ရပ်တန့်ရန်
-        // Error ကို re-throw ပြန်လုပ်
         console.error('Password hashing failed:', error);
         
         if (error instanceof Error) {
@@ -120,10 +150,10 @@ UserSchema.methods.generateOTP = function(): string {
 }
 
 UserSchema.methods.getResetPasswordToken = function(): string {
-    // Random bytes ထုတ်မယ် (Token အစစ်)
+    // Generate random bytes (actual token)
     const resetToken = crypto.randomBytes(20).toString('hex');
 
-    // Hash လုပ်ပြီး Database မှာသိမ်းမယ် (Security အတွက်)
+    // Hash token and store in DB (for security)
     this.resetPasswordToken = crypto
         .createHash('sha256')
         .update(resetToken)
