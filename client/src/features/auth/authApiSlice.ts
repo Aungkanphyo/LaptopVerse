@@ -10,6 +10,7 @@ import type {
     ISession 
 } from "@/types/auth.types";
 import { apiSlice } from "../../app/services/apiSlice";
+import { updateAvatarState, updateUserProfileState } from "./authSlice";
 
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -64,6 +65,14 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 body: data,
             }),
             invalidatesTags: ['User'],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(updateUserProfileState(data.user));
+                } catch {
+                    // Ignore mutation errors handled by component
+                }
+            },
         }),
         uploadAvatar: builder.mutation<{ success: boolean; message: string; avatar: { public_id: string; url: string } }, FormData>({
             query: (formData) => ({
@@ -72,6 +81,14 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 body: formData,
             }),
             invalidatesTags: ['User'],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(updateAvatarState(data.avatar));
+                } catch {
+                    // Ignore mutation errors handled by component
+                }
+            },
         }),
         deleteAvatar: builder.mutation<{ success: boolean; message: string; avatar: { public_id: string; url: string } }, void>({
             query: () => ({
@@ -79,6 +96,14 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 method: 'DELETE',
             }),
             invalidatesTags: ['User'],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    dispatch(updateAvatarState(data.avatar));
+                } catch {
+                    // Ignore mutation errors handled by component
+                }
+            },
         }),
         updatePassword: builder.mutation<{ success: boolean; message: string }, IUpdatePasswordPayload>({
             query: (passwords) => ({

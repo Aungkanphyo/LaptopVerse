@@ -53,9 +53,26 @@ const authSlice = createSlice({
             state.accessToken = null;
             state.isAuthenticated = false;
             saveAuthState(state);
+        },
+        updateAvatarState: (state, action: PayloadAction<{ public_id: string; url: string }>) => {
+            if (state.user) {
+                state.user.avatar = action.payload;
+                saveAuthState(state);
+            }
+        },
+        updateUserProfileState: (state, action: PayloadAction<Partial<IUser>>) => {
+            if (state.user) {
+                state.user = { ...state.user, ...action.payload };
+                saveAuthState(state);
+            }
         }
     }
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { 
+    setCredentials, 
+    logout,
+    updateAvatarState,
+    updateUserProfileState
+} = authSlice.actions;
 export default authSlice.reducer;

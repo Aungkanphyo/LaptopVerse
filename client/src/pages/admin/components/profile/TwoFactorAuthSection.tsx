@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 import { Shield, Loader2 } from "lucide-react";
-import { 
-    useSetup2FAMutation, 
-    useVerify2FAMutation, 
-    useDisable2FAMutation 
+import { QRCodeSVG } from "qrcode.react";
+import {
+    useSetup2FAMutation,
+    useVerify2FAMutation,
+    useDisable2FAMutation
 } from "@/features/auth/authApiSlice";
 import type { StatusMsg } from "./StatusMessage";
+import type { IUser } from "@/types/auth.types";
+import { isFetchBaseQueryError } from "@/utils/errorHelpers";
 
 interface TwoFactorAuthSectionProps {
-    user: any;
+    user: IUser;
     setStatusMsg: (msg: StatusMsg | null) => void;
 }
 
 export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user, setStatusMsg }) => {
-    const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+    const [otpauthUrl, setOtpauthUrl] = useState<string | null>(null);
     const [secretKey, setSecretKey] = useState<string | null>(null);
     const [totpToken, setTotpToken] = useState("");
 
@@ -25,21 +28,39 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
         try {
             const res = await setup2FA().unwrap();
             setSecretKey(res.secret);
-            setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(res.otpauthUrl)}`);
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Failed to setup 2FA' });
+            setOtpauthUrl(res.otpauthUrl);
+        } catch (err: unknown) {
+            let errorMessage = 'Failed to setup 2FA';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as { message?: string } | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 
     const handleVerify2FA = async () => {
+        if (!totpToken) {
+            setStatusMsg({ type: 'error', text: 'Please enter 6-digit verification code' });
+            return;
+        }
         try {
             const res = await verify2FA({ token: totpToken }).unwrap();
             setStatusMsg({ type: 'success', text: res.message });
-            setQrCodeUrl(null);
+            setOtpauthUrl(null);
             setSecretKey(null);
             setTotpToken("");
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Invalid 2FA code' });
+        } catch (err: unknown) {
+            let errorMessage = 'Invalid 2FA code';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as { message?: string } | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 
@@ -52,8 +73,15 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
             const res = await disable2FA({ token: totpToken }).unwrap();
             setStatusMsg({ type: 'success', text: res.message });
             setTotpToken("");
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Failed to disable 2FA' });
+        } catch (err: unknown) {
+            let errorMessage = 'Failed to disable 2FA';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as { message?: string } | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 
@@ -67,12 +95,12 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-sm font-medium text-white">
-                        Status: {user?.twoFactorEnabled ? <span className="text-emerald-400">Enabled</span> : <span className="text-rose-400">Disabled</span>}
+                        Status: {user.twoFactorEnabled ? <span className="text-emerald-400">Enabled</span> : <span className="text-rose-400">Disabled</span>}
                     </p>
                     <p className="text-xs text-slate-400">Add an extra layer of security using Google Authenticator or similar apps.</p>
                 </div>
 
-                {!user?.twoFactorEnabled && !qrCodeUrl && (
+                {!user.twoFactorEnabled && !otpauthUrl && (
                     <button
                         onClick={handleInitiate2FA}
                         disabled={isSettingUp2FA}
@@ -84,13 +112,17 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
                 )}
             </div>
 
-            {qrCodeUrl && (
+            {otpauthUrl && (
                 <div className="p-4 bg-[#070913] border border-slate-800 rounded-lg space-y-4 max-w-md">
                     <p className="text-xs text-slate-300">Scan this QR Code with your Authenticator App:</p>
-                    <div className="flex justify-center p-2 bg-white rounded-lg">
-                        <img src={qrCodeUrl} alt="2FA QR Code" className="size-44" />
+                    <div className="flex justify-center p-3 bg-white rounded-lg">
+                        <QRCodeSVG value={otpauthUrl} size={176} />
                     </div>
-                    <p className="text-xs text-slate-400 break-all">Secret: <span className="text-blue-400 font-mono">{secretKey}</span></p>
+                    {secretKey && (
+                        <p className="text-xs text-slate-400 break-all">
+                            Secret: <span className="text-blue-400 font-mono select-all">{secretKey}</span>
+                        </p>
+                    )}
 
                     <div className="flex gap-2">
                         <input
@@ -98,6 +130,7 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
                             placeholder="Enter 6-digit code"
                             value={totpToken}
                             onChange={(e) => setTotpToken(e.target.value)}
+                            maxLength={6}
                             className="flex-1 bg-[#0e1322] border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
                         />
                         <button
@@ -112,7 +145,7 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
                 </div>
             )}
 
-            {user?.twoFactorEnabled && (
+            {user.twoFactorEnabled && (
                 <div className="p-4 bg-[#070913] border border-slate-800 rounded-lg space-y-3 max-w-md">
                     <p className="text-xs text-slate-400">To disable 2FA, enter your current authenticator code below:</p>
                     <div className="flex gap-2">
@@ -121,6 +154,7 @@ export const TwoFactorAuthSection: React.FC<TwoFactorAuthSectionProps> = ({ user
                             placeholder="Enter 6-digit code"
                             value={totpToken}
                             onChange={(e) => setTotpToken(e.target.value)}
+                            maxLength={6}
                             className="flex-1 bg-[#0e1322] border border-slate-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
                         />
                         <button

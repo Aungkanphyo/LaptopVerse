@@ -6,16 +6,17 @@ import {
     useDeleteAvatarMutation 
 } from "@/features/auth/authApiSlice";
 import type { StatusMsg } from "./StatusMessage";
+import type { IUser } from "@/types/auth.types";
+import { isFetchBaseQueryError } from "@/utils/errorHelpers";
 
 interface ProfileInfoSectionProps {
-    user: any;
+    user: IUser;
     setStatusMsg: (msg: StatusMsg | null) => void;
 }
 
 export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ user, setStatusMsg }) => {
-    const [fullName, setFullName] = useState(user?.fullName || "");
-    const [email, setEmail] = useState(user?.email || "");
-
+    const [fullName, setFullName] = useState(user.fullName || "");
+    const [email, setEmail] = useState(user.email || "");
     const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
     const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
     const [deleteAvatar, { isLoading: isDeletingAvatar }] = useDeleteAvatarMutation();
@@ -25,8 +26,15 @@ export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ user, se
         try {
             const res = await updateProfile({ fullName, email }).unwrap();
             setStatusMsg({ type: 'success', text: res.message || 'Profile updated successfully' });
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Failed to update profile' });
+        } catch (err: unknown) {
+            let errorMessage = 'Failed to update profile';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as { message?: string } | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 
@@ -40,8 +48,15 @@ export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ user, se
         try {
             const res = await uploadAvatar(formData).unwrap();
             setStatusMsg({ type: 'success', text: res.message || 'Avatar updated successfully' });
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Failed to upload avatar' });
+        } catch (err: unknown) {
+            let errorMessage = 'Failed to upload avatar';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as { message?: string } | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 
@@ -49,8 +64,15 @@ export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ user, se
         try {
             const res = await deleteAvatar().unwrap();
             setStatusMsg({ type: 'success', text: res.message || 'Avatar removed successfully' });
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Failed to delete avatar' });
+        } catch (err: unknown) {
+            let errorMessage = 'Failed to delete avatar';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as { message?: string } | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 
@@ -64,10 +86,10 @@ export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ user, se
             <div className="flex flex-col sm:flex-row items-center gap-6">
                 <div className="relative group">
                     <div className="size-24 rounded-full bg-slate-800 border-2 border-blue-500/30 overflow-hidden flex items-center justify-center text-2xl font-bold text-blue-400">
-                        {user?.avatar?.url ? (
+                        {user.avatar?.url ? (
                             <img src={user.avatar.url} alt="Profile" className="size-full object-cover" />
                         ) : (
-                            user?.fullName?.charAt(0).toUpperCase()
+                            user.fullName?.charAt(0).toUpperCase()
                         )}
                     </div>
                 </div>
@@ -79,7 +101,7 @@ export const ProfileInfoSection: React.FC<ProfileInfoSectionProps> = ({ user, se
                         <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" disabled={isUploadingAvatar} />
                     </label>
 
-                    {user?.avatar?.url && (
+                    {user.avatar?.url && (
                         <button
                             onClick={handleAvatarDelete}
                             disabled={isDeletingAvatar}

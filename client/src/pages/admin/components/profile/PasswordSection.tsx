@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Key, Loader2 } from "lucide-react";
 import { useUpdatePasswordMutation } from "@/features/auth/authApiSlice";
 import type { StatusMsg } from "./StatusMessage";
+import { isFetchBaseQueryError } from "@/utils/errorHelpers";
 
 interface PasswordSectionProps {
     setStatusMsg: (msg: StatusMsg | null) => void;
@@ -27,8 +28,15 @@ export const PasswordSection: React.FC<PasswordSectionProps> = ({ setStatusMsg }
             setOldPassword("");
             setNewPassword("");
             setConfirmPassword("");
-        } catch (err: any) {
-            setStatusMsg({ type: 'error', text: err?.data?.message || 'Failed to update password' });
+        } catch (err: unknown) {
+            let errorMessage = 'Failed to update password';
+            if (isFetchBaseQueryError(err)) {
+                const errorData = err.data as {message?: string} | undefined;
+                errorMessage = errorData?.message || errorMessage;
+            } else if (err instanceof Error) {
+                errorMessage = err.message;
+            }
+            setStatusMsg({ type: 'error', text: errorMessage });
         }
     };
 

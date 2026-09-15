@@ -23,6 +23,7 @@ import BuyingGuides from "./pages/BuyingGuides";
 import GuideManagement from "./pages/admin/GuideManagement";
 import ContactSettingsPage from "./pages/admin/ContactSettingsPage";
 import InquiryManagement from "./pages/admin/InquiryManagement";
+import AdminProfile from "./pages/admin/AdminProfile";
 
 const router = createBrowserRouter([
   {
@@ -118,6 +119,10 @@ const router = createBrowserRouter([
       {
         path: "contact-settings",
         element: <ContactSettingsPage />,
+      },
+      {
+        path: "profile",
+        element: <AdminProfile />,
       },
     ]
   }
