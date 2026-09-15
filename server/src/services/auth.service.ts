@@ -119,12 +119,7 @@ export const loginUser = async (data: ILoginInput): Promise<IUserDocument> => {
         throw new AppError('Please verify your email address before logging in.', 403);
     }
 
-    // Once logged in, remove the password and return it.
-    // remove the password using Mongoose's `toObject()`
-    const userObject = user.toObject();
-    delete userObject.password;
-
-    return userObject as IUserDocument;
+    return user;
 }
 
 /**
@@ -210,7 +205,7 @@ export const resetPasswordLogic = async (resetToken: string, newPassword: string
     }
 
     // Password အသစ်သတ်မှတ်ပြီး Token တွေကို ပြန်ဖျက်
-    user.password = newPassword
+    user.password = newPassword;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 

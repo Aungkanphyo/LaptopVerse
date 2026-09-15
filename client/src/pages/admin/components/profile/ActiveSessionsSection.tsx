@@ -36,7 +36,7 @@ export const ActiveSessionsSection: React.FC = () => {
                                 onClick={() => revokeSession(session._id)}
                                 className="text-rose-400 hover:text-rose-300 font-medium border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 rounded transition-colors"
                             >
-                                Revoke
+                                Logout
                             </button>
                         </div>
                     ))}
