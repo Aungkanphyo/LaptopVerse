@@ -13,7 +13,7 @@ import { deleteFromCloudinary, uploadToCloudinary } from "../config/cloudinary.c
 export const getUserProfile = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(req.userId).select('-password'); // Exclude password
 
-    if(!user) {
+    if (!user) {
         return next(new AppError('User not found', 404));
     }
 
@@ -41,7 +41,7 @@ export const updateProfile = asyncHandler(async (req: Request, res: Response, ne
         { fullName, email },
         { new: true, runValidators: true }
     ).select('-password');
-    
+
     res.status(200).json({
         success: true,
         message: 'Profile updated successfully',
@@ -157,7 +157,9 @@ export const updatePassword = asyncHandler(async (req: Request, res: Response, n
 export const setup2FA = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(req.userId);
     if (!user) return next(new AppError('User not found', 404));
-
+    if (user.twoFactorEnabled) {
+        return next(new AppError('Two-Factor Authentication is already enabled on this account.', 400));
+    }
     const secret = authenticator.generateSecret();
 
     user.twoFactorSecret = secret;
@@ -181,13 +183,21 @@ export const verifyAndEnable2FA = asyncHandler(async (req: Request, res: Respons
     const { token } = req.body;
     if (!token) return next(new AppError('Verification code is required', 400));
 
-    const user = await User.findById(req.userId).select('+twoFactorSecret');
-    if (!user || !user.twoFactorSecret) {
-        return next(new AppError('2FA setup not initiated', 400));
+    const user = await User.findById(req.userId).select('+twoFactorSecret +twoFactorEnabled');
+    if (!user) return next(new AppError('User not found', 404));
+    if (user.twoFactorEnabled) {
+        return next(new AppError('Two-Factor Authentication is already enabled on this account.', 400));
     }
-
+    if (!user.twoFactorSecret) {
+        return next(new AppError('2FA setup not initiated. Please generate QR code first.', 400));
+    }
+    const cleanToken = String(token).trim().replace(/\s+/g, '');
+    authenticator.options = { 
+        ...authenticator.options,
+        window: 1
+    };
     const isValid = authenticator.verify({
-        token,
+        token: cleanToken,
         secret: user.twoFactorSecret
     });
 
@@ -217,9 +227,13 @@ export const disable2FA = asyncHandler(async (req: Request, res: Response, next:
     if (!user || !user.twoFactorSecret) {
         return next(new AppError('2FA is not enabled on this account', 400));
     }
-
+    const cleanToken = String(token).trim().replace(/\s+/g, '');
+    authenticator.options = { 
+        ...authenticator.options,
+        window: 1 
+    };
     const isValid = authenticator.verify({
-        token,
+        token: cleanToken,
         secret: user.twoFactorSecret
     });
 

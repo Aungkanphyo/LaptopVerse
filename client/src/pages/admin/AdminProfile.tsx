@@ -5,12 +5,19 @@ import { ProfileInfoSection } from "./components/profile/ProfileInfoSection";
 import { PasswordSection } from "./components/profile/PasswordSection";
 import { TwoFactorAuthSection } from "./components/profile/TwoFactorAuthSection";
 import { ActiveSessionsSection } from "./components/profile/ActiveSessionsSection";
+import { useGetMeQuery } from "@/features/auth/authApiSlice";
 
 export const AdminProfile = () => {
+    const { isLoading: isFetchingUser } = useGetMeQuery();
     const { user } = useAppSelector((state) => state.auth);
     const [statusMsg, setStatusMsg] = useState<StatusMsg | null>(null);
-    if (!user) {
+    
+    if (isFetchingUser && !user) {
         return <div className="text-white p-4">Loading user profile...</div>;
+    }
+
+    if (!user) {
+        return <div className="text-white p-4">User not found.</div>;
     }
 
     return (

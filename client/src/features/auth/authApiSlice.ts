@@ -17,6 +17,16 @@ export const authApiSlice = apiSlice.injectEndpoints({
         getMe: builder.query<{ user: IUser; accessToken?: string }, void>({
             query: () => '/auth/me',
             providesTags: ['User'],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    if (data?.user) {
+                        dispatch(updateUserProfileState(data.user));
+                    }
+                } catch {
+                    // Ignore query errors
+                }
+            },
         }),
         login: builder.mutation({
             query: (credentials) => ({
