@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as authController from '../controllers/auth.controller';
 import { loginSchema, registerSchema, resendOtpSchema, validate, ValidationSource, verifyOtpSchema } from "../middlewares/validation";
-import { authLimiter } from "../middlewares/rateLimiter.middleware";
+import { authLimiter, twoFactorLimiter } from "../middlewares/rateLimiter.middleware";
 import * as userController from '../controllers/user.controller';
 import { protect } from "../middlewares/auth.middleware";
 import { upload } from "../middlewares/upload.middleware";
@@ -19,9 +19,9 @@ router.delete('/avatar', protect, userController.deleteAvatar);
 router.put('/password/update', protect, userController.updatePassword);
 
 // Two-Factor Authentication (2FA) Routes
-router.post('/2fa/setup', protect, userController.setup2FA);
-router.post('/2fa/verify', protect, userController.verifyAndEnable2FA);
-router.post('/2fa/disable', protect, userController.disable2FA);
+router.post('/2fa/setup', protect, twoFactorLimiter, userController.setup2FA);
+router.post('/2fa/verify', protect, twoFactorLimiter, userController.verifyAndEnable2FA);
+router.post('/2fa/disable', protect, twoFactorLimiter, userController.disable2FA);
 
 // Session routes
 router.get('/sessions', protect, userController.getActiveSessions);
@@ -59,7 +59,7 @@ router.post(
     authController.login
 );
 
-router.post('/login/2fa', authLimiter, authController.verify2FALogin);
+router.post('/login/2fa', twoFactorLimiter, authController.verify2FALogin);
 
 // Silent Refresh Flow: Refresh Access Token Route
 // POST /api/v1/auth/refresh

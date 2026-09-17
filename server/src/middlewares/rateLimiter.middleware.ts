@@ -26,6 +26,21 @@ export const authLimiter = rateLimit({
 });
 
 /**
+ * 2FA Brute-Force Protection Rate Limiter
+ * 2FA verification attempts will only be allowed up to 5 times within 15 minutes
+ */
+export const twoFactorLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Maximum 5 attempts per IP
+    skip: () => process.env.NODE_ENV === 'development',
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req: Request, res: Response, next: NextFunction, options) => {
+        next(new AppError('Too many 2FA verification attempts from this IP. Please try again after 15 minutes.', options.statusCode));
+    }
+});
+
+/**
  * Heavy Operations Rate Limiter
  * For APIs that load the database, such as CSV Export and Report Generation
  */

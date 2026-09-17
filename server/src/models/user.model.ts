@@ -22,6 +22,7 @@ export interface IUser {
     };
     twoFactorEnabled: boolean;
     twoFactorSecret?: string;
+    lastUsed2FAToken?: string;
     sessions: ISession[];
     verificationOTP?: string;
     otpExpires?: Date;
@@ -82,7 +83,11 @@ const UserSchema = new Schema<IUserDocument>(
         },
         twoFactorSecret: {
             type: String,
-            select: false // Security: Exclude from standard queries
+            select: false
+        },
+        lastUsed2FAToken: {
+            type: String,
+            select: false
         },
         sessions: [
             {

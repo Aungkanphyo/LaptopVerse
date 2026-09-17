@@ -183,7 +183,7 @@ export const verifyAndEnable2FA = asyncHandler(async (req: Request, res: Respons
     const { token } = req.body;
     if (!token) return next(new AppError('Verification code is required', 400));
 
-    const user = await User.findById(req.userId).select('+twoFactorSecret +twoFactorEnabled');
+    const user = await User.findById(req.userId).select('+twoFactorSecret +twoFactorEnabled +lastUsed2FAToken');
     if (!user) return next(new AppError('User not found', 404));
     if (user.twoFactorEnabled) {
         return next(new AppError('Two-Factor Authentication is already enabled on this account.', 400));
@@ -192,6 +192,10 @@ export const verifyAndEnable2FA = asyncHandler(async (req: Request, res: Respons
         return next(new AppError('2FA setup not initiated. Please generate QR code first.', 400));
     }
     const cleanToken = String(token).trim().replace(/\s+/g, '');
+    // Prevent Anti-Replay Attack Check
+    if (user.lastUsed2FAToken === cleanToken) {
+        return next(new AppError('This 2FA code has already been used. Please wait for the next 30-second code.', 400));
+    }
     authenticator.options = { 
         ...authenticator.options,
         window: 1
@@ -206,6 +210,7 @@ export const verifyAndEnable2FA = asyncHandler(async (req: Request, res: Respons
     }
 
     user.twoFactorEnabled = true;
+    user.lastUsed2FAToken = cleanToken; // Save used token
     await user.save();
 
     res.status(200).json({
@@ -223,11 +228,15 @@ export const disable2FA = asyncHandler(async (req: Request, res: Response, next:
     const { token } = req.body;
     if (!token) return next(new AppError('2FA verification code is required', 400));
 
-    const user = await User.findById(req.userId).select('+twoFactorSecret');
+    const user = await User.findById(req.userId).select('+twoFactorSecret +lastUsed2FAToken');
     if (!user || !user.twoFactorSecret) {
         return next(new AppError('2FA is not enabled on this account', 400));
     }
     const cleanToken = String(token).trim().replace(/\s+/g, '');
+    // Anti-Replay Attack Check
+    if (user.lastUsed2FAToken === cleanToken) {
+        return next(new AppError('This 2FA code has already been used. Please wait for the next 30-second code.', 400));
+    }
     authenticator.options = { 
         ...authenticator.options,
         window: 1 
@@ -243,6 +252,7 @@ export const disable2FA = asyncHandler(async (req: Request, res: Response, next:
 
     user.twoFactorEnabled = false;
     user.twoFactorSecret = undefined;
+    user.lastUsed2FAToken = undefined;
     await user.save();
 
     res.status(200).json({

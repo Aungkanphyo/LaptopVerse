@@ -124,19 +124,30 @@ export const verify2FALogin = asyncHandler(async (req: Request, res: Response, n
         return next(new AppError('User ID and 2FA code are required', 400));
     }
 
-    const user = await User.findById(userId).select('+twoFactorSecret');
+    const user = await User.findById(userId).select('+twoFactorSecret +lastUsed2FAToken +twoFactorEnabled');
     if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
         return next(new AppError('Invalid 2FA authentication request', 400));
     }
+    const cleanToken = String(token).trim().replace(/\s+/g, '');
+    // Anti-Replay Attack Check
+    if (user.lastUsed2FAToken === cleanToken) {
+        return next(new AppError('This 2FA code has already been used. Please wait for the next 30-second code.', 400));
+    }
+    authenticator.options = {
+        ...authenticator.options,
+        window: 1
+    };
 
     const isValid = authenticator.verify({
-        token,
+        token: cleanToken,
         secret: user.twoFactorSecret
     });
 
     if (!isValid) {
         return next(new AppError('Invalid or expired 2FA code. Please try again.', 400));
     }
+    // Update last used token to prevent reuse
+    user.lastUsed2FAToken = cleanToken;
 
     const userAgent = req.headers['user-agent'] || 'Unknown Device';
     const ip = req.ip || req.socket.remoteAddress || 'Unknown IP';
@@ -215,7 +226,7 @@ export const refreshToken = asyncHandler(async (req: Request, res: Response, nex
  */
 export const googleCallback = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user as IUserDocument;
-    
+
     if (!user) {
         res.redirect(`${process.env.CLIENT_URL}/login?error=Google authentication failed`);
         return;
