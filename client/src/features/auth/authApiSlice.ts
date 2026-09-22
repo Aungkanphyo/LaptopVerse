@@ -169,6 +169,7 @@ export const {
     useGetMeQuery,
     useLazyGetMeQuery,
     useLoginMutation,
+    useLogin2FAMutation,
     useRegisterMutation,
     useVerifyEmailMutation,
     useResendOtpMutation,
