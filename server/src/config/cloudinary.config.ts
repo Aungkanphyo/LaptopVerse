@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import streamifier from 'streamifier';
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary, TransformationOptions } from 'cloudinary';
 
 dotenv.config();
 
@@ -11,18 +11,33 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+export interface ICloudinaryUploadOptions {
+    transformation?: TransformationOptions | TransformationOptions[];
+}
+
 /**
- * @desc Uploading Images to Cloudinary via Buffer (Upload Helper)
+ * @desc Generic Cloudinary Buffer Upload Helper (Supports Products, Avatars, etc.)
  * @param buffer - File Buffer from Multer
- * @param folder - Folder name in Cloudinary
+ * @param folder - Folder name under 'laptopverse/' (default: 'products')
+ * @param options - Optional Cloudinary upload options (e.g., transformations)
  */
-export const uploadToCloudinary = (buffer: Buffer, folder: string = 'products'): Promise<{ public_id: string; url: string }> => {
+export const uploadToCloudinary = (
+    buffer: Buffer, 
+    folder: string = 'products',
+    options?: ICloudinaryUploadOptions
+): Promise<{ public_id: string; url: string }> => {
     return new Promise((resolve, reject) => {
+        const uploadParams: Record<string, any> = {
+            folder: `laptopverse/${folder}`,
+            resource_type: 'image',
+        };
+
+        // Will only be included with custom transformation (for use exclusively with Avatars)
+        if (options?.transformation) {
+            uploadParams.transformation = options.transformation;
+        }
         const uploadStream = cloudinary.uploader.upload_stream(
-            {
-                folder: `laptopverse/${folder}`, // Folder structure
-                resource_type: 'image',
-            },
+            uploadParams,
             (error, result) => {
                 if (error) return reject(error);
                 if (result) {
@@ -38,9 +53,11 @@ export const uploadToCloudinary = (buffer: Buffer, folder: string = 'products'):
 };
 
 /**
- * @desc Deleting Images from Cloudinary (Delete Helper - for Update/Delete product)
+ * @desc Deleting Images from Cloudinary Helper
+ * @param public_id - Cloudinary Public ID of the image
  */
 export const deleteFromCloudinary = async(public_id: string): Promise<void> => {
+    if (!public_id) return;
     try {
         await cloudinary.uploader.destroy(public_id);
     } catch (error) {

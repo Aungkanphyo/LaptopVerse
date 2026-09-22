@@ -1,10 +1,10 @@
 import { Router } from "express";
 import * as authController from '../controllers/auth.controller';
 import { loginSchema, registerSchema, resendOtpSchema, validate, ValidationSource, verifyOtpSchema } from "../middlewares/validation";
-import { authLimiter } from "../middlewares/rateLimiter.middleware";
+import { authLimiter, twoFactorLimiter } from "../middlewares/rateLimiter.middleware";
 import * as userController from '../controllers/user.controller';
 import { protect } from "../middlewares/auth.middleware";
-import { resendOTP } from '../services/auth.service';
+import { upload } from "../middlewares/upload.middleware";
 import passport from "passport";
 
 const router = Router();
@@ -12,6 +12,20 @@ const router = Router();
 // User Profile Routes (Protected)
 router.get('/me', protect, userController.getUserProfile);
 router.put('/me/update', protect, userController.updateProfile);
+
+// Avatar Upload & Delete
+router.put('/avatar/upload', protect, upload.single('avatar'), userController.updateAvatar);
+router.delete('/avatar', protect, userController.deleteAvatar);
+router.put('/password/update', protect, userController.updatePassword);
+
+// Two-Factor Authentication (2FA) Routes
+router.post('/2fa/setup', protect, twoFactorLimiter, userController.setup2FA);
+router.post('/2fa/verify', protect, twoFactorLimiter, userController.verifyAndEnable2FA);
+router.post('/2fa/disable', protect, twoFactorLimiter, userController.disable2FA);
+
+// Session routes
+router.get('/sessions', protect, userController.getActiveSessions);
+router.delete('/sessions/:sessionId', protect, userController.revokeSession);
 
 
 // Register & OTP Routes
@@ -44,6 +58,8 @@ router.post(
     validate(loginSchema, ValidationSource.BODY),
     authController.login
 );
+
+router.post('/login/2fa', twoFactorLimiter, authController.verify2FALogin);
 
 // Silent Refresh Flow: Refresh Access Token Route
 // POST /api/v1/auth/refresh

@@ -1,10 +1,13 @@
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useAppDispatch } from "../../../hooks/redux.hooks";
 import { Link, useNavigate } from "react-router-dom";
-import { useLoginMutation } from "../authApiSlice";
+import { useLogin2FAMutation, useLoginMutation } from "../authApiSlice";
 import { useState } from "react";
 import { setCredentials } from "../authSlice";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
+import { AuthInput } from "../components/AuthInput";
+import { KeyRound, Lock, Mail } from "lucide-react";
+import GoogleAuthButton from "../components/GoogleAuthButton";
 
 interface ILoginForm {
     email: string;
@@ -18,17 +21,28 @@ const Login = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const [login, { isLoading }] = useLoginMutation();
+    const [login2FA, { isLoading: is2FALoading }] = useLogin2FAMutation(); // 2FA Login Mutation Hook
 
-    // Local Error State (to display errors returned from the backend)
+    // Local States
     const [apiError, setApiError] = useState<string | null>(null);
+    const [is2FARequired, setIs2FARequired] = useState<boolean>(false); // 2FA Form State
+    const [userIdFor2FA, setUserIdFor2FA] = useState<string | null>(null);
+    const [twoFactorCode, setTwoFactorCode] = useState<string>('');
 
-    // Form submit logic
+    // Form submit logic (Email & Password Login)
     const onSubmit: SubmitHandler<ILoginForm> = async (data) => {
         try {
             setApiError(null);
             const response = await login(data).unwrap();
 
-            // Saving to Redux Store
+            // backend requests 2FA, it will transition to the 2FA step
+            if (response.require2FA) {
+                setIs2FARequired(true);
+                setUserIdFor2FA(response.userId);
+                return;
+            }
+
+            // Normal Login (For users who have not enabled 2FA)
             dispatch(setCredentials({
                 user: response.user,
                 accessToken: response.accessToken,
@@ -37,9 +51,8 @@ const Login = () => {
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'status' in err) {
                 const fetchError = err as FetchBaseQueryError;
-
                 const errorData = fetchError.data as { success?: boolean; message?: string };
-                // If you are an unverified user, you will be sent to Route to enter an OTP
+
                 if (fetchError.status === 403 && errorData?.message?.includes('verify')) {
                     navigate('/verify-email', { state: { email: data.email } });
                     return;
@@ -54,125 +67,172 @@ const Login = () => {
         }
     };
 
-    // Google OAuth Login Handler
-    const handleGoogleLogin = () => {
-        window.location.href = 'http://localhost:8080/api/v1/auth/google';
+    // 2FA Verification Submit Handler
+    const handle2FASubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userIdFor2FA || !twoFactorCode) {
+            setApiError('Please enter your 6-digit authentication code.');
+            return;
+        }
+
+        try {
+            setApiError(null);
+            const response = await login2FA({
+                userId: userIdFor2FA,
+                token: twoFactorCode
+            }).unwrap();
+
+            // 2FA pass send user and token to redux and then redirect to home page
+            dispatch(setCredentials({
+                user: response.user,
+                accessToken: response.accessToken,
+            }));
+            navigate('/');
+        } catch (err: unknown) {
+            if (err && typeof err === 'object' && 'data' in err) {
+                const fetchError = err as { data?: { message?: string } };
+                setApiError(fetchError.data?.message || 'Invalid 2FA code. Please try again.');
+            } else {
+                setApiError('2FA verification failed.');
+            }
+        }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                <div className="text-center">
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-                        Welcome Back
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#070a13] text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+
+            {/* Top Tab Switcher */}
+            <div className="mb-6 p-1 bg-[#0d1324] border border-slate-800/80 rounded-full flex items-center gap-1 shadow-md">
+                <button
+                    type="button"
+                    className="px-6 py-2 text-xs font-semibold text-white bg-blue-600 rounded-full shadow-[0_0_12px_rgba(37,99,235,0.4)] transition-all"
+                >
+                    Sign In
+                </button>
+                <Link
+                    to="/register"
+                    className="px-6 py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors rounded-full"
+                >
+                    Create Account
+                </Link>
+            </div>
+
+            <div className="max-w-md w-full space-y-6 bg-[#0b0f1d] p-8 rounded-2xl border border-slate-800/80 shadow-2xl backdrop-blur-sm">
+                <div className="text-center space-y-1.5">
+                    <h2 className="text-2xl font-bold tracking-tight text-white">
+                        {is2FARequired ? 'Two-Factor Authentication' : 'Welcome back'}
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Sign in to your account to continue
+                    <p className="text-xs text-slate-400">
+                        {is2FARequired
+                            ? 'Enter the 6-digit code from your authenticator app'
+                            : 'Sign in to your account to continue'}
                     </p>
                 </div>
 
-                {/* Google OAuth Button */}
-                <div>
-                    <button
-                        type="button"
-                        onClick={handleGoogleLogin}
-                        className="w-full flex items-center justify-center gap-3 py-2.5 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
-                    >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                            <path
-                                fill="#4285F4"
-                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                            />
-                            <path
-                                fill="#34A853"
-                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                            />
-                            <path
-                                fill="#FBBC05"
-                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                            />
-                            <path
-                                fill="#EA4335"
-                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                            />
-                        </svg>
-                        Sign in with Google
-                    </button>
-                </div>
-
-                {/* UI Divider */}
-                <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300" />
+                {apiError && (
+                    <div className="p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs">
+                        {apiError}
                     </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-white text-gray-500">Or continue with</span>
-                    </div>
-                </div>
+                )}
 
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                    {apiError && (
-                        <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-200">
-                            {apiError}
-                        </div>
-                    )}
+                {is2FARequired ? (
+                    <form className="space-y-4" onSubmit={handle2FASubmit}>
+                        <AuthInput
+                            label="6-Digit Authenticator Code"
+                            type="text"
+                            maxLength={6}
+                            value={twoFactorCode}
+                            onChange={(e) => setTwoFactorCode(e.target.value)}
+                            placeholder="123456"
+                            leftIcon={<KeyRound className="h-4 w-4 text-slate-400" />}
+                            className="text-center tracking-widest font-bold text-base"
+                            autoFocus
+                            required
+                        />
 
-                    <div className="space-y-4 rounded-md shadow-sm">
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Email Address
-                            </label>
-                            <input type="email" id="email" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`} placeholder="you@example.com"
-                                {...register('email', {
-                                    required: 'Email is required', pattern: {
-                                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                        message: "Invalid email address"
-                                    }
-                                })}
-                            />
-                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-                        </div>
-
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                Password
-                            </label>
-                            <input type="password" id="password" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.password ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
-                                placeholder="••••••••" {...register('password', {
-                                    required: 'Password is required',
-                                    minLength: {
-                                        value: 6,
-                                        message: 'Password must be at least 6 characters'
-                                    }
-                                })}
-                            />
-                            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
-                        </div>
-                    </div>
-
-                    <div>
-                        <button type="submit" disabled={isLoading} className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all">
-                            {isLoading ? (
-                                <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    Signing in...
-                                </span>
-                            ) : 'Sign In'}
+                        <button
+                            type="submit"
+                            disabled={is2FALoading}
+                            className="w-full flex justify-center py-3 px-4 text-xs font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-60 transition-all"
+                        >
+                            {is2FALoading ? 'Verifying...' : 'Verify Code & Sign In'}
                         </button>
-                    </div>
 
-                    <div className="flex items-center justify-center text-sm mt-4">
-                        <span className="text-gray-600">Don't have an account?</span>
-                        <Link to="/register" className="ml-1 font-medium text-blue-600 hover:text-blue-500 transition-colors">
-                            Sign up here
-                        </Link>
-                    </div>
-                </form>
+                        <div className="text-center pt-1">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIs2FARequired(false);
+                                    setApiError(null);
+                                }}
+                                className="text-xs text-blue-500 hover:underline"
+                            >
+                                Back to Email/Password Login
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                    <>
+                        <GoogleAuthButton text="Sign in with Google" />
+
+                        <div className="relative my-4 flex items-center justify-center">
+                            <div className="w-full border-t border-slate-800/80" />
+                            <span className="absolute bg-[#0b0f1d] px-3 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">
+                                Or continue with
+                            </span>
+                        </div>
+
+                        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                            <div className="space-y-3.5">
+                                {/* Email Input */}
+                                <AuthInput
+                                    label="Email Address"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    leftIcon={<Mail className="h-4 w-4 text-slate-400" />}
+                                    error={errors.email?.message}
+                                    {...register('email', {
+                                        required: 'Email is required',
+                                        pattern: {
+                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                            message: 'Invalid email address'
+                                        }
+                                    })}
+                                />
+                                <AuthInput
+                                    label="Password"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    leftIcon={<Lock className="h-4 w-4 text-slate-400" />}
+                                    error={errors.password?.message}
+                                    {...register('password', {
+                                        required: 'Password is required'
+                                    })}
+                                />
+                            </div>
+
+                            <div className="pt-2">
+                                <button
+                                    type="submit"
+                                    disabled={isLoading}
+                                    className="w-full flex justify-center py-3 px-4 text-xs font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-60 transition-all"
+                                >
+                                    {isLoading ? 'Signing in...' : 'Sign In'}
+                                </button>
+                            </div>
+
+                            <div className="flex items-center justify-center text-xs pt-2">
+                                <span className="text-slate-400">Don't have an account?</span>
+                                <Link to="/register" className="ml-1.5 font-semibold text-blue-500 hover:text-blue-400 transition-colors">
+                                    Sign up here
+                                </Link>
+                            </div>
+                        </form>
+                    </>
+                )}
             </div>
         </div>
-    )
+    );
 };
 
 export default Login;

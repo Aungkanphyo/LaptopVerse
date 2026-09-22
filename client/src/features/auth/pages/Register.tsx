@@ -5,6 +5,8 @@ import { useState } from 'react';
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 import { toast } from 'sonner';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+import { AuthInput } from '../components/AuthInput';
+import { Lock, Mail, Shield, User } from 'lucide-react';
 
 interface IRegisterForm {
     fullName: string;
@@ -72,134 +74,143 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-gray-100">
-                {/* Header Section */}
-                <div className="text-center">
-                    <h2 className="text-3xl font-bold text-gray-900">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#070a13] text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
+
+            {/* Sign In / Create Account Tab Switcher */}
+            <div className="mb-6 p-1 bg-[#0d1324] border border-slate-800/80 rounded-full flex items-center gap-1 shadow-md">
+                <Link
+                    to="/login"
+                    className="px-6 py-2 text-xs font-medium text-slate-400 hover:text-white transition-colors rounded-full"
+                >
+                    Sign In
+                </Link>
+                <button
+                    type="button"
+                    className="px-6 py-2 text-xs font-semibold text-white bg-blue-600 rounded-full shadow-[0_0_12px_rgba(37,99,235,0.4)] transition-all"
+                >
+                    Create Account
+                </button>
+            </div>
+
+            <div className="max-w-md w-full space-y-6 bg-[#0b0f1d] p-8 rounded-2xl border border-slate-800/80 shadow-2xl backdrop-blur-sm">
+
+                {/* HEADER SECTION */}
+                <div className="text-center space-y-1.5">
+                    <h2 className="text-2xl font-bold tracking-tight text-white">
                         Create an account
                     </h2>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <p className="text-xs text-slate-400">
                         Join us to get the best tech gear
                     </p>
                 </div>
 
                 {/* GOOGLE AUTH BUTTON */}
-                <div className="mt-6">
+                <div>
                     <GoogleAuthButton text="Sign up with Google" />
                 </div>
 
-                {/* DIVIDER SECTION */}
-                <div className="relative my-6">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-200" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white px-2 text-gray-500">Or continue with</span>
-                    </div>
+                <div className="relative my-4 flex items-center justify-center">
+                    <div className="w-full border-t border-slate-800/80" />
+                    <span className="absolute bg-[#0b0f1d] px-3 text-[10px] uppercase font-semibold text-slate-500 tracking-wider">
+                        Or continue with
+                    </span>
                 </div>
 
-                {/* Form Section */}
+                {/* FORM SECTION */}
                 <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
-                    {/* API Error Alert */}
+
+                    {/* 🎨 [MODIFIED]: Dark Red Error Alert Styling */}
                     {apiError && (
-                        <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm border border-red-200">
+                        <div className="p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-300 text-xs">
                             {apiError}
                         </div>
                     )}
 
-                    <div className="space-y-4 rounded-md shadow-sm">
+                    <div className="space-y-3.5">
                         {/* Full Name Input */}
-                        <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                                Full Name
-                            </label>
-                            <input type="text" id="fullName" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.fullName ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`} placeholder='John Doe' {...register('fullName', { required: 'Full name is required', minLength: { value: 2, message: 'Full name must be at least 2 characters' } })} />
-                            {errors.fullName && <p className="mt-1 text-xs text-red-500">{errors.fullName.message}</p>}
-                        </div>
+                        <AuthInput
+                            label="Full Name"
+                            type="text"
+                            placeholder="John Doe"
+                            leftIcon={<User className="h-4 w-4 text-slate-400" />}
+                            error={errors.fullName?.message}
+                            {...register('fullName', {
+                                required: 'Full name is required',
+                                minLength: { value: 2, message: 'Full name must be at least 2 characters' }
+                            })}
+                        />
 
                         {/* Email Input */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                Email Address
-                            </label>
-                            <input type="email" id="email" className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'
-                                } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
-                                placeholder="you@example.com" {...register('email', { required: 'Email is required', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: "Invalid email format" } })}
-                            />
-                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
-                        </div>
+                        <AuthInput
+                            label="Email Address"
+                            type="email"
+                            placeholder="you@example.com"
+                            leftIcon={<Mail className="h-4 w-4 text-slate-400" />}
+                            error={errors.email?.message}
+                            {...register('email', {
+                                required: 'Email is required',
+                                pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: 'Invalid email format'
+                                }
+                            })}
+                        />
 
                         {/* Password Input */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                type="password"
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.password ? 'border-red-300' : 'border-gray-300'
-                                    } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
-                                placeholder="••••••••"
-                                {...register('password', {
-                                    required: 'Password is required',
-                                    minLength: { value: 8, message: "Password must be at least 8 characters" },
-                                    validate: {
-                                        // Uppercase check
-                                        hasUppercase: (value) => /[A-Z]/.test(value) || "Password requires at least one uppercase letter",
-                                        // Lowercase check
-                                        hasLowercase: (value) => /[a-z]/.test(value) || "Password requires at least one lowercase letter",
-                                        // Number check
-                                        hasNumber: (value) => /[0-9]/.test(value) || "Password requires at least one number",
-                                        // Symbol check
-                                        hasSymbol: (value) => /[^a-zA-Z0-9]/.test(value) || "Password requires at least one symbol",
-                                    }
-                                })}
-                            />
-                            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
-                        </div>
+                        <AuthInput
+                            label="Password"
+                            type="password"
+                            placeholder="••••••••"
+                            leftIcon={<Lock className="h-4 w-4 text-slate-400" />}
+                            error={errors.password?.message}
+                            {...register('password', {
+                                required: 'Password is required',
+                                minLength: { value: 8, message: 'Password must be at least 8 characters' },
+                                validate: {
+                                    hasUppercase: (value) => /[A-Z]/.test(value) || 'Password requires at least one uppercase letter',
+                                    hasLowercase: (value) => /[a-z]/.test(value) || 'Password requires at least one lowercase letter',
+                                    hasNumber: (value) => /[0-9]/.test(value) || 'Password requires at least one number',
+                                    hasSymbol: (value) => /[^a-zA-Z0-9]/.test(value) || 'Password requires at least one symbol',
+                                }
+                            })}
+                        />
 
                         {/* Confirm Password Input */}
-                        <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                                Confirm Password
-                            </label>
-                            <input
-                                id="confirmPassword"
-                                type="password"
-                                className={`mt-1 appearance-none relative block w-full px-3 py-2 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                                    } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm transition-colors`}
-                                placeholder="••••••••"
-                                {...register('confirmPassword', {
-                                    required: 'Please confirm your password',
-                                    validate: value => value === getValues('password') || "Passwords do not match"
-                                })}
-                            />
-                            {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword.message}</p>}
-                        </div>
+                        <AuthInput
+                            label="Confirm Password"
+                            type="password"
+                            placeholder="••••••••"
+                            leftIcon={<Shield className="h-4 w-4 text-slate-400" />}
+                            error={errors.confirmPassword?.message}
+                            {...register('confirmPassword', {
+                                required: 'Please confirm your password',
+                                validate: value => value === getValues('password') || 'Passwords do not match'
+                            })}
+                        />
                     </div>
 
-                    {/* Submit Button */}
-                    <div>
+                    <div className="pt-2">
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
+                            className="w-full flex justify-center py-3 px-4 text-xs font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-[0_0_20px_rgba(37,99,235,0.35)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200"
                         >
                             {isLoading ? (
                                 <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
                                     Creating account...
                                 </span>
                             ) : 'Sign Up'}
                         </button>
                     </div>
 
-                    {/* Footer Links */}
-                    <div className="flex items-center justify-center text-sm mt-4">
-                        <span className="text-gray-600">Already have an account?</span>
-                        <Link to="/login" className="ml-1 font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                    {/* FOOTER LINK */}
+                    <div className="flex items-center justify-center text-xs pt-2">
+                        <span className="text-slate-400">Already have an account?</span>
+                        <Link to="/login" className="ml-1.5 font-semibold text-blue-500 hover:text-blue-400 transition-colors">
                             Sign in here
                         </Link>
                     </div>

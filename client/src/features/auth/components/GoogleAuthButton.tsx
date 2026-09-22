@@ -17,7 +17,7 @@ const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
         <button
             type="button"
             onClick={handleGoogleAuth}
-            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-[#0e1426] hover:bg-[#131b33] text-slate-200 border border-slate-800/80 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm"
         >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path

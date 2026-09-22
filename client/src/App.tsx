@@ -23,113 +23,118 @@ import BuyingGuides from "./pages/BuyingGuides";
 import GuideManagement from "./pages/admin/GuideManagement";
 import ContactSettingsPage from "./pages/admin/ContactSettingsPage";
 import InquiryManagement from "./pages/admin/InquiryManagement";
+import AdminProfile from "./pages/admin/AdminProfile";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <MainLayout />,
-    children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: "login",
-        element: <Login />,
-      },
-      {
-        path: "register",
-        element: <Register />,
-      },
-      {
-        path: "verify-email",
-        element: <VerifyOtp />,
-      },
-      {
-        path: "products/:id",
-        element: <ProductDetails />
-      },
-      {
-        path: "cart",
-        element: <CartScreen />
-      },
-      {
-        path: "/shipping",
-        element: <ShippingScreen />
-      },
-      {
-        path: "/payment",
-        element: <PaymentScreen />
-      },
-      {
-        path: "/profile",
-        element: <Profile />,
-      },
-      {
-        path: "buying-guides",
-        element: <BuyingGuides />,
-      },
-    ]
-  },
-  {
-    path: "/admin",
-    element: <AdminLayout />,
-    children: [
-      {
-        index: true,
-        element: <ProductList />,
-      },
-      {
-        path: "products",
-        element: <ProductList />,
-      },
-      {
-        path: "inquiries",
-        element: <InquiryManagement />,
-      },
-      {
-        path: "products/new",
-        element: <CreateProduct />,
-      },
-      {
-        path: "products/:id/edit",
-        element: <EditProduct />,
-      },
-      {
-        path: "transactions",
-        element: <TransactionVerification />,
-      },
-      {
-        path: "brands",
-        element: <BrandList />,
-      },
-      {
-        path: "categories",
-        element: <CategoryList />,
-      },
-      {
-        path: "payment-settings",
-        element: <ManualPaymentSettings />,
-      },
-      {
-        path: "guides",
-        element: <GuideManagement />,
-      },
-      {
-        path: "contact-settings",
-        element: <ContactSettingsPage />,
-      },
-    ]
-  }
+    {
+        path: "/",
+        element: <MainLayout />,
+        children: [
+            {
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: "login",
+                element: <Login />,
+            },
+            {
+                path: "register",
+                element: <Register />,
+            },
+            {
+                path: "verify-email",
+                element: <VerifyOtp />,
+            },
+            {
+                path: "products/:id",
+                element: <ProductDetails />
+            },
+            {
+                path: "cart",
+                element: <CartScreen />
+            },
+            {
+                path: "/shipping",
+                element: <ShippingScreen />
+            },
+            {
+                path: "/payment",
+                element: <PaymentScreen />
+            },
+            {
+                path: "/profile",
+                element: <Profile />,
+            },
+            {
+                path: "buying-guides",
+                element: <BuyingGuides />,
+            },
+        ]
+    },
+    {
+        path: "/admin",
+        element: <AdminLayout />,
+        children: [
+            {
+                index: true,
+                element: <ProductList />,
+            },
+            {
+                path: "products",
+                element: <ProductList />,
+            },
+            {
+                path: "inquiries",
+                element: <InquiryManagement />,
+            },
+            {
+                path: "products/new",
+                element: <CreateProduct />,
+            },
+            {
+                path: "products/:id/edit",
+                element: <EditProduct />,
+            },
+            {
+                path: "transactions",
+                element: <TransactionVerification />,
+            },
+            {
+                path: "brands",
+                element: <BrandList />,
+            },
+            {
+                path: "categories",
+                element: <CategoryList />,
+            },
+            {
+                path: "payment-settings",
+                element: <ManualPaymentSettings />,
+            },
+            {
+                path: "guides",
+                element: <GuideManagement />,
+            },
+            {
+                path: "contact-settings",
+                element: <ContactSettingsPage />,
+            },
+            {
+                path: "profile",
+                element: <AdminProfile />,
+            },
+        ]
+    }
 ]);
 
 function App() {
-  return (
-    <>
-      <Toaster position="top-center" richColors closeButton />
-      <RouterProvider router={router} />
-    </>
-  );
+    return (
+        <>
+            <Toaster position="top-center" richColors closeButton />
+            <RouterProvider router={router} />
+        </>
+    );
 }
 
 export default App;

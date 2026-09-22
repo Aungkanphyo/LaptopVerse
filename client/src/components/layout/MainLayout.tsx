@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import Navbar from "./Navbar"
 import { useAppDispatch, useAppSelector } from "@/hooks/redux.hooks";
 import { useEffect } from "react";
@@ -6,9 +6,12 @@ import { initializeCart } from "@/features/cart/cartSlice";
 import OAuthHandler from "../common/OAuthHandler";
 import CompareBar from "@/features/compare/components/CompareBar";
 
+const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/verify-email"];
 const MainLayout = () => {
     const dispatch = useAppDispatch();
     const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+    const { pathname } = useLocation();
+    const shouldHideNavbar = HIDE_NAVBAR_ROUTES.includes(pathname);
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -20,7 +23,7 @@ const MainLayout = () => {
     return (
         <div className="min-h-screen flex flex-col bg-[#070913] text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
             <OAuthHandler />
-            <Navbar />
+            {!shouldHideNavbar && <Navbar />}
             <main className="grow">
                 <Outlet />
             </main>
