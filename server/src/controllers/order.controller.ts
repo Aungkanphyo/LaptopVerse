@@ -5,6 +5,8 @@ import { AppError } from "../utils/error.utils";
 import Product from "../models/product.model";
 import sendEmail from "../utils/sendEmail";
 import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
+import { safeJsonParse } from "../utils/safeJsonParse.utils";
+import { uploadToCloudinary } from "../config/cloudinary.config";
 
 // User Controller function
 /**
@@ -13,26 +15,45 @@ import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils
  * @access Private (User)
  */
 export const newOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const {
-        shippingInfo,
-        orderItems,
-        paymentInfo,
-        itemsPrice,
-        shippingPrice,
-        totalPrice,
-    } = req.body;
+    const shippingInfo = safeJsonParse(req.body.shippingInfo);
+    const orderItems = safeJsonParse(req.body.orderItems);
+    const paymentInfo = safeJsonParse(req.body.paymentInfo);
+
+    // Basic Validation Check
+    if (!shippingInfo || !orderItems || orderItems.length === 0) {
+        return next(new AppError("The information is incomplete. (Invalid Order Data)", 400));
+    }
+
+    const itemsPrice = Number(req.body.itemsPrice) || 0;
+    const shippingPrice = Number(req.body.shippingPrice) || 0;
+    const totalPrice = Number(req.body.totalPrice) || 0;
+
+    let slipUrl: string | undefined = undefined;
+    let slipPublicId: string | undefined = undefined;
+
+    // Cloudinary File Upload
+    if (req.file && req.file.buffer) {
+        const result = await uploadToCloudinary(req.file.buffer, "payment_slips");
+        slipUrl = result.secure_url || result.url;
+        slipPublicId = result.public_id;
+    }
 
     const isPaid = paymentInfo?.status === 'succeeded';
+
+    const finalPaymentInfo = {
+        ...paymentInfo,
+        ...(slipUrl ? { slipUrl, slipPublicId } : {}),
+    };
 
     const order = await Order.create({
         shippingInfo,
         orderItems,
-        paymentInfo,
+        paymentInfo: finalPaymentInfo,
         itemsPrice,
         shippingPrice,
         totalPrice,
-        ...(isPaid ? { paidAt: Date.now() } : {}),
-        user: req.userId, // From protect middleware
+        paidAt: isPaid ? new Date() : undefined,
+        user: req.userId,
     });
 
     res.status(201).json({

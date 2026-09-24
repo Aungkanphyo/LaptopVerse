@@ -18,10 +18,12 @@ export interface ICreateOrderRequest {
     paymentInfo: {
         id?: string;
         status: string;
+        slipUrl?: string;
     };
     itemsPrice: number;
     shippingPrice: number;
     totalPrice: number;
+    slipFile?: File | null;
 }
 
 export interface ICreateOrderResponse {
@@ -40,10 +42,13 @@ export interface IOrder {
     paymentInfo: {
         id?: string;
         status: 'pending' | 'succeeded' | 'failed';
+        slipUrl?: string;
+        slipPublicId?: string;
     };
     totalPrice: number;
     orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
     createdAt: string;
+    updatedAt?: string;
 }
 
 // Admin Order Details Interface
@@ -73,11 +78,33 @@ export interface IVerifyPaymentRequest {
 export const orderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         createOrder: builder.mutation<ICreateOrderResponse, ICreateOrderRequest>({
-            query: (body) => ({
-                url: "/orders/new",
-                method: "POST",
-                body,
-            }),
+            query: (data) => {
+                const { slipFile, ...orderData } = data;
+                if (slipFile) {
+                    const formData = new FormData();
+                    formData.append("slipFile", slipFile);
+                    // Dynamic looping - will work automatically even if new fields are added
+                    Object.entries(orderData).forEach(([key, value]) => {
+                        if (value !== undefined && value !== null) {
+                            if (typeof value === "object") {
+                                formData.append(key, JSON.stringify(value));
+                            } else {
+                                formData.append(key, String(value));
+                            }
+                        }
+                    });
+                    return {
+                        url: "/orders/new",
+                        method: "POST",
+                        body: formData,
+                    };
+                }
+                return {
+                    url: "/orders/new",
+                    method: "POST",
+                    body: orderData,
+                };
+            }
         }),
         getMyOrders: builder.query<{ success: boolean; orders: IOrder[] }, void>({
             query: () => "/orders/my/orders",
@@ -104,8 +131,8 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     }),
 });
 
-export const { 
-    useCreateOrderMutation, 
+export const {
+    useCreateOrderMutation,
     useGetMyOrdersQuery,
     useGetAllOrdersAdminQuery,
     useVerifyPaymentMutation

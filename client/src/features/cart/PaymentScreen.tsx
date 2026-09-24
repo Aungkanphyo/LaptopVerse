@@ -102,8 +102,6 @@ const PaymentScreen = () => {
                 product: item._id,
             }));
 
-            // NOTE: If you need to send slipFile, upload it to Cloudinary/S3 here first,
-            // or send FormData to createOrder mutation.
             const paymentInfo =
                 paymentMethod === "online"
                     ? {
@@ -137,6 +135,7 @@ const PaymentScreen = () => {
                 itemsPrice: cart.itemsPrice,
                 shippingPrice: cart.shippingPrice,
                 totalPrice: cart.totalPrice,
+                slipFile: paymentMethod === "online" ? slipFile : null,
             }).unwrap();
 
             dispatch(clearCartItems());

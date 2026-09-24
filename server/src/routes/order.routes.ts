@@ -1,11 +1,12 @@
 import { Router } from "express";
 import { authorize, protect } from "../middlewares/auth.middleware";
 import { deleteOrder, getAllOrders, getSingleOrder, myOrders, newOrder, updateOrder, verifyPayment } from "../controllers/order.controller";
+import { upload } from "../middlewares/upload.middleware";
 
 const router = Router();
 
 // User Routes
-router.route('/new').post(protect, newOrder); // POST /api/v1/orders/new
+router.route('/new').post(protect, upload.single('slipFile'), newOrder); // POST /api/v1/orders/new
 router.route('/my/orders').get(protect, myOrders); // GET /api/v1/orders/my/orders
 
 // Admin Routes

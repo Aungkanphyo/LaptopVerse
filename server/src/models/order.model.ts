@@ -27,6 +27,8 @@ export interface IOrder {
     paymentInfo: {
         id: string; // Payment gateway transaction ID
         status: string; // e.g., 'succeeded', 'pending'
+        slipUrl?: string;     // Cloudinary Image URL
+        slipPublicId?: string; // Cloudinary Public ID
     };
 
     paidAt: Date; // Date when payment was successful
@@ -75,6 +77,8 @@ const orderSchema: Schema<IOrder> = new Schema({
     paymentInfo: {
         id: { type: String }, // Payment gateway transaction ID
         status: { type: String, default: 'pending' }, // e.g., 'succeeded', 'pending'
+        slipUrl: { type: String },
+        slipPublicId: { type: String },
     },
 
     paidAt: { type: Date },
