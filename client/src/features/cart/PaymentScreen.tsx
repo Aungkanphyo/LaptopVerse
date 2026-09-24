@@ -1,97 +1,43 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
 import CheckoutSteps from "@/components/layout/CheckoutSteps";
-import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux.hooks";
 import { clearCartItems, saveManualTransferPayment } from "./cartSlice";
 import { useGetPublicManualPaymentInfoQuery } from "@/features/payment/paymentApiSlice";
 import { useCreateOrderMutation } from "@/features/orders/orderApiSlice";
-import { toast } from "sonner";
-import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import type { IManualPaymentAccount, ManualPaymentProvider } from "@/types/payment.types";
-import { ArrowLeft, Check, Copy, Info, Loader2, Lock } from "lucide-react";
+import type { IManualPaymentAccount } from "@/types/payment.types";
 
-const providerBrand: Record<
-    ManualPaymentProvider,
-    { badge: string; accent: string; initials: string }
-> = {
-    KPay: {
-        badge: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-        accent: "from-blue-600 to-blue-500",
-        initials: "K",
-    },
-    "AYA Pay": {
-        badge: "bg-violet-500/10 text-violet-400 border-violet-500/30",
-        accent: "from-violet-600 to-violet-500",
-        initials: "A",
-    },
-    "Wave Money": {
-        badge: "bg-amber-500/10 text-amber-400 border-amber-500/30",
-        accent: "from-amber-500 to-yellow-500",
-        initials: "W",
-    },
-    "UAB Pay": {
-        badge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
-        accent: "from-emerald-600 to-emerald-500",
-        initials: "U",
-    },
-    "CB Pay": {
-        badge: "bg-rose-500/10 text-rose-400 border-rose-500/30",
-        accent: "from-rose-600 to-rose-500",
-        initials: "C",
-    },
-    Other: {
-        badge: "bg-slate-500/10 text-slate-400 border-slate-500/30",
-        accent: "from-slate-600 to-slate-500",
-        initials: "O",
-    },
-};
-
-async function copyToClipboard(text: string) {
-    // Clipboard API can fail in sandboxed/iframe environments.
-    try {
-        if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-            await navigator.clipboard.writeText(text);
-            return true;
-        }
-    } catch {
-        // fall through to legacy
-    }
-
-    try {
-        const el = document.createElement("textarea");
-        el.value = text;
-        el.setAttribute("readonly", "");
-        el.style.position = "fixed";
-        el.style.left = "-9999px";
-        document.body.appendChild(el);
-        el.select();
-        const ok = document.execCommand("copy");
-        document.body.removeChild(el);
-        return ok;
-    } catch {
-        return false;
-    }
-}
+import { PaymentMethodTabs, type PaymentTabType } from "./components/PaymentMethodTabs";
+import { OnlineTransferSection } from "./components/OnlineTransferSection";
+import { CodSection } from "./components/CodSection";
+import { isFetchBaseQueryError } from "@/utils/errorHelpers";
 
 const PaymentScreen = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
+
     const cart = useAppSelector((state) => state.cart);
     const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     const { data, isLoading, isError } = useGetPublicManualPaymentInfoQuery();
     const [createOrder, { isLoading: isPlacingOrder }] = useCreateOrderMutation();
 
-    /**
-     * `null` = user has not tapped a card yet; we derive a default once accounts load
-     * (e.g. match prior selection from cart, else first account).
-     */
+    const [paymentMethod, setPaymentMethod] = useState<PaymentTabType>("online");
     const [userPickedIndex, setUserPickedIndex] = useState<number | null>(null);
-    const [reference, setReference] = useState(cart.manualTransferReference || "");
-    const [mockLoading, setMockLoading] = useState(false);
+    const [slipFile, setSlipFile] = useState<File | null>(null);
+    const [slipPreview, setSlipPreview] = useState<string | null>(null);
+
+    // Early Navigation Guard
+    useEffect(() => {
+        if (cart.cartItems.length === 0) {
+            navigate("/cart");
+        } else if (!cart.shippingInfo) {
+            toast.error("Please provide shipping address first.");
+            navigate("/shipping");
+        }
+    }, [cart.cartItems.length, cart.shippingInfo, navigate]);
 
     const accounts = useMemo<IManualPaymentAccount[]>(
         () => data?.accounts || [],
@@ -114,37 +60,40 @@ const PaymentScreen = () => {
 
     const selectedAccount = selectedIndex >= 0 ? accounts[selectedIndex] : undefined;
 
-    const placeOrderHandler = async () => {
+    // File Handlers with Memory Management
+    const handleFileSelect = (file: File) => {
+        if (slipPreview) URL.revokeObjectURL(slipPreview);
+        setSlipFile(file);
+        setSlipPreview(URL.createObjectURL(file));
+    };
+
+    const handleRemoveFile = () => {
+        if (slipPreview) URL.revokeObjectURL(slipPreview);
+        setSlipFile(null);
+        setSlipPreview(null);
+    };
+
+    const handlePlaceOrder = async () => {
         if (!isAuthenticated) {
             toast.error("Please login to place an order.");
             navigate("/login");
             return;
         }
-        if (!cart.shippingInfo) {
-            toast.error("Please provide shipping address first.");
-            navigate("/shipping");
-            return;
-        }
-        if (!selectedAccount) {
-            toast.error("Please select an account to transfer to.");
-            return;
-        }
-        if (!reference.trim()) {
-            toast.error("Please enter your transaction ID.");
-            return;
-        }
 
-        dispatch(
-            saveManualTransferPayment({
-                provider: selectedAccount.provider,
-                reference: reference.trim(),
-            })
-        );
+        if (!cart.shippingInfo) return;
+
+        if (paymentMethod === "online") {
+            if (!selectedAccount) {
+                toast.error("Please select a payment account.");
+                return;
+            }
+            if (!slipFile) {
+                toast.error("Please upload your payment slip.");
+                return;
+            }
+        }
 
         try {
-            setMockLoading(true);
-            await new Promise((r) => setTimeout(r, 650));
-
             const orderItems = cart.cartItems.map((item) => ({
                 name: item.name,
                 quantity: item.qty,
@@ -152,6 +101,26 @@ const PaymentScreen = () => {
                 image: item.images?.[0]?.url || "",
                 product: item._id,
             }));
+
+            const paymentInfo =
+                paymentMethod === "online"
+                    ? {
+                        id: `manual:${selectedAccount?.provider}:${Date.now()}`,
+                        status: "pending",
+                    }
+                    : {
+                        id: `cod:${Date.now()}`,
+                        status: "pending",
+                    };
+
+            if (paymentMethod === "online" && selectedAccount) {
+                dispatch(
+                    saveManualTransferPayment({
+                        provider: selectedAccount.provider,
+                        reference: slipFile ? slipFile.name : "Slip Uploaded",
+                    })
+                );
+            }
 
             await createOrder({
                 shippingInfo: {
@@ -162,238 +131,77 @@ const PaymentScreen = () => {
                     country: cart.shippingInfo.country,
                 },
                 orderItems,
-                paymentInfo: {
-                    id: `manual:${selectedAccount.provider}:${reference.trim()}`,
-                    status: "pending",
-                },
+                paymentInfo,
                 itemsPrice: cart.itemsPrice,
                 shippingPrice: cart.shippingPrice,
                 totalPrice: cart.totalPrice,
+                slipFile: paymentMethod === "online" ? slipFile : null,
             }).unwrap();
 
             dispatch(clearCartItems());
-            toast.success("Order placed. We’ll confirm your transfer soon.");
+            toast.success(
+                paymentMethod === "online"
+                    ? "Order placed! We will confirm your payment receipt soon."
+                    : "COD Order Placed Successfully!"
+            );
             navigate("/");
         } catch (err: unknown) {
-            const message =
-                typeof err === "object" && err !== null && "data" in err
-                    ? // @ts-expect-error RTK Query error shape
-                    (err.data?.message as string | undefined)
-                    : undefined;
-            toast.error(message || "Failed to place order");
-        } finally {
-            setMockLoading(false);
+            let message = "Failed to place order";
+            if (isFetchBaseQueryError(err)) {
+                message = (err.data as { message?: string })?.message || message;
+            }
+            toast.error(message);
         }
     };
 
     return (
         <div className="min-h-screen bg-[#070913] text-slate-100 py-10">
             <div className="container max-w-2xl mx-auto px-4">
-                {/* Nav */}
-                <div className="flex items-center justify-between gap-3 mb-6">
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-[#0e1322] px-4 py-2 text-sm font-semibold text-slate-300 shadow-sm hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
-                    >
-                        <ArrowLeft className="size-4" />
-                        Back
-                    </button>
-
-                    <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold tracking-widest uppercase text-emerald-400">
-                        <Lock className="size-4" />
-                        Secure
-                    </div>
-                </div>
-
-                {/* Steps */}
                 <CheckoutSteps currentStep={2} className="mb-8" />
 
-                {/* Main Card */}
-                <Card className="rounded-3xl border border-slate-800/80 bg-[#0e1322] shadow-2xl overflow-hidden">
-                    <CardHeader className="pb-4">
-                        <CardTitle className="text-2xl md:text-3xl font-black tracking-tight text-white">
-                            Manual Transfer
-                        </CardTitle>
-                        <p className="text-sm text-slate-400">
-                            Choose an account, transfer the total, then enter your transaction ID to place the order.
+                <Card className="rounded-3xl border border-slate-800/80 bg-[#0e1322] shadow-2xl overflow-hidden p-6 md:p-8">
+                    <div className="mb-6">
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+                            Payment Method
+                        </h1>
+                        <p className="text-sm text-slate-400 mt-1">
+                            Choose how you would like to pay for your order.
                         </p>
-                    </CardHeader>
+                    </div>
 
-                    <CardContent className="space-y-6 pb-8">
-                        {/* Instructions */}
-                        <div className="rounded-2xl border border-blue-900/40 bg-blue-950/30 p-5">
-                            <div className="flex items-start gap-3">
-                                <div className="mt-0.5 inline-flex size-10 items-center justify-center rounded-2xl bg-[#070913] border border-blue-800/50 text-blue-400 shadow-sm shrink-0">
-                                    <Info className="size-5" />
-                                </div>
-                                <div className="flex-1">
-                                    <div className="text-[11px] font-semibold tracking-widest uppercase text-blue-400">
-                                        Instructions
-                                    </div>
-                                    <div className="mt-1 text-sm text-slate-300 leading-relaxed">
-                                        {isLoading
-                                            ? "Loading…"
-                                            : isError
-                                                ? "Failed to load payment instructions."
-                                                : data?.instructions}
-                                    </div>
-                                    {data?.enabled === false && (
-                                        <div className="mt-3 text-sm font-semibold text-rose-400">
-                                            Manual transfer is currently disabled by admin.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                    <PaymentMethodTabs
+                        activeTab={paymentMethod}
+                        onChangeTab={setPaymentMethod}
+                    />
 
-                        {/* Account list */}
-                        <div>
-                            <div className="flex items-end justify-between gap-3 mb-3">
-                                <div>
-                                    <div className="text-[11px] font-semibold tracking-widest uppercase text-slate-400">
-                                        Select an account
-                                    </div>
-                                    <div className="text-sm text-slate-300">
-                                        Tap to select. You can copy the account number.
-                                    </div>
-                                </div>
-                            </div>
-
-                            {accounts.length === 0 ? (
-                                <div className="rounded-2xl border border-dashed border-slate-800 bg-[#070913] p-8 text-center text-slate-500">
-                                    No payment accounts configured yet.
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 gap-4">
-                                    {accounts.map((a, idx) => {
-                                        const brand =
-                                            providerBrand[(a.provider as ManualPaymentProvider) ?? "Other"] ??
-                                            providerBrand.Other;
-                                        const selected = idx === selectedIndex;
-
-                                        return (
-                                            <button
-                                                key={`${a.provider}-${a.accountNumber}-${idx}`}
-                                                type="button"
-                                                onClick={() => setUserPickedIndex(idx)}
-                                                className={cn(
-                                                    "text-left rounded-2xl border p-5 shadow-sm transition-all cursor-pointer",
-                                                    selected
-                                                        ? "border-blue-500 bg-blue-950/20 ring-1 ring-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.2)]"
-                                                        : "border-slate-800/90 bg-[#070913] hover:border-slate-700"
-                                                )}
-                                            >
-                                                <div className="flex items-start justify-between gap-4">
-                                                    <div className="flex items-start gap-4 min-w-0">
-                                                        <div
-                                                            className={cn(
-                                                                "shrink-0 size-12 rounded-2xl text-white shadow-sm bg-gradient-to-br flex items-center justify-center font-black",
-                                                                brand.accent
-                                                            )}
-                                                        >
-                                                            {brand.initials}
-                                                        </div>
-
-                                                        <div className="min-w-0">
-                                                            <div className="flex flex-wrap items-center gap-2">
-                                                                <span
-                                                                    className={cn(
-                                                                        "inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold tracking-wide",
-                                                                        brand.badge
-                                                                    )}
-                                                                >
-                                                                    {a.provider}
-                                                                </span>
-                                                                {selected && (
-                                                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-400">
-                                                                        <Check className="size-4" />
-                                                                        Selected
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <div className="mt-2 font-black text-white truncate">
-                                                                {a.accountName}
-                                                            </div>
-                                                            <div className="mt-1 text-sm text-slate-300 font-mono tracking-tight">
-                                                                {a.accountNumber}
-                                                            </div>
-                                                            {(a.phoneNumber || a.note) && (
-                                                                <div className="mt-2 text-xs text-slate-400">
-                                                                    {a.phoneNumber ? <span>Phone: {a.phoneNumber}</span> : null}
-                                                                    {a.phoneNumber && a.note ? <span> · </span> : null}
-                                                                    {a.note ? <span>{a.note}</span> : null}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="shrink-0">
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            className="rounded-xl border border-slate-800 bg-[#0e1322] text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer"
-                                                            onClick={async (e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                const ok = await copyToClipboard(a.accountNumber);
-                                                                if (ok) toast.success("Account number copied");
-                                                                else toast.error("Copy failed");
-                                                            }}
-                                                        >
-                                                            <Copy className="size-4 mr-2" />
-                                                            Copy
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Reference input */}
-                        <div className="relative">
-                            <div className="absolute -top-2 left-5 bg-[#0e1322] px-2 text-[10px] font-semibold tracking-widest uppercase text-slate-400">
-                                Transaction ID
-                            </div>
-                            <Input
-                                value={reference}
-                                onChange={(e) => setReference(e.target.value)}
-                                placeholder="Enter transaction / reference number"
-                                className="h-14 rounded-2xl border-slate-800 bg-[#070913] text-slate-100 placeholder:text-slate-600 shadow-sm focus-visible:ring-blue-500 focus-visible:border-blue-500"
-                            />
-                        </div>
-
-                        {/* Primary action */}
-                        <Button
-                            className="w-full h-14 rounded-2xl text-base md:text-lg font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all cursor-pointer"
-                            onClick={placeOrderHandler}
-                            disabled={
-                                mockLoading || isPlacingOrder || data?.enabled === false || accounts.length === 0
-                            }
-                        >
-                            {mockLoading || isPlacingOrder ? (
-                                <>
-                                    <Loader2 className="size-5 mr-2 animate-spin" />
-                                    Placing Order…
-                                </>
-                            ) : (
-                                <span>Place Order</span>
-                            )}
-                        </Button>
-                    </CardContent>
+                    {paymentMethod === "online" ? (
+                        <OnlineTransferSection
+                            instructions={data?.instructions}
+                            isLoadingInstructions={isLoading}
+                            isInstructionsError={isError}
+                            accounts={accounts}
+                            selectedIndex={selectedIndex}
+                            onSelectAccountIndex={setUserPickedIndex}
+                            slipFile={slipFile}
+                            slipPreview={slipPreview}
+                            onFileSelect={handleFileSelect}
+                            onRemoveFile={handleRemoveFile}
+                            onSubmitOrder={handlePlaceOrder}
+                            isPlacingOrder={isPlacingOrder}
+                        />
+                    ) : (
+                        <CodSection
+                            itemsPrice={cart.itemsPrice || 0}
+                            shippingPrice={cart.shippingPrice || 0}
+                            totalPrice={cart.totalPrice || 0}
+                            onSubmitOrder={handlePlaceOrder}
+                            isPlacingOrder={isPlacingOrder}
+                        />
+                    )}
                 </Card>
-
-                {/* Footer */}
-                <div className="mt-6 text-center text-xs text-slate-500">
-                    By placing this order, you confirm you’ve transferred the exact total amount to the selected account.
-                </div>
             </div>
         </div>
     );
 };
 
 export default PaymentScreen;
-

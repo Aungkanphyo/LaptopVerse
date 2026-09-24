@@ -1,124 +1,123 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
     useGetAllOrdersAdminQuery,
     useVerifyPaymentMutation,
-    type IAdminOrder
+    type IAdminOrder,
 } from "@/features/orders/orderApiSlice";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    CheckCircle2,
-    XCircle,
-    Clock,
-    Search,
-    CreditCard,
-    User,
-    AlertCircle,
-    Loader2,
-} from "lucide-react";
+import { CreditCard, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+
+import {
+    TransactionFilterHeader,
+    type FilterStatusType,
+} from "./components/transactionVerification/TransactionFilterHeader";
+import { TransactionCard } from "./components/transactionVerification/TransactionCard";
+import { RejectReasonModal } from "./components/transactionVerification/RejectReasonModal";
+import { SlipImageModal } from "./components/transactionVerification/SlipImageModal";
+
+// Helper for extracting API error messages
+const getErrorMessage = (error: unknown): string => {
+    const err = error as { data?: { message?: string } };
+    return err?.data?.message || "Something went wrong. Please try again.";
+};
 
 const TransactionVerification = () => {
     const { data, isLoading, isError } = useGetAllOrdersAdminQuery();
-    const [verifyPayment, { isLoading: isVerifying }] = useVerifyPaymentMutation();
+    const [verifyPayment] = useVerifyPaymentMutation();
 
+    // Specific Order Processing Tracker
+    const [verifyingOrderId, setVerifyingOrderId] = useState<string | null>(null);
+
+    // State Management
     const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "succeeded" | "failed">("pending");
+    const [filterStatus, setFilterStatus] = useState<FilterStatusType>("pending");
 
-    // Modal state for Rejection
     const [selectedOrderForReject, setSelectedOrderForReject] = useState<IAdminOrder | null>(null);
     const [rejectionReason, setRejectionReason] = useState("");
+    const [previewSlipUrl, setPreviewSlipUrl] = useState<string | null>(null);
 
-    const orders = data?.orders || [];
+    const orders = useMemo(() => data?.orders || [], [data?.orders]);
 
-    // Helper Function that removes prefixes from Payment Reference and extracts only the Number
-    const getCleanTxnRef = (refId?: string) => {
-        if (!refId) return "N/A";
-        return refId.includes(":") ? refId.split(":").pop() : refId;
-    };
+    // Memoized Filtering Logic
+    const filteredOrders = useMemo(() => {
+        const query = searchTerm.toLowerCase().trim();
 
-    // Filter Logic
-    const filteredOrders = orders.filter((order) => {
-        const matchesStatus =
-            filterStatus === "all" ? true : order.paymentInfo?.status === filterStatus;
+        return orders.filter((order) => {
+            const matchesStatus =
+                filterStatus === "all" ? true : order.paymentInfo?.status === filterStatus;
 
-        const txnRef = order.paymentInfo?.id || "";
-        const userName = order.user?.fullName || order.user?.name || "";
-        const userEmail = order.user?.email || "";
+            if (!matchesStatus) return false;
+            if (!query) return true;
 
-        const matchesSearch =
-            txnRef.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order._id.toLowerCase().includes(searchTerm.toLowerCase());
+            const txnRef = order.paymentInfo?.id || "";
+            const userName = order.user?.fullName || order.user?.name || "";
+            const userEmail = order.user?.email || "";
+            const orderId = order._id || "";
 
-        return matchesStatus && matchesSearch;
-    });
+            return (
+                txnRef.toLowerCase().includes(query) ||
+                userName.toLowerCase().includes(query) ||
+                userEmail.toLowerCase().includes(query) ||
+                orderId.toLowerCase().includes(query)
+            );
+        });
+    }, [orders, filterStatus, searchTerm]);
 
-    const handleApprove = async (orderId: string) => {
-        try {
-            await verifyPayment({ id: orderId, paymentStatus: "succeeded" }).unwrap();
-            toast.success("Payment verified and approved successfully!");
-        } catch (err: unknown) {
-            const error = err as { data?: { message?: string } };
-            toast.error(error?.data?.message || "Failed to approve payment");
-        }
-    };
+    // Action Handlers
+    const handleApprove = useCallback(
+        async (orderId: string) => {
+            try {
+                setVerifyingOrderId(orderId);
+                await verifyPayment({ id: orderId, paymentStatus: "succeeded" }).unwrap();
+                toast.success("Payment verified and approved successfully!");
+            } catch (err: unknown) {
+                toast.error(getErrorMessage(err));
+            } finally {
+                setVerifyingOrderId(null);
+            }
+        },
+        [verifyPayment]
+    );
 
-    const handleRejectSubmit = async () => {
+    const handleRejectSubmit = useCallback(async () => {
         if (!selectedOrderForReject) return;
-        if (!rejectionReason.trim()) {
+
+        const cleanReason = rejectionReason.trim();
+        if (!cleanReason) {
             toast.error("Please provide a reason for rejection");
             return;
         }
 
         try {
+            setVerifyingOrderId(selectedOrderForReject._id);
             await verifyPayment({
                 id: selectedOrderForReject._id,
                 paymentStatus: "failed",
-                rejectionReason: rejectionReason.trim(),
+                rejectionReason: cleanReason,
             }).unwrap();
 
             toast.success("Payment rejected and notification sent to user.");
             setSelectedOrderForReject(null);
             setRejectionReason("");
-        } catch (error: unknown) {
-            const err = error as { data?: { message?: string } };
-            toast.error(err?.data?.message || "Failed to reject payment");
+        } catch (err: unknown) {
+            toast.error(getErrorMessage(err));
+        } finally {
+            setVerifyingOrderId(null);
         }
-    };
+    }, [selectedOrderForReject, rejectionReason, verifyPayment]);
 
-    const renderPaymentBadge = (status?: string) => {
-        switch (status) {
-            case "succeeded":
-                return (
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit">
-                        <CheckCircle2 className="size-3.5" /> Approved
-                    </Badge>
-                );
-            case "failed":
-                return (
-                    <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 flex items-center gap-1.5 w-fit">
-                        <XCircle className="size-3.5" /> Rejected
-                    </Badge>
-                );
-            default:
-                return (
-                    <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 flex items-center gap-1.5 w-fit">
-                        <Clock className="size-3.5" /> Pending Verification
-                    </Badge>
-                );
-        }
-    };
+    const handleCloseRejectModal = useCallback(() => {
+        if (verifyingOrderId) return; // Prevent closing while API call is pending
+        setSelectedOrderForReject(null);
+        setRejectionReason("");
+    }, [verifyingOrderId]);
 
     if (isLoading) {
         return (
             <div className="space-y-6 p-6">
-                <Skeleton className="h-10 w-64 bg-slate-800/60" />
+                <Skeleton className="h-10 w-64 bg-slate-800/60 rounded-xl" />
                 <Skeleton className="h-48 w-full bg-slate-800/60 rounded-2xl" />
                 <Skeleton className="h-48 w-full bg-slate-800/60 rounded-2xl" />
             </div>
@@ -135,8 +134,7 @@ const TransactionVerification = () => {
     }
 
     return (
-        <div className="space-y-8 p-6 text-slate-100">
-            {/* Header */}
+        <div className="space-y-8 p-6 text-slate-100 max-w-7xl mx-auto">
             <div>
                 <h1 className="text-3xl font-extrabold tracking-tight text-white">Transaction Verifications</h1>
                 <p className="text-slate-400 mt-1 text-sm">
@@ -144,38 +142,13 @@ const TransactionVerification = () => {
                 </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl border border-slate-800 shadow-lg">
-                <div className="relative w-full sm:w-80">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
-                    <Input
-                        placeholder="Search Txn Ref, Name, Email, Order ID..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9 bg-slate-950 border-slate-800 text-slate-100 focus-visible:ring-blue-500 placeholder:text-slate-500"
-                    />
-                </div>
+            <TransactionFilterHeader
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                filterStatus={filterStatus}
+                onFilterChange={setFilterStatus}
+            />
 
-                {/* Status Filter Tabs */}
-                <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                    {(["pending", "all", "succeeded", "failed"] as const).map((status) => (
-                        <Button
-                            key={status}
-                            variant={filterStatus === status ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setFilterStatus(status)}
-                            className={`capitalize transition-all rounded-xl ${
-                                filterStatus === status 
-                                    ? "bg-blue-600 text-white hover:bg-blue-500" 
-                                    : "border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800"
-                            }`}
-                        >
-                            {status === "pending" ? "Pending Approval" : status}
-                        </Button>
-                    ))}
-                </div>
-            </div>
-
-            {/* Order Cards List */}
             {filteredOrders.length === 0 ? (
                 <Card className="p-12 text-center text-slate-400 bg-slate-900/40 border-slate-800 rounded-2xl">
                     <CreditCard className="size-12 mx-auto mb-3 text-slate-600" />
@@ -185,145 +158,36 @@ const TransactionVerification = () => {
             ) : (
                 <div className="space-y-4">
                     {filteredOrders.map((order) => (
-                        <Card key={order._id} className="border-slate-800 bg-slate-900/60 backdrop-blur-md shadow-md overflow-hidden rounded-2xl">
-                            <CardHeader className="bg-slate-950/50 border-b border-slate-800/80 py-3 px-6 flex flex-row items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <span className="font-mono text-xs font-bold text-slate-400">
-                                        #{order._id}
-                                    </span>
-                                    {renderPaymentBadge(order.paymentInfo?.status)}
-                                </div>
-                                <span className="text-xs text-slate-400">
-                                    {new Date(order.createdAt).toLocaleString()}
-                                </span>
-                            </CardHeader>
-
-                            <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Customer Info */}
-                                <div className="space-y-2 border-r/0 md:border-r border-slate-800 pr-0 md:pr-4">
-                                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <User className="size-3.5 text-blue-400" /> Customer Details
-                                    </div>
-                                    <p className="font-bold text-base text-white">
-                                        {order.user?.fullName || order.user?.name || "Customer"}
-                                    </p>
-                                    <p className="text-sm text-slate-400">{order.user?.email || "No Email"}</p>
-                                    <p className="text-xs text-slate-400">
-                                        Phone: {order.shippingInfo?.phoneNo || "N/A"}
-                                    </p>
-                                </div>
-
-                                {/* Payment Details */}
-                                <div className="space-y-2 border-r/0 md:border-r border-slate-800 pr-0 md:pr-4">
-                                    <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                                        <CreditCard className="size-3.5 text-cyan-400" /> Payment Reference
-                                    </div>
-                                    <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-sm break-all font-semibold text-cyan-400">
-                                        {getCleanTxnRef(order.paymentInfo?.id)}
-                                    </div>
-                                    <p className="text-sm font-bold mt-2 text-slate-300">
-                                        Total Amount:{" "}
-                                        <span className="text-blue-400 font-extrabold">
-                                            {Number(order.totalPrice || 0).toLocaleString()} MMK
-                                        </span>
-                                    </p>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex flex-col justify-center items-stretch md:items-end gap-3">
-                                    {order.paymentInfo?.status === "pending" ? (
-                                        <>
-                                            <Button
-                                                onClick={() => handleApprove(order._id)}
-                                                disabled={isVerifying}
-                                                className="bg-emerald-600 hover:bg-emerald-500 text-white gap-2 rounded-xl transition-all shadow-md shadow-emerald-950/20"
-                                            >
-                                                <CheckCircle2 className="size-4" /> Approve Payment
-                                            </Button>
-
-                                            <Button
-                                                variant="outline"
-                                                onClick={() => setSelectedOrderForReject(order)}
-                                                disabled={isVerifying}
-                                                className="border-rose-500/30 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 bg-slate-950/40 gap-2 rounded-xl transition-all"
-                                            >
-                                                <XCircle className="size-4" /> Reject Payment
-                                            </Button>
-                                        </>
-                                    ) : (
-                                        <div className="text-xs text-slate-400 text-center md:text-right">
-                                            Status verified on {new Date(order.createdAt).toLocaleDateString()}
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <TransactionCard
+                            key={order._id}
+                            order={order}
+                            isVerifying={verifyingOrderId === order._id}
+                            onApprove={handleApprove}
+                            onRejectClick={setSelectedOrderForReject}
+                            onPreviewSlip={setPreviewSlipUrl}
+                        />
                     ))}
                 </div>
             )}
 
             {selectedOrderForReject && (
-                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-                    <div className="w-full max-w-md bg-slate-900 border border-slate-800 shadow-2xl rounded-2xl p-6 space-y-5">
-                        <div className="flex items-center gap-2.5 text-rose-400 border-b border-slate-800 pb-3">
-                            <XCircle className="size-6 shrink-0" />
-                            <h2 className="text-lg font-bold text-white">Reject Payment Verification</h2>
-                        </div>
+                <RejectReasonModal
+                    isOpen={!!selectedOrderForReject}
+                    order={selectedOrderForReject}
+                    rejectionReason={rejectionReason}
+                    onReasonChange={setRejectionReason}
+                    isVerifying={verifyingOrderId === selectedOrderForReject._id}
+                    onSubmit={handleRejectSubmit}
+                    onClose={handleCloseRejectModal}
+                />
+            )}
 
-                        <div className="space-y-3">
-                            <p className="text-sm text-slate-400 leading-relaxed">
-                                Please specify the reason for rejecting Order{" "}
-                                <span className="font-mono font-bold text-white">#{selectedOrderForReject._id}</span>. An email notification will be sent to{" "}
-                                <span className="font-semibold text-slate-200">
-                                    {selectedOrderForReject.user?.email || "the customer"}
-                                </span>.
-                            </p>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                    Rejection Reason
-                                </label>
-                                <Textarea
-                                    rows={4}
-                                    placeholder="e.g. Invalid transaction reference number or amount mismatch..."
-                                    value={rejectionReason}
-                                    onChange={(e) => setRejectionReason(e.target.value)}
-                                    className="bg-slate-950 text-slate-100 border-slate-800 focus-visible:ring-rose-500 rounded-xl"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                onClick={() => {
-                                    setSelectedOrderForReject(null);
-                                    setRejectionReason("");
-                                }}
-                                className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="destructive"
-                                onClick={handleRejectSubmit}
-                                disabled={isVerifying}
-                                className="bg-rose-600 hover:bg-rose-500 text-white min-w-32 flex items-center justify-center gap-2 rounded-xl"
-                            >
-                                {isVerifying ? (
-                                    <>
-                                        <Loader2 className="size-4 animate-spin" />
-                                        <span>Rejecting...</span>
-                                    </>
-                                ) : (
-                                    "Confirm Rejection"
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+            {previewSlipUrl && (
+                <SlipImageModal
+                    imageUrl={previewSlipUrl}
+                    isOpen={!!previewSlipUrl}
+                    onClose={() => setPreviewSlipUrl(null)}
+                />
             )}
         </div>
     );
