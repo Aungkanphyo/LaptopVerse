@@ -21,7 +21,6 @@ export interface ICreateOrderRequest {
         slipUrl?: string;
     };
     itemsPrice: number;
-    shippingPrice: number;
     totalPrice: number;
     slipFile?: File | null;
 }

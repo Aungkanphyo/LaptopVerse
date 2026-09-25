@@ -11,7 +11,6 @@ import {
 
 interface CodSectionProps {
     itemsPrice: number;
-    shippingPrice: number;
     totalPrice: number;
     onSubmitOrder: () => void;
     isPlacingOrder: boolean;
@@ -19,7 +18,6 @@ interface CodSectionProps {
 
 export const CodSection = ({
     itemsPrice,
-    shippingPrice,
     totalPrice,
     onSubmitOrder,
     isPlacingOrder,
@@ -69,12 +67,6 @@ export const CodSection = ({
                     <span>Items Subtotal</span>
                     <span className="font-mono text-slate-200">
                         {formatPrice(itemsPrice)}
-                    </span>
-                </div>
-                <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>Delivery Fee</span>
-                    <span className="font-mono text-slate-200">
-                        {formatPrice(shippingPrice)}
                     </span>
                 </div>
                 <div className="border-t border-slate-800/80 pt-3 flex items-center justify-between">

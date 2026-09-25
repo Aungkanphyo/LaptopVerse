@@ -1,7 +1,7 @@
 import { useAppDispatch, useAppSelector } from "@/hooks/redux.hooks";
 import { Link, useNavigate } from "react-router-dom"
 import { addToCart, removeFromCart } from "./cartSlice";
-import { ArrowLeft, Minus, Plus, ShieldCheck, ShoppingBag, Trash2, Truck } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShieldCheck, ShoppingBag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -11,7 +11,7 @@ import { formatPrice } from "@/utils/formatCurrency";
 const CartScreen = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const { cartItems, itemsPrice, totalPrice, shippingPrice } = useAppSelector((state) => state.cart);
+    const { cartItems, itemsPrice, totalPrice } = useAppSelector((state) => state.cart);
 
    const updateQtyHandler = (item: ICartItem, newQty: number) => {
         if (newQty > 0 && newQty <= item.stock) {
@@ -153,12 +153,6 @@ const CartScreen = () => {
                                     <span>Subtotal</span>
                                     <span className="text-white font-bold">{formatPrice(itemsPrice)}</span>
                                 </div>
-                                <div className="flex justify-between text-slate-400">
-                                    <span>Shipping</span>
-                                    <span className="text-emerald-400 font-bold">
-                                        {shippingPrice === 0 ? "Free Shipping" : formatPrice(shippingPrice)}
-                                    </span>
-                                </div>
 
                                 <Separator className="bg-slate-800/80 my-2" />
 
@@ -176,18 +170,10 @@ const CartScreen = () => {
                                 Proceed to Checkout
                             </Button>
 
-                            {/* Trust Badges */}
-                            <div className="grid grid-cols-2 gap-2 mt-6 pt-6 border-t border-slate-800/60 text-[11px] text-slate-400">
-                                <div className="flex items-center gap-2">
-                                    <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
-                                    <span>Secure Checkout</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Truck className="size-4 text-indigo-400 shrink-0" />
-                                    <span>Fast Delivery</span>
-                                </div>
+                            <div className="flex items-center justify-center gap-2 mt-6 pt-6 border-t border-slate-800/60 text-[11px] text-slate-400">
+                                <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                                <span>Secure Checkout</span>
                             </div>
-
                         </Card>
                     </div>
 

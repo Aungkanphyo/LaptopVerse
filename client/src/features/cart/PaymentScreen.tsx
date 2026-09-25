@@ -133,7 +133,6 @@ const PaymentScreen = () => {
                 orderItems,
                 paymentInfo,
                 itemsPrice: cart.itemsPrice,
-                shippingPrice: cart.shippingPrice,
                 totalPrice: cart.totalPrice,
                 slipFile: paymentMethod === "online" ? slipFile : null,
             }).unwrap();
@@ -192,7 +191,6 @@ const PaymentScreen = () => {
                     ) : (
                         <CodSection
                             itemsPrice={cart.itemsPrice || 0}
-                            shippingPrice={cart.shippingPrice || 0}
                             totalPrice={cart.totalPrice || 0}
                             onSubmitOrder={handlePlaceOrder}
                             isPlacingOrder={isPlacingOrder}

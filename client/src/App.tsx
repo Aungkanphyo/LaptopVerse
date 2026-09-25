@@ -6,7 +6,6 @@ import Home from "./pages/Home";
 import ProductDetails from "./features/products/pages/ProductDetails";
 import CartScreen from "./features/cart/CartScreen";
 import { Toaster } from "sonner";
-import ShippingScreen from "./features/cart/ShippingScreen";
 import PaymentScreen from "./features/cart/PaymentScreen";
 import ManualPaymentSettings from "./pages/admin/ManualPaymentSettings";
 import ProductList from "./pages/admin/ProductList";
@@ -24,6 +23,7 @@ import GuideManagement from "./pages/admin/GuideManagement";
 import ContactSettingsPage from "./pages/admin/ContactSettingsPage";
 import InquiryManagement from "./pages/admin/InquiryManagement";
 import AdminProfile from "./pages/admin/AdminProfile";
+import ShippingScreen from "./features/cart/ShippingScreen";
 
 const router = createBrowserRouter([
     {

@@ -7,7 +7,6 @@ const initialState: ICartState = {
     cartItems: [],
     shippingInfo: null,
     itemsPrice: 0,
-    shippingPrice: 0,
     totalPrice: 0
 }
 
@@ -25,7 +24,6 @@ const cartSlice = createSlice({
                 state.cartItems = parsedCart.cartItems || [];
                 state.shippingInfo = parsedCart.shippingInfo || null;
                 state.itemsPrice = parsedCart.itemsPrice || 0;
-                state.shippingPrice = parsedCart.shippingPrice || 0;
                 state.totalPrice = parsedCart.totalPrice || 0;
                 state.paymentMethod = parsedCart.paymentMethod;
                 state.manualTransferProvider = parsedCart.manualTransferProvider;
@@ -34,7 +32,6 @@ const cartSlice = createSlice({
                 state.cartItems = [];
                 state.shippingInfo = null;
                 state.itemsPrice = 0;
-                state.shippingPrice = 0;
                 state.totalPrice = 0;
                 state.paymentMethod = undefined;
                 state.manualTransferProvider = undefined;
