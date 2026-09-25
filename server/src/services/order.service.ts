@@ -16,7 +16,7 @@ export const createOrder = async (orderData: any, userId: string) => {
         // Loop through all items and check (Stock & Total Price)
         for (const item of items) {
             const product = await Product.findById(item.productId).session(session);
-            if (!product) throw new AppError(`Product ${item.product} not found`, 404);
+            if (!product) throw new AppError(`Product ${item.productId} not found`, 404);
 
             if (product.stock < item.quantity) {
                 throw new AppError(`Insufficient stock for ${product.name}`, 400);
@@ -58,4 +58,4 @@ export const createOrder = async (orderData: any, userId: string) => {
 
         return order;
     })
-}
+};

@@ -25,7 +25,6 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
     }
 
     const itemsPrice = Number(req.body.itemsPrice) || 0;
-    const shippingPrice = Number(req.body.shippingPrice) || 0;
     const totalPrice = Number(req.body.totalPrice) || 0;
 
     let slipUrl: string | undefined = undefined;
@@ -50,7 +49,6 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
         orderItems,
         paymentInfo: finalPaymentInfo,
         itemsPrice,
-        shippingPrice,
         totalPrice,
         paidAt: isPaid ? new Date() : undefined,
         user: req.userId,
@@ -142,6 +140,10 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
  * @access Private (Admin)
  */
 export const updateOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { status } = req.body;
+    if (!status) {
+        return next(new AppError('Please provide status to update', 400));
+    }
     const order = await Order.findById(req.params.id);
 
     if (!order) {
@@ -153,22 +155,25 @@ export const updateOrder = asyncHandler(async (req: Request, res: Response, next
     }
 
     // Logic to deduct stock when the status changes to 'Shipped
-    if (req.body.status === 'Shipped') {
-        order.orderItems.forEach(async (o) => {
-            await updateStock(o.product.toString(), o.quantity);
-        });
+    if (status === 'Shipped' && order.orderStatus !== 'Shipped') {
+       await Promise.all(
+            order.orderItems.map((item) =>
+                updateStock(item.product.toString(), item.quantity)
+            )
+        );
     }
 
-    order.orderStatus = req.body.status;
+    order.orderStatus = status;
 
-    if (req.body.status === 'Delivered') {
-        order.deliveredAt = new Date(Date.now());
+    if (status === 'Delivered') {
+        order.deliveredAt = new Date();
     }
 
-    await order.save({ validateBeforeSave: false });
+    await order.save();
 
     res.status(200).json({
         success: true,
+        data: order,
     });
 });
 
