@@ -13,6 +13,7 @@ import {
     AlertCircle,
     Banknote,
     Smartphone,
+    FileText,
 } from "lucide-react";
 import type { IAdminOrder } from "@/features/orders/orderApiSlice";
 
@@ -22,6 +23,7 @@ interface TransactionCardProps {
     onApprove: (orderId: string) => void;
     onRejectClick: (order: IAdminOrder) => void;
     onPreviewSlip: (slipUrl: string) => void;
+    onViewDetails: (order: IAdminOrder) => void;
 }
 
 const formatDate = (dateString?: string | Date): string => {
@@ -76,6 +78,7 @@ export const TransactionCard = memo(
         onApprove,
         onRejectClick,
         onPreviewSlip,
+        onViewDetails,
     }: TransactionCardProps) => {
         const [imgError, setImgError] = useState(false);
 
@@ -84,8 +87,7 @@ export const TransactionCard = memo(
 
         // Extract provider name from paymentInfo.id (e.g. "manual:KPay:12345" -> "KPay")
         const paymentParts = rawPaymentId.split(":");
-        const providerName =
-            paymentParts.length >= 2 && paymentParts[0] === "manual" ? paymentParts[1] : undefined;
+        const providerName = paymentParts.length >= 2 && paymentParts[0] === "manual" ? paymentParts[1] : undefined;
 
         return (
             <Card className="border-slate-800 bg-slate-900/60 backdrop-blur-md shadow-md overflow-hidden rounded-2xl transition-all hover:border-slate-700">
@@ -99,9 +101,22 @@ export const TransactionCard = memo(
 
                         <PaymentMethodBadge isCOD={isCOD} provider={providerName} />
                     </div>
-                    <span className="text-xs text-slate-400">
-                        {formatDate(order.createdAt)}
-                    </span>
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onViewDetails(order)}
+                            className="text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-950/40 gap-1.5 rounded-lg h-7 px-2.5"
+                        >
+                            <FileText className="size-3.5" /> View Details
+                        </Button>
+                        <span className="text-xs text-slate-400">
+                            {formatDate(order.createdAt)}
+                        </span>
+                    </div>
+
                 </CardHeader>
 
                 <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -201,7 +216,8 @@ export const TransactionCard = memo(
                                     disabled={isVerifying}
                                     className="border-rose-500/30 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 bg-slate-950/40 gap-2 rounded-xl transition-all"
                                 >
-                                    <XCircle className="size-4" /> Reject Order
+                                    <XCircle className="size-4" />
+                                    {isCOD ? "Reject Order" : "Reject Payment"}
                                 </Button>
                             </>
                         ) : (

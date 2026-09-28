@@ -16,6 +16,7 @@ import {
 import { TransactionCard } from "./components/transactionVerification/TransactionCard";
 import { RejectReasonModal } from "./components/transactionVerification/RejectReasonModal";
 import { SlipImageModal } from "./components/transactionVerification/SlipImageModal";
+import { OrderDetailModal } from "./components/transactionVerification/OrderDetailModal";
 
 // Helper for extracting API error messages
 const getErrorMessage = (error: unknown): string => {
@@ -39,6 +40,8 @@ const TransactionVerification = () => {
     const [previewSlipUrl, setPreviewSlipUrl] = useState<string | null>(null);
 
     const orders = useMemo(() => data?.orders || [], [data?.orders]);
+    // State to track selected Order for Modal
+    const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<IAdminOrder | null>(null);
 
     // Memoized Filtering Logic
     const filteredOrders = useMemo(() => {
@@ -165,6 +168,7 @@ const TransactionVerification = () => {
                             onApprove={handleApprove}
                             onRejectClick={setSelectedOrderForReject}
                             onPreviewSlip={setPreviewSlipUrl}
+                            onViewDetails={setSelectedOrderForDetails}
                         />
                     ))}
                 </div>
@@ -187,6 +191,16 @@ const TransactionVerification = () => {
                     imageUrl={previewSlipUrl}
                     isOpen={!!previewSlipUrl}
                     onClose={() => setPreviewSlipUrl(null)}
+                />
+            )}
+
+            {/* Render OrderDetailModal */}
+            {selectedOrderForDetails && (
+                <OrderDetailModal
+                    order={selectedOrderForDetails}
+                    isOpen={!!selectedOrderForDetails}
+                    onClose={() => setSelectedOrderForDetails(null)}
+                    onPreviewSlip={setPreviewSlipUrl}
                 />
             )}
         </div>
