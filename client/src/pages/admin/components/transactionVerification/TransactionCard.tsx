@@ -11,6 +11,8 @@ import {
     Eye,
     Loader2,
     AlertCircle,
+    Banknote,
+    Smartphone,
 } from "lucide-react";
 import type { IAdminOrder } from "@/features/orders/orderApiSlice";
 
@@ -51,6 +53,22 @@ const PaymentStatusBadge = ({ status }: { status?: string }) => {
     }
 };
 
+const PaymentMethodBadge = ({ isCOD, provider }: { isCOD: boolean; provider?: string }) => {
+    if (isCOD) {
+        return (
+            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 flex items-center gap-1.5 w-fit">
+                <Banknote className="size-3.5" /> Cash on Delivery
+            </Badge>
+        );
+    }
+
+    return (
+        <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 flex items-center gap-1.5 w-fit">
+            <Smartphone className="size-3.5" /> {provider ? `Online Transfer (${provider})` : "Online Transfer"}
+        </Badge>
+    );
+};
+
 export const TransactionCard = memo(
     ({
         order,
@@ -61,14 +79,25 @@ export const TransactionCard = memo(
     }: TransactionCardProps) => {
         const [imgError, setImgError] = useState(false);
 
+        const rawPaymentId = order.paymentInfo?.id || "";
+        const isCOD = rawPaymentId.toLowerCase().startsWith("cod");
+
+        // Extract provider name from paymentInfo.id (e.g. "manual:KPay:12345" -> "KPay")
+        const paymentParts = rawPaymentId.split(":");
+        const providerName =
+            paymentParts.length >= 2 && paymentParts[0] === "manual" ? paymentParts[1] : undefined;
+
         return (
             <Card className="border-slate-800 bg-slate-900/60 backdrop-blur-md shadow-md overflow-hidden rounded-2xl transition-all hover:border-slate-700">
+                {/* Header */}
                 <CardHeader className="bg-slate-950/50 border-b border-slate-800/80 py-3 px-6 flex flex-row items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                         <span className="font-mono text-xs font-bold text-slate-400">
                             #{order._id}
                         </span>
                         <PaymentStatusBadge status={order.paymentInfo?.status} />
+
+                        <PaymentMethodBadge isCOD={isCOD} provider={providerName} />
                     </div>
                     <span className="text-xs text-slate-400">
                         {formatDate(order.createdAt)}
@@ -98,13 +127,32 @@ export const TransactionCard = memo(
                         </p>
                     </div>
 
-                    {/* Payment Slip Image Thumbnail */}
                     <div className="space-y-2 border-r-0 md:border-r border-slate-800 pr-0 md:pr-4">
                         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <ImageIcon className="size-3.5 text-emerald-400" /> Payment Slip
+                            {isCOD ? (
+                                <>
+                                    <Banknote className="size-3.5 text-emerald-400" /> Payment Info
+                                </>
+                            ) : (
+                                <>
+                                    <ImageIcon className="size-3.5 text-emerald-400" /> Payment Slip
+                                </>
+                            )}
                         </div>
 
-                        {order.paymentInfo?.slipUrl && !imgError ? (
+                        {/* If Cash on Delivery Order */}
+                        {isCOD ? (
+                            <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 rounded-xl space-y-1">
+                                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                                    <Banknote className="size-4 shrink-0" />
+                                    <span>Cash On Delivery Order</span>
+                                </div>
+                                <p className="text-[11px] text-slate-400 leading-snug">
+                                    Pay cash directly upon package arrival. No payment slip required.
+                                </p>
+                            </div>
+                        ) : order.paymentInfo?.slipUrl && !imgError ? (
+                            /* If Online Transfer with Slip Uploaded */
                             <button
                                 type="button"
                                 onClick={() => onPreviewSlip(order.paymentInfo!.slipUrl!)}
@@ -122,9 +170,10 @@ export const TransactionCard = memo(
                                 </div>
                             </button>
                         ) : (
-                            <div className="text-xs text-slate-500 italic p-3 bg-slate-950/50 rounded-xl border border-slate-800/50 flex items-center gap-2">
-                                <AlertCircle className="size-4 shrink-0 text-slate-600" />
-                                <span>{imgError ? "Image failed to load" : "No slip image uploaded"}</span>
+                            /* If Online Transfer with missing or failed slip image */
+                            <div className="text-xs text-amber-400/90 italic p-3 bg-amber-950/20 rounded-xl border border-amber-500/20 flex items-center gap-2">
+                                <AlertCircle className="size-4 shrink-0 text-amber-400" />
+                                <span>{imgError ? "Image failed to load" : "No payment slip uploaded"}</span>
                             </div>
                         )}
                     </div>
@@ -143,7 +192,7 @@ export const TransactionCard = memo(
                                     ) : (
                                         <CheckCircle2 className="size-4" />
                                     )}
-                                    Approve Payment
+                                    {isCOD ? "Confirm COD Order" : "Approve Payment"}
                                 </Button>
 
                                 <Button
@@ -152,7 +201,7 @@ export const TransactionCard = memo(
                                     disabled={isVerifying}
                                     className="border-rose-500/30 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 bg-slate-950/40 gap-2 rounded-xl transition-all"
                                 >
-                                    <XCircle className="size-4" /> Reject Payment
+                                    <XCircle className="size-4" /> Reject Order
                                 </Button>
                             </>
                         ) : (
