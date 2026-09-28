@@ -37,6 +37,7 @@ export interface IOrder {
         quantity: number;
         price: number;
         image: string;
+        product?: string;
     }>;
     paymentInfo: {
         id?: string;
@@ -44,6 +45,7 @@ export interface IOrder {
         slipUrl?: string;
         slipPublicId?: string;
     };
+    itemsPrice?: number;
     totalPrice: number;
     orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
     createdAt: string;
