@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
     useGetAllOrdersAdminQuery,
     useUpdateOrderStatusAdminMutation,
@@ -15,43 +15,69 @@ import { toast } from "sonner";
 import { OrderCard } from "./components/manageOrders/OrderCard";
 import { UpdateStatusModal } from "./components/manageOrders/UpdateStatusModal";
 import { OrderDetailModal } from "./components/transactionVerification/OrderDetailModal";
-
-type FilterLogisticsStatus = "all" | OrderStatus;
+import { useSearchParams } from "react-router-dom";
+import Pagination from "@/components/common/Pagination";
 
 const ManageOrders = () => {
-    const { data, isLoading, isError } = useGetAllOrdersAdminQuery();
-    const [updateOrderStatus, { isLoading: isUpdating }] = useUpdateOrderStatusAdminMutation();
+    // URL Query Search Parameters State
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = Number(searchParams.get("page")) || 1;
+    const limit = Number(searchParams.get("limit")) || 10;
+    const keyword = searchParams.get("keyword") || "";
+    const filterStatus = searchParams.get("status") || "Processing";
 
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filterStatus, setFilterStatus] = useState<FilterLogisticsStatus>("Processing");
+    // RTK Query Server-side Fetching with Parameters
+    const { data, isLoading, isFetching, isError } = useGetAllOrdersAdminQuery({
+        page,
+        limit,
+        keyword,
+        status: filterStatus,
+    });
+    const [updateOrderStatus, { isLoading: isUpdating }] = useUpdateOrderStatusAdminMutation();
 
     const [selectedOrderForStatus, setSelectedOrderForStatus] = useState<IAdminOrder | null>(null);
     const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<IAdminOrder | null>(null);
 
-    const orders = useMemo(() => data?.orders || [], [data?.orders]);
-
-    const filteredOrders = useMemo(() => {
-        const query = searchTerm.toLowerCase().trim();
-
-        return orders.filter((order) => {
-            const matchesStatus =
-                filterStatus === "all" ? true : order.orderStatus === filterStatus;
-
-            if (!matchesStatus) return false;
-            if (!query) return true;
-
-            const userName = order.user?.fullName || order.user?.name || "";
-            const userEmail = order.user?.email || "";
-            const trackingNo = order.trackingInfo?.trackingNumber || "";
-
-            return (
-                order._id.toLowerCase().includes(query) ||
-                userName.toLowerCase().includes(query) ||
-                userEmail.toLowerCase().includes(query) ||
-                trackingNo.toLowerCase().includes(query)
-            );
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchParams((prev) => {
+            if (value) {
+                prev.set("keyword", value);
+            } else {
+                prev.delete("keyword");
+            }
+            prev.set("page", "1"); // If search change restart from page 1
+            return prev;
         });
-    }, [orders, filterStatus, searchTerm]);
+    };
+
+    const handleStatusFilter = (status: string) => {
+        setSearchParams((prev) => {
+            if (status === "all") {
+                prev.set("status", "all");
+            } else {
+                prev.set("status", status);
+            }
+            prev.set("page", "1"); // If filter change restart from page 1
+            return prev;
+        });
+    };
+
+    const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newLimit = e.target.value;
+        setSearchParams((prev) => {
+            prev.set("limit", newLimit);
+            prev.set("page", "1");
+            return prev;
+        });
+    };
+
+    const handlePageChange = (newPage: number) => {
+        setSearchParams((prev) => {
+            prev.set("page", newPage.toString());
+            return prev;
+        });
+    };
 
     const handleUpdateStatusSubmit = useCallback(
         async (payload: {
@@ -72,6 +98,13 @@ const ManageOrders = () => {
         },
         [updateOrderStatus]
     );
+
+    const orders = data?.orders || [];
+    const totalOrders = data?.total || 0;
+    const totalPages = data?.totalPages || 1;
+
+    const startItem = totalOrders > 0 ? (page - 1) * limit + 1 : 0;
+    const endItem = Math.min(page * limit, totalOrders);
 
     if (isLoading) {
         return (
@@ -107,32 +140,57 @@ const ManageOrders = () => {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                     <Input
                         placeholder="Search Order ID, Name, Tracking No..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={keyword}
+                        onChange={handleSearch}
                         className="pl-9 bg-slate-950 border-slate-800 text-slate-100 focus-visible:ring-blue-500 placeholder:text-slate-500 rounded-xl"
                     />
                 </div>
 
-                <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                    {(["Processing", "Shipped", "Delivered", "Cancelled", "all"] as const).map((status) => (
-                        <Button
-                            key={status}
-                            variant={filterStatus === status ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setFilterStatus(status as FilterLogisticsStatus)}
-                            className={`capitalize transition-all rounded-xl ${filterStatus === status
+                <div className="flex items-center gap-3 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
+                    {/* Entries Limit Selection */}
+                    <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                        <span>Show</span>
+                        <select
+                            value={limit}
+                            onChange={handleLimitChange}
+                            className="h-9 rounded-xl border border-slate-800 bg-slate-950 px-2.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer"
+                        >
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                        </select>
+                        <span>entries</span>
+                    </div>
+
+                    {/* Status Filter Buttons */}
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                        {(["Processing", "Shipped", "Delivered", "Cancelled", "all"] as const).map((status) => (
+                            <Button
+                                key={status}
+                                variant={filterStatus === status ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handleStatusFilter(status)}
+                                className={`capitalize transition-all rounded-xl ${filterStatus === status
                                     ? "bg-purple-600 text-white hover:bg-purple-500"
                                     : "border-slate-800 bg-slate-950/60 text-slate-400 hover:text-white hover:bg-slate-800"
-                                }`}
-                        >
-                            {status === "all" ? "All Orders" : status}
-                        </Button>
-                    ))}
+                                    }`}
+                            >
+                                {status === "all" ? "All Orders" : status}
+                            </Button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
             {/* Order Cards List */}
-            {filteredOrders.length === 0 ? (
+            {isFetching ? (
+                <div className="space-y-4">
+                    {Array.from({ length: limit }).map((_, i) => (
+                        <Skeleton key={i} className="h-40 w-full bg-slate-800/60 rounded-2xl animate-pulse" />
+                    ))}
+                </div>
+            ) : orders.length === 0 ? (
                 <Card className="p-12 text-center text-slate-400 bg-slate-900/40 border-slate-800 rounded-2xl">
                     <ShoppingBag className="size-12 mx-auto mb-3 text-slate-600" />
                     <p className="text-lg font-semibold text-slate-200">No orders found</p>
@@ -140,7 +198,7 @@ const ManageOrders = () => {
                 </Card>
             ) : (
                 <div className="space-y-4">
-                    {filteredOrders.map((order) => (
+                    {orders.map((order) => (
                         <OrderCard
                             key={order._id}
                             order={order}
@@ -148,6 +206,23 @@ const ManageOrders = () => {
                             onViewDetails={setSelectedOrderForDetails}
                         />
                     ))}
+                </div>
+            )}
+
+            {/* Pagination Footer Section */}
+            {!isLoading && totalOrders > 0 && (
+                <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="text-xs font-medium text-slate-400">
+                        Showing <span className="text-white font-bold">{startItem}</span> to{" "}
+                        <span className="text-white font-bold">{endItem}</span> of{" "}
+                        <span className="text-white font-bold">{totalOrders}</span> orders
+                    </div>
+
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
             )}
 

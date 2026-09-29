@@ -91,6 +91,26 @@ export interface IUpdateOrderStatusRequest {
     cancellationReason?: string;
 }
 
+// Get All Orders Admin Query Parameters
+export interface IGetAllOrdersAdminParams {
+    page?: number;
+    limit?: number;
+    keyword?: string;
+    status?: string;
+}
+
+// Paginated Response Interface
+export interface IGetAllOrdersAdminResponse {
+    success: boolean;
+    count: number;
+    total: number;
+    totalPages: number;
+    page: number;
+    limit: number;
+    totalAmount: number;
+    orders: IAdminOrder[];
+}
+
 export const orderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         createOrder: builder.mutation<ICreateOrderResponse, ICreateOrderRequest>({
@@ -127,7 +147,7 @@ export const orderApiSlice = apiSlice.injectEndpoints({
             providesTags: ["Order"],
         }),
         // Admin Endpoint - Get All Orders
-        getAllOrdersAdmin: builder.query<{ success: boolean; count: number; totalAmount: number; orders: IAdminOrder[] }, { status?: string } | void>({
+        getAllOrdersAdmin: builder.query<IGetAllOrdersAdminResponse, IGetAllOrdersAdminParams | void>({
             query: (params) => ({
                 url: "/orders/admin/all",
                 method: "GET",
