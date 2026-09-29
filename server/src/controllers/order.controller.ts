@@ -8,6 +8,7 @@ import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils
 import { safeJsonParse } from "../utils/safeJsonParse.utils";
 import { uploadToCloudinary } from "../config/cloudinary.config";
 import mongoose from "mongoose";
+import User from "../models/user.model";
 
 // User Controller function
 /**
@@ -115,21 +116,82 @@ export const myOrders = asyncHandler(async (req: Request, res: Response, next: N
  * @access Private (Admin)
  */
 export const getAllOrders = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const filter: Partial<IOrder> = {};
+    // Extract Query Parameters with defaults
+    const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit as string, 10) || 10);
+    const skip = (page - 1) * limit;
+
+    const status = req.query.status as string;
+    const keyword = (req.query.keyword as string || '').trim();
+    // Build Dynamic Query Filter Object
+    const filterQuery: Record<string, any> = {};
+    // Filter by Order Status
+    if (status && status !== 'all') {
+        filterQuery.orderStatus = status;
+    }
 
     // Get orderStatus from URL Query Parameter (e.g: ?status=Processing)
     if (req.query.status) {
-        filter.orderStatus = req.query.status.toString() as OrderStatus;
+        filterQuery.orderStatus = req.query.status.toString() as OrderStatus;
     }
 
-    const orders = await Order.find(filter).populate('user', 'fullName name email').sort({ createdAt: -1 });
+    // Server-side Keyword Search (Order ID, Tracking Number, User Name/Email)
+    if (keyword) {
+        const keywordRegex = new RegExp(keyword, 'i');
 
-    // Calculate Total Amount of all orders (For Dashboard Analytics)
-    const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+        // Find matching User IDs first for relational search
+        const matchingUsers = await User.find({
+            $or: [
+                { fullName: keywordRegex },
+                { name: keywordRegex },
+                { email: keywordRegex }
+            ]
+        }).select('_id').lean();
+
+        const userIds = matchingUsers.map(u => u._id);
+
+        const searchConditions: any[] = [
+            { 'trackingInfo.trackingNumber': keywordRegex },
+            { 'shippingInfo.phoneNo': keywordRegex }
+        ];
+
+        // Valid Mongo ObjectId Search
+        if (mongoose.Types.ObjectId.isValid(keyword)) {
+            searchConditions.push({ _id: keyword });
+        }
+
+        if (userIds.length > 0) {
+            searchConditions.push({ user: { $in: userIds } });
+        }
+
+        filterQuery.$or = searchConditions;
+    }
+
+    // Parallel Execution for Count, Aggregation Total, and Paginated Records
+    const [totalOrders, orders, totalAmountResult] = await Promise.all([
+        Order.countDocuments(filterQuery),
+        Order.find(filterQuery)
+            .populate('user', 'fullName name email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(), // Performance Boost: Bypasses Mongoose Hydration
+        Order.aggregate([
+            { $match: filterQuery },
+            { $group: { _id: null, totalSum: { $sum: "$totalPrice" } } }
+        ])
+    ]);
+
+    const totalAmount = totalAmountResult[0]?.totalSum || 0;
+    const totalPages = Math.ceil(totalOrders / limit) || 1;
 
     res.status(200).json({
         success: true,
         count: orders.length,
+        total: totalOrders,
+        totalPages,
+        page,
+        limit,
         totalAmount,
         orders,
     });

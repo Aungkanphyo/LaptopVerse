@@ -106,6 +106,15 @@ const orderSchema: Schema<IOrder> = new Schema({
     timestamps: true,
 });
 
+// For filtering by status and sorting by date
+orderSchema.index({ orderStatus: 1, createdAt: -1 });
+// To sort and extract orders by date
+orderSchema.index({ createdAt: -1 });
+// Quickly find order by tracking number
+orderSchema.index({ "trackingInfo.trackingNumber": 1 });
+// Quickly pull up the relevant user's order history
+orderSchema.index({ user: 1 });
+
 export const Order: Model<IOrder> = mongoose.model('Order', orderSchema);
 
 export default Order;
