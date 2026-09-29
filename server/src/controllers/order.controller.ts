@@ -7,6 +7,7 @@ import sendEmail from "../utils/sendEmail";
 import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
 import { safeJsonParse } from "../utils/safeJsonParse.utils";
 import { uploadToCloudinary } from "../config/cloudinary.config";
+import mongoose from "mongoose";
 
 // User Controller function
 /**
@@ -135,46 +136,86 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
 });
 
 /**
- * @desc Update Order Status (Processing -> Shipped -> Delivered)
+ * @desc Update Order Status (Processing -> Shipped -> Delivered / Cancelled)
  * @route PUT /api/v1/orders/admin/:id
  * @access Private (Admin)
  */
+const ALLOWED_STATUSES: OrderStatus[] = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 export const updateOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { status } = req.body;
-    if (!status) {
-        return next(new AppError('Please provide status to update', 400));
+    const { status, courierName, trackingNumber, cancellationReason } = req.body;
+    // Validate Status Enum
+    if (!status || !ALLOWED_STATUSES.includes(status as OrderStatus)) {
+        return next(new AppError('Please provide a valid order status', 400));
     }
+
     const order = await Order.findById(req.params.id);
 
     if (!order) {
         return next(new AppError('Order not found with this ID', 404));
     }
 
-    if (order.orderStatus === 'Delivered') {
-        return next(new AppError('You have already delivered this order', 400));
+    // Prevent modification of finalized orders
+    if (['Delivered', 'Cancelled'].includes(order.orderStatus)) {
+        return next(new AppError(`${order.orderStatus} orders cannot be modified`, 400));
     }
 
-    // Logic to deduct stock when the status changes to 'Shipped
-    if (status === 'Shipped' && order.orderStatus !== 'Shipped') {
-       await Promise.all(
-            order.orderItems.map((item) =>
-                updateStock(item.product.toString(), item.quantity)
-            )
-        );
+    const previousStatus = order.orderStatus;
+
+    if (previousStatus === status) {
+        return next(new AppError(`Order is already in ${status} status`, 400));
     }
 
-    order.orderStatus = status;
+    // Start Database Transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    if (status === 'Delivered') {
-        order.deliveredAt = new Date();
+    try {
+        // Transition to SHIPPED
+        if (status === 'Shipped') {
+            if (previousStatus === 'Processing') {
+                await deductStock(order.orderItems, session);
+            }
+
+            order.trackingInfo = {
+                courierName: courierName || order.trackingInfo?.courierName || '',
+                trackingNumber: trackingNumber || order.trackingInfo?.trackingNumber || '',
+            };
+        }
+
+        // Transition to DELIVERED
+        if (status === 'Delivered') {
+            if (previousStatus === 'Processing') {
+                await deductStock(order.orderItems, session);
+            }
+            order.deliveredAt = new Date();
+        }
+
+        // Transition to CANCELLED
+        if (status === 'Cancelled') {
+            if (previousStatus === 'Shipped') {
+                await restoreStock(order.orderItems, session);
+            }
+            order.cancellationReason = cancellationReason || 'Cancelled by Admin';
+        }
+
+        order.orderStatus = status as OrderStatus;
+        await order.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        res.status(200).json({
+            success: true,
+            message: `Order status updated to ${status}`,
+            data: order,
+        });
+
+    } catch (error) {
+        // Error occurs, rollback to original
+        await session.abortTransaction();
+        session.endSession();
+        return next(error);
     }
-
-    await order.save();
-
-    res.status(200).json({
-        success: true,
-        data: order,
-    });
 });
 
 /**
@@ -245,11 +286,38 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response, ne
     });
 });
 
-// Helper function
-async function updateStock(id: string, quantity: number) {
-    const product = await Product.findById(id);
-    if (product) {
-        product.stock -= quantity;
-        await product.save({ validateBeforeSave: false });
+
+interface IOrderItemStock {
+    product: mongoose.Types.ObjectId | string;
+    quantity: number;
+    name?: string;
+}
+// Helper Functions
+async function deductStock(orderItems: IOrderItemStock[], session: mongoose.ClientSession) {
+    for (const item of orderItems) {
+        const product = await Product.findById(item.product).session(session);
+
+        if (!product) {
+            throw new AppError(`Product not found with ID: ${item.product}`, 404);
+        }
+
+        // Check for sufficient stock
+        if (product.stock < item.quantity) {
+            throw new AppError(`Insufficient stock for product: ${product.name || item.product}`, 400);
+        }
+
+        product.stock -= item.quantity;
+        await product.save({ session });
+    }
+}
+
+async function restoreStock(orderItems: IOrderItemStock[], session: mongoose.ClientSession) {
+    for (const item of orderItems) {
+        // Restocking using the atomic $inc operator
+        await Product.findByIdAndUpdate(
+            item.product,
+            { $inc: { stock: item.quantity } },
+            { session }
+        );
     }
 }

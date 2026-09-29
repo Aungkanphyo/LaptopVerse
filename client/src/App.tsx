@@ -24,6 +24,7 @@ import ContactSettingsPage from "./pages/admin/ContactSettingsPage";
 import InquiryManagement from "./pages/admin/InquiryManagement";
 import AdminProfile from "./pages/admin/AdminProfile";
 import ShippingScreen from "./features/cart/ShippingScreen";
+import ManageOrders from "./pages/admin/ManageOrders";
 
 const router = createBrowserRouter([
     {
@@ -83,6 +84,10 @@ const router = createBrowserRouter([
             {
                 path: "products",
                 element: <ProductList />,
+            },
+            {
+                path: "orders",
+                element: <ManageOrders />,
             },
             {
                 path: "inquiries",

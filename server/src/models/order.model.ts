@@ -37,7 +37,12 @@ export interface IOrder {
     totalPrice: number; // Grand total (itemsPrice + tax + shipping)
 
     orderStatus: OrderStatus;
-    deliveredAt: Date; // Date when the order was delivered
+    deliveredAt?: Date; // Date when the order was delivered
+    trackingInfo?: {
+        courierName?: string;
+        trackingNumber?: string;
+    };
+    cancellationReason?: string;
 
     createdAt: Date;
     updatedAt: Date;
@@ -92,6 +97,11 @@ const orderSchema: Schema<IOrder> = new Schema({
         enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
     },
     deliveredAt: { type: Date },
+    trackingInfo: {
+        courierName: { type: String },
+        trackingNumber: { type: String },
+    },
+    cancellationReason: { type: String },
 }, {
     timestamps: true,
 });
