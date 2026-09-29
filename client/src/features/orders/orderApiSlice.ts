@@ -1,5 +1,6 @@
 import { apiSlice } from "@/app/services/apiSlice";
 
+export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 export interface ICreateOrderRequest {
     shippingInfo: {
         address: string;
@@ -47,7 +48,13 @@ export interface IOrder {
     };
     itemsPrice?: number;
     totalPrice: number;
-    orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+    orderStatus: OrderStatus;
+    deliveredAt?: string;
+    trackingInfo?: {
+        courierName?: string;
+        trackingNumber?: string;
+    };
+    cancellationReason?: string;
     createdAt: string;
     updatedAt?: string;
 }
@@ -74,6 +81,14 @@ export interface IVerifyPaymentRequest {
     id: string;
     paymentStatus: 'succeeded' | 'failed';
     rejectionReason?: string;
+}
+
+export interface IUpdateOrderStatusRequest {
+    id: string;
+    status: OrderStatus;
+    courierName?: string;
+    trackingNumber?: string;
+    cancellationReason?: string;
 }
 
 export const orderApiSlice = apiSlice.injectEndpoints({
@@ -129,6 +144,15 @@ export const orderApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["Order"],
         }),
+        // Admin Update Order Status Endpoint
+        updateOrderStatusAdmin: builder.mutation<{ success: boolean; message: string; data: IOrder }, IUpdateOrderStatusRequest>({
+            query: ({ id, ...body }) => ({
+                url: `/orders/admin/${id}`,
+                method: "PUT",
+                body,
+            }),
+            invalidatesTags: ["Order"],
+        }),
     }),
 });
 
@@ -136,6 +160,7 @@ export const {
     useCreateOrderMutation,
     useGetMyOrdersQuery,
     useGetAllOrdersAdminQuery,
-    useVerifyPaymentMutation
+    useVerifyPaymentMutation,
+    useUpdateOrderStatusAdminMutation,
 } = orderApiSlice;
 
