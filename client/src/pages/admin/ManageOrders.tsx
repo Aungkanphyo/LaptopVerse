@@ -24,7 +24,7 @@ const ManageOrders = () => {
     const page = Number(searchParams.get("page")) || 1;
     const limit = Number(searchParams.get("limit")) || 10;
     const keyword = searchParams.get("keyword") || "";
-    const filterStatus = searchParams.get("status") || "Processing";
+    const filterStatus = searchParams.get("status") || "all";
 
     // RTK Query Server-side Fetching with Parameters
     const { data, isLoading, isFetching, isError } = useGetAllOrdersAdminQuery({
@@ -43,6 +43,7 @@ const ManageOrders = () => {
         setSearchParams((prev) => {
             if (value) {
                 prev.set("keyword", value);
+                prev.set("status", "all");
             } else {
                 prev.delete("keyword");
             }
@@ -53,11 +54,7 @@ const ManageOrders = () => {
 
     const handleStatusFilter = (status: string) => {
         setSearchParams((prev) => {
-            if (status === "all") {
-                prev.set("status", "all");
-            } else {
-                prev.set("status", status);
-            }
+            prev.set("status", status);
             prev.set("page", "1"); // If filter change restart from page 1
             return prev;
         });

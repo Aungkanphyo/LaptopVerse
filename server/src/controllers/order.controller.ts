@@ -130,16 +130,10 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
         filterQuery.orderStatus = status;
     }
 
-    // Get orderStatus from URL Query Parameter (e.g: ?status=Processing)
-    if (req.query.status) {
-        filterQuery.orderStatus = req.query.status.toString() as OrderStatus;
-    }
-
-    // Server-side Keyword Search (Order ID, Tracking Number, User Name/Email)
     if (keyword) {
         const keywordRegex = new RegExp(keyword, 'i');
 
-        // Find matching User IDs first for relational search
+        // Customer Matching (Name / Email)
         const matchingUsers = await User.find({
             $or: [
                 { fullName: keywordRegex },
@@ -151,14 +145,21 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
         const userIds = matchingUsers.map(u => u._id);
 
         const searchConditions: any[] = [
+            // Using Mongo $expr & $toString, you can get a Partial Match by just typing the beginning/middle part of the Order ID
+            {
+                $expr: {$regexMatch: {
+                        input: { $toString: "$_id" },
+                        regex: keyword,
+                        options: "i"
+                    }
+                }
+            },
             { 'trackingInfo.trackingNumber': keywordRegex },
-            { 'shippingInfo.phoneNo': keywordRegex }
+            { 'shippingInfo.phoneNo': keywordRegex },
+            { 'shippingInfo.city': keywordRegex },
+            { 'shippingInfo.address': keywordRegex },
+            { 'orderItems.name': keywordRegex }
         ];
-
-        // Valid Mongo ObjectId Search
-        if (mongoose.Types.ObjectId.isValid(keyword)) {
-            searchConditions.push({ _id: keyword });
-        }
 
         if (userIds.length > 0) {
             searchConditions.push({ user: { $in: userIds } });
