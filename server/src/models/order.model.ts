@@ -3,9 +3,9 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 
 export interface IOrderUser {
-  _id?: mongoose.Types.ObjectId;
-  fullName: string;
-  email: string;
+    _id?: mongoose.Types.ObjectId;
+    fullName: string;
+    email: string;
 }
 
 interface IOrderItem {
@@ -31,13 +31,13 @@ export interface IOrder<TUser = mongoose.Types.ObjectId> {
     user: TUser; // Default: ObjectId | Populated: IOrderUser
 
     paymentInfo: {
-        id: string; // Payment gateway transaction ID
+        id?: string; // Payment gateway transaction ID
         status: string; // e.g., 'succeeded', 'pending'
         slipUrl?: string;     // Cloudinary Image URL
         slipPublicId?: string; // Cloudinary Public ID
     };
 
-    paidAt: Date; // Date when payment was successful
+    paidAt?: Date; // Date when payment was successful
 
     itemsPrice: number; // Sum of all orderItems prices
     totalPrice: number; // Grand total (itemsPrice + tax + shipping)
@@ -59,8 +59,16 @@ export type IPopulatedOrder = IOrder<IOrderUser>;
 
 const orderItemSchema: Schema<IOrderItem> = new Schema({
     name: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    price: { type: Number, required: true },
+    quantity: {
+        type: Number,
+        required: true,
+        min: [1, 'Quantity cannot be less than 1']
+    },
+    price: {
+        type: Number,
+        required: true,
+        min: [0, 'Price cannot be negative']
+    },
     image: { type: String, required: true },
     product: {
         type: mongoose.Schema.Types.ObjectId,
@@ -75,7 +83,10 @@ const shippingInfoSchema: Schema<IShippingInfo> = new Schema({
     phoneNo: { type: String, required: true },
     postalCode: { type: String, required: true },
     country: { type: String, required: true },
-});
+}, {
+    _id: false
+}
+);
 
 const orderSchema: Schema<IOrder> = new Schema({
     shippingInfo: { type: shippingInfoSchema, required: true },
@@ -96,8 +107,18 @@ const orderSchema: Schema<IOrder> = new Schema({
 
     paidAt: { type: Date },
 
-    itemsPrice: { type: Number, required: true, default: 0.0 },
-    totalPrice: { type: Number, required: true, default: 0.0 },
+    itemsPrice: { 
+        type: Number, 
+        required: true, 
+        default: 0.0,
+        min: [0, 'Items price cannot be negative']
+    },
+    totalPrice: { 
+        type: Number, 
+        required: true, 
+        default: 0.0,
+        min: [0, 'Total price cannot be negative']
+    },
 
     orderStatus: {
         type: String,
@@ -115,14 +136,16 @@ const orderSchema: Schema<IOrder> = new Schema({
     timestamps: true,
 });
 
-// For filtering by status and sorting by date
+// To speed up the retrieval and sorting of order history by user using a direct IXSCAN.
+orderSchema.index({ user: 1, createdAt: -1 });
+// View pagination and sorting by status in the Admin Panel.
 orderSchema.index({ orderStatus: 1, createdAt: -1 });
-// To sort and extract orders by date
+// To view the overall sorting in the Admin Panel without the status column
 orderSchema.index({ createdAt: -1 });
-// Quickly find order by tracking number
-orderSchema.index({ "trackingInfo.trackingNumber": 1 });
-// Quickly pull up the relevant user's order history
-orderSchema.index({ user: 1 });
+// OPTIMIZATION: Sparse Index – Reduces index size by excluding documents that do not yet have a tracking number
+orderSchema.index({ "trackingInfo.trackingNumber": 1 }, { sparse: true });
+// OPTIMIZATION: To enable Quick Search using the phone number in the Admin Keyword Search.
+orderSchema.index({ "shippingInfo.phoneNo": 1 });
 
 export const Order: Model<IOrder> = mongoose.model('Order', orderSchema);
 

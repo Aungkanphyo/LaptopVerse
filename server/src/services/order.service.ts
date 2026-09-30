@@ -46,10 +46,17 @@ const ALLOWED_STATUSES: OrderStatus[] = ['Processing', 'Shipped', 'Delivered', '
 export const createOrderService = async (orderData: ICreateOrderInput, userId: string): Promise<IOrder> => {
     return await withTransaction(async (session) => {
         const { orderItems, shippingInfo, paymentInfo, itemsPrice, totalPrice } = orderData;
+        const productIds = orderItems.map((item) => item.product);
+
+        const dbProducts = await Product.find({ _id: { $in: productIds } }).session(session);
+        const productMap = new Map(dbProducts.map((p) => [p._id.toString(), p]));
+
+        let calculatedItemsPrice = 0;
+        const bulkStockOperations: any[] = [];
 
         // Checking stock availability for each product and performing atomic stock deduction
         for (const item of orderItems) {
-            const product = await Product.findById(item.product).session(session);
+            const product = productMap.get(item.product);
 
             if (!product) {
                 throw new AppError(`Product not found with ID: ${item.product}`, 404);
@@ -59,9 +66,16 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
                 throw new AppError(`Insufficient stock for product: ${product.name}`, 400);
             }
 
-            // Reduce stock
-            product.stock -= item.quantity;
-            await product.save({ session });
+            // Prevent price tampering by using DB price instead of client-supplied price
+            calculatedItemsPrice += product.price * item.quantity;
+
+            // // Use conditional atomic update to prevent stock discrepancies under high concurrency
+            bulkStockOperations.push({
+                updateOne: {
+                    filter: { _id: item.product, stock: { $gte: item.quantity } },
+                    update: { $inc: { stock: -item.quantity } },
+                },
+            });
         }
 
         const isPaid = paymentInfo?.status === 'succeeded';
@@ -94,7 +108,7 @@ export const getSingleOrderService = async (
     currentUserId?: string,
     currentUserRole?: string
 ): Promise<IOrder> => {
-    const order = await Order.findById(orderId).populate('user', 'name email');
+    const order = await Order.findById(orderId).populate('user', 'name email').lean();
 
     if (!order) {
         throw new AppError('Order not found with this ID', 404);
@@ -111,14 +125,14 @@ export const getSingleOrderService = async (
         throw new AppError('You are not authorized to view this order details.', 403);
     }
 
-    return order;
+    return order as unknown as IOrder;
 };
 
 /**
  * @desc Get Orders of Logged-in User
  */
 export const getUserOrdersService = async (userId: string): Promise<IOrder[]> => {
-    return await Order.find({ user: userId }).sort({ createdAt: -1 });
+    return await Order.find({ user: userId }).sort({ createdAt: -1 }).lean();
 };
 
 /**
@@ -131,38 +145,19 @@ export const getAllOrdersAdminService = async (params: IAdminOrderQueryParams) =
 
     const status = params.status;
     const keyword = (params.keyword || '').trim();
-    // Build Dynamic Query Filter Object
-    const filterQuery: Record<string, any> = {};
-    // Filter by Order Status
+    const matchStage: Record<string, any> = {};
+
     if (status && status !== 'all') {
-        filterQuery.orderStatus = status;
+        matchStage.orderStatus = status;
     }
 
     if (keyword) {
         const keywordRegex = new RegExp(keyword, 'i');
 
-        // Customer Matching (Name / Email)
-        const matchingUsers = await User.find({
-            $or: [
-                { fullName: keywordRegex },
-                { name: keywordRegex },
-                { email: keywordRegex }
-            ]
-        }).select('_id').lean();
-
-        const userIds = matchingUsers.map(u => u._id);
+        // Validates ObjectId for direct index lookup on _id to avoid COLLSCAN
+        const isObjectId = mongoose.Types.ObjectId.isValid(keyword);
 
         const searchConditions: any[] = [
-            // Using Mongo $expr & $toString, you can get a Partial Match by just typing the beginning/middle part of the Order ID
-            {
-                $expr: {
-                    $regexMatch: {
-                        input: { $toString: "$_id" },
-                        regex: keyword,
-                        options: "i"
-                    }
-                }
-            },
             { 'trackingInfo.trackingNumber': keywordRegex },
             { 'shippingInfo.phoneNo': keywordRegex },
             { 'shippingInfo.city': keywordRegex },
@@ -170,29 +165,58 @@ export const getAllOrdersAdminService = async (params: IAdminOrderQueryParams) =
             { 'orderItems.name': keywordRegex }
         ];
 
-        if (userIds.length > 0) {
-            searchConditions.push({ user: { $in: userIds } });
+        if (isObjectId) {
+            searchConditions.push({ _id: new mongoose.Types.ObjectId(keyword) });
+        } else {
+            const matchingUsers = await User.find({
+                $or: [{ fullName: keywordRegex }, { name: keywordRegex }, { email: keywordRegex }]
+            }).select('_id').lean();
+
+            if (matchingUsers.length > 0) {
+                searchConditions.push({ user: { $in: matchingUsers.map(u => u._id) } });
+            }
         }
 
-        filterQuery.$or = searchConditions;
+        matchStage.$or = searchConditions;
     }
 
-    // Parallel Execution for Count, Aggregation Total, and Paginated Records
-    const [totalOrders, orders, totalAmountResult] = await Promise.all([
-        Order.countDocuments(filterQuery),
-        Order.find(filterQuery)
-            .populate('user', 'fullName name email')
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean(), // Performance Boost: Bypasses Mongoose Hydration
-        Order.aggregate([
-            { $match: filterQuery },
-            { $group: { _id: null, totalSum: { $sum: "$totalPrice" } } }
-        ])
+    // Fetches countDocuments, find, and aggregate in a single MongoDB $facet query instead of multiple requests
+    const aggregationResult = await Order.aggregate([
+        { $match: matchStage },
+        {
+            $facet: {
+                metadata: [
+                    { $group: { _id: null, totalOrders: { $sum: 1 }, totalSum: { $sum: "$totalPrice" } } }
+                ],
+                orders: [
+                    { $sort: { createdAt: -1 } }, { $skip: skip },
+                    { $limit: limit },
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "user",
+                            foreignField: "_id",
+                            as: "user"
+                        }
+                    },
+                    { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+                    {
+                        $project: {
+                            "user.password": 0,
+                            "user.role": 0,
+                        }
+                    }
+                ]
+            }
+        }
     ]);
 
-    const totalAmount = totalAmountResult[0]?.totalSum || 0;
+    const facetData = aggregationResult[0];
+    const metadata = facetData.metadata[0] || { totalOrders: 0, totalSum: 0 };
+    const orders = facetData.orders;
+
+    const totalOrders = metadata.totalOrders;
+    const totalAmount = metadata.totalSum;
     const totalPages = Math.ceil(totalOrders / limit) || 1;
 
     return {
@@ -236,13 +260,18 @@ export const updateOrderStatusAdminService = async (
     return await withTransaction(async (session) => {
         // Restoring stock to the database that was deducted at the time the order was placed, in the event of an order cancellation
         if (status === 'Cancelled') {
-            for (const item of order.orderItems) {
-                await Product.findByIdAndUpdate(
-                    item.product,
-                    { $inc: { stock: item.quantity } },
-                    { session }
-                );
+            // Restocks products using bulkWrite during cancellation to avoid N+1 DB writes
+            const bulkRestores = order.orderItems.map((item) => ({
+                updateOne: {
+                    filter: { _id: item.product },
+                    update: { $inc: { stock: item.quantity } },
+                },
+            }));
+
+            if (bulkRestores.length > 0) {
+                await Product.bulkWrite(bulkRestores, { session });
             }
+
             order.cancellationReason = cancellationReason || 'Cancelled by Admin';
         }
 
@@ -298,24 +327,31 @@ export const verifyPaymentService = async (
 
     await order.save();
 
-    // Async Email Notification Triggering
-    try {
-        const orderIdString = order._id.toString();
-        if (paymentStatus === 'succeeded') {
-            await sendEmail({
-                email: order.user.email,
-                subject: `Payment Confirmed - Order #${orderIdString}`,
-                html: getPaymentApprovedTemplate(order.user.fullName, orderIdString, order.totalPrice),
-            });
-        } else if (paymentStatus === 'failed') {
-            await sendEmail({
-                email: order.user.email,
-                subject: `Payment Verification Issue - Order #${orderIdString}`,
-                html: getPaymentRejectedTemplate(order.user.fullName, orderIdString, rejectionReason),
-            });
-        }
-    } catch (error) {
-        console.error("Payment notification email failed to send:", error);
+    // Triggers SMTP mail sending as a non-blocking (fire-and-forget) event to avoid blocking the response
+    const orderIdString = order._id.toString();
+    const userEmail = order.user?.email;
+    const userName = order.user?.fullName;
+
+    if (userEmail) {
+        Promise.resolve().then(async () => {
+            try {
+                if (paymentStatus === 'succeeded') {
+                    await sendEmail({
+                        email: userEmail,
+                        subject: `Payment Confirmed - Order #${orderIdString}`,
+                        html: getPaymentApprovedTemplate(userName, orderIdString, order.totalPrice),
+                    });
+                } else if (paymentStatus === 'failed') {
+                    await sendEmail({
+                        email: userEmail,
+                        subject: `Payment Verification Issue - Order #${orderIdString}`,
+                        html: getPaymentRejectedTemplate(userName, orderIdString, rejectionReason),
+                    });
+                }
+            } catch (error) {
+                console.error("Payment notification email failed to send:", error);
+            }
+        });
     }
 
     return order as unknown as IPopulatedOrder;
