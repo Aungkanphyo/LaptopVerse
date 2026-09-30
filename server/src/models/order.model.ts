@@ -2,6 +2,12 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 
+export interface IOrderUser {
+  _id?: mongoose.Types.ObjectId;
+  fullName: string;
+  email: string;
+}
+
 interface IOrderItem {
     name: string;
     quantity: number;
@@ -18,11 +24,11 @@ interface IShippingInfo {
     country: string;
 }
 
-export interface IOrder {
+export interface IOrder<TUser = mongoose.Types.ObjectId> {
     shippingInfo: IShippingInfo;
     orderItems: IOrderItem[];
 
-    user: mongoose.Types.ObjectId; // User who placed the order
+    user: TUser; // Default: ObjectId | Populated: IOrderUser
 
     paymentInfo: {
         id: string; // Payment gateway transaction ID
@@ -47,6 +53,9 @@ export interface IOrder {
     createdAt: Date;
     updatedAt: Date;
 }
+
+// Reusable type for populated order
+export type IPopulatedOrder = IOrder<IOrderUser>;
 
 const orderItemSchema: Schema<IOrderItem> = new Schema({
     name: { type: String, required: true },

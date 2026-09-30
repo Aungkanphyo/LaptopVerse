@@ -21,6 +21,4 @@ router
     .delete(protect, authorize('admin'), deleteOrder);          // DELETE /api/v1/orders/admin/:id
 
 router.route('/:id').get(protect, getSingleOrder); // GET /api/v1/orders/:id
-
-
 export default router;
