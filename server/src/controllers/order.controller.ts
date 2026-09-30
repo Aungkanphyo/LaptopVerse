@@ -1,15 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
-import Order, { OrderStatus } from "../models/order.model";
 import { AppError } from "../utils/error.utils";
-import Product from "../models/product.model";
-import sendEmail from "../utils/sendEmail";
-import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
 import { safeJsonParse } from "../utils/safeJsonParse.utils";
 import { uploadToCloudinary } from "../config/cloudinary.config";
-import mongoose from "mongoose";
-import User from "../models/user.model";
 import * as orderService from "../services/order.service";
+import { OrderStatus } from "../models/order.model";
 
 // User Controller function
 /**
@@ -22,7 +17,7 @@ export const newOrder = asyncHandler(async (req: Request, res: Response, next: N
     const orderItems = safeJsonParse(req.body.orderItems);
     const paymentInfo = safeJsonParse(req.body.paymentInfo);
 
-    if (!shippingInfo || !orderItems || orderItems.length === 0) {
+   if (!shippingInfo || !orderItems || !Array.isArray(orderItems) || orderItems.length === 0) {
         return next(new AppError("The information is incomplete. (Invalid Order Data)", 400));
     }
 
@@ -163,6 +158,10 @@ export const deleteOrder = asyncHandler(async (req: Request, res: Response, next
 // Admin Payment Verification Endpoint
 export const verifyPayment = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { paymentStatus, rejectionReason } = req.body;
+
+    if (!['succeeded', 'failed'].includes(paymentStatus)) {
+        return next(new AppError("Invalid payment status value.", 400));
+    }
 
     const order = await orderService.verifyPaymentService(
         req.params.id,
