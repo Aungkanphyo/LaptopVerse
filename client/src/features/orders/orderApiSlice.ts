@@ -140,7 +140,8 @@ export const orderApiSlice = apiSlice.injectEndpoints({
                     method: "POST",
                     body: orderData,
                 };
-            }
+            },
+            invalidatesTags: ["Product", "Order"],
         }),
         getMyOrders: builder.query<{ success: boolean; orders: IOrder[] }, void>({
             query: () => "/orders/my/orders",

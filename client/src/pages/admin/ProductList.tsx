@@ -221,7 +221,7 @@ const ProductList = () => {
                                             </Badge>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-black text-white">${product.price.toLocaleString()}</div>
+                                            <div className="font-black text-white">{product.price.toLocaleString()}</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             {product.stock > 0 ? (
