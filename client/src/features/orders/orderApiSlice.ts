@@ -141,7 +141,12 @@ export const orderApiSlice = apiSlice.injectEndpoints({
                     body: orderData,
                 };
             },
-            invalidatesTags: ["Product", "Order"],
+            invalidatesTags: [
+                { type: "Product", id: "LIST" },
+                { type: "Product", id: "STATS" },
+                "Product",
+                "Order",
+            ],
         }),
         getMyOrders: builder.query<{ success: boolean; orders: IOrder[] }, void>({
             query: () => "/orders/my/orders",
