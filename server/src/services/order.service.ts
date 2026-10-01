@@ -78,17 +78,22 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
             });
         }
 
-        const isPaid = paymentInfo?.status === 'succeeded';
+        const bulkWriteRes = await Product.bulkWrite(bulkStockOperations, { session });
+        if (bulkWriteRes.modifiedCount !== orderItems.length) {
+            throw new AppError("Stock conflict during order creation. Please try again.", 400);
+        }
 
-        // Saving Order Data to the Database using Sessions
+        const isPaid = paymentInfo?.status === 'succeeded';
+        const finalTotalPrice = calculatedItemsPrice;
+
         const [order] = await Order.create(
             [
                 {
                     shippingInfo,
                     orderItems,
                     paymentInfo,
-                    itemsPrice,
-                    totalPrice,
+                    itemsPrice: calculatedItemsPrice,
+                    totalPrice: finalTotalPrice,
                     paidAt: isPaid ? new Date() : undefined,
                     user: new mongoose.Types.ObjectId(userId),
                 },
