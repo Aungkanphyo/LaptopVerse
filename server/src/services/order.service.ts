@@ -6,6 +6,7 @@ import { withTransaction } from "../utils/transaction.util";
 import User from "../models/user.model";
 import sendEmail from "../utils/sendEmail";
 import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
+import { getIO, StockUpdatePayload } from "../config/socket.config";
 
 // Service Layer Interfaces (DTOs)
 export interface ICreateOrderInput {
@@ -44,8 +45,9 @@ export interface IUpdateOrderStatusInput {
 const ALLOWED_STATUSES: OrderStatus[] = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
 export const createOrderService = async (orderData: ICreateOrderInput, userId: string): Promise<IOrder> => {
-    return await withTransaction(async (session) => {
-        const { orderItems, shippingInfo, paymentInfo, itemsPrice, totalPrice } = orderData;
+    const updatedStockPayload: StockUpdatePayload['products'] = [];
+    const order = await withTransaction(async (session) => {
+        const { orderItems, shippingInfo, paymentInfo } = orderData;
         const productIds = orderItems.map((item) => item.product);
 
         const dbProducts = await Product.find({ _id: { $in: productIds } }).session(session);
@@ -76,6 +78,11 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
                     update: { $inc: { stock: -item.quantity } },
                 },
             });
+
+            updatedStockPayload.push({
+                productId: product._id.toString(),
+                newStock: product.stock - item.quantity,
+            });
         }
 
         const bulkWriteRes = await Product.bulkWrite(bulkStockOperations, { session });
@@ -86,7 +93,7 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
         const isPaid = paymentInfo?.status === 'succeeded';
         const finalTotalPrice = calculatedItemsPrice;
 
-        const [order] = await Order.create(
+        const [createdOrder] = await Order.create(
             [
                 {
                     shippingInfo,
@@ -101,8 +108,18 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
             { session }
         );
 
-        return order;
-    })
+        return createdOrder;
+    });
+    try {
+        if (updatedStockPayload.length > 0) {
+            console.log('📢 [Socket.io Server] Emitting stock:updated event with payload:', updatedStockPayload);
+            getIO().emit('stock:updated', { products: updatedStockPayload });
+        }
+    } catch (socketErr) {
+        console.error("Socket emission failed:", socketErr);
+    }
+
+    return order;
 };
 
 /**

@@ -19,8 +19,14 @@ import passport from 'passport';
 import './config/passport.config';
 import aiRoutes from './routes/ai.routes';
 import inquiryRoutes from './routes/inquiry.routes';
+import { createServer } from 'http';
+import { initSocket } from './config/socket.config';
 
 const app: Express = express();
+const httpServer = createServer(app);
+
+// Initialize Socket.IO
+initSocket(httpServer);
 
 // Security Middleware
 app.use(helmet());
@@ -83,7 +89,7 @@ const startServer = async () => {
     try {
         await connectDB();
 
-        app.listen(PORT, () => {
+        httpServer.listen(PORT, () => {
         console.log(`⚡️ Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`);
         });
     } catch (error) {
