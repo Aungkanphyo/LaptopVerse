@@ -1,3 +1,4 @@
+import { socket } from "@/lib/socket";
 import { apiSlice } from "../../app/services/apiSlice";
 import type { IBrandItem, ICategoryItem, IProductQueryParams, IProductResponse, IReviewResponse, ISingleProductResponse } from "../../types/product.types";
 
@@ -17,7 +18,44 @@ export const productApiSlice = apiSlice.injectEndpoints({
                         ...result.products.map(({ _id }) => ({ type: 'Product' as const, id: _id })),
                         { type: 'Product', id: 'LIST' },
                     ]
-                    : [{ type: 'Product', id: 'LIST' }]
+                    : [{ type: 'Product', id: 'LIST' }],
+
+            async onCacheEntryAdded(
+                _arg,
+                { updateCachedData, cacheDataLoaded, cacheEntryRemoved, dispatch }
+            ) {
+                try {
+                    await cacheDataLoaded;
+
+                    // Function that will automatically update the Redux Cache when a Socket Event is received
+                    const handleStockUpdate = (data: { products: Array<{ productId: string; newStock: number }> }) => {
+                        console.log('⚡ [RTK Query Cache] Received stock:updated payload:', data);
+                        // Instantly updating the relevant stock in the product list.
+                        updateCachedData((draft) => {
+                            if (!draft?.products) return;
+
+                            data.products.forEach(({ productId, newStock }) => {
+                                const targetProduct = draft.products.find((p) => String(p._id) === String(productId));
+                                if (targetProduct) {
+                                    console.log(`✅ [RTK Query Cache] Updated stock for product ${productId}: ${targetProduct.stock} -> ${newStock}`);
+                                    targetProduct.stock = newStock;
+                                } else {
+                                    console.warn(`⚠️ [RTK Query Cache] Product ID ${productId} not found in current cache list.`);
+                                }
+                            });
+                        });
+                        // Refetch product stats count
+                        dispatch(productApiSlice.util.invalidateTags([{ type: 'Product', id: 'STATS' }]));
+                    };
+                    socket.on('stock:updated', handleStockUpdate);
+
+                    // Removing the listener to prevent memory leaks when the component unmounts
+                    await cacheEntryRemoved;
+                    socket.off('stock:updated', handleStockUpdate);
+                } catch (err) {
+                    console.error("Socket Cache Handler Error:", err);
+                }
+            }
         }),
 
         getSingleProduct: builder.query<ISingleProductResponse, string>({

@@ -207,7 +207,7 @@ const ProductList = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <Badge variant="outline" className="font-semibold bg-slate-800/80 text-slate-300 border-slate-700/80">
+                                            <Badge className="font-semibold bg-slate-800/80 text-slate-300 border-slate-700/80">
                                                 {typeof product.category === 'object' && product.category !== null
                                                     ? product.category.name
                                                     : product.category}
@@ -232,7 +232,7 @@ const ProductList = () => {
                                                     <span className="text-[10px] text-slate-500 font-medium ml-1">{product.stock} units left</span>
                                                 </div>
                                             ) : (
-                                                <Badge variant="destructive" className="bg-rose-500/10 text-rose-400 border border-rose-500/30 shadow-none font-semibold">
+                                                <Badge className="bg-rose-500/10 text-rose-400 border border-rose-500/30 shadow-none font-semibold">
                                                     Out of Stock
                                                 </Badge>
                                             )}
