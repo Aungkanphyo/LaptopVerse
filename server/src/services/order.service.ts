@@ -7,6 +7,7 @@ import User from "../models/user.model";
 import sendEmail from "../utils/sendEmail";
 import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
 import { getIO, StockUpdatePayload } from "../config/socket.config";
+import { logger } from "../utils/logger";
 
 // Service Layer Interfaces (DTOs)
 export interface ICreateOrderInput {
@@ -112,11 +113,11 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
     });
     try {
         if (updatedStockPayload.length > 0) {
-            console.log('📢 [Socket.io Server] Emitting stock:updated event with payload:', updatedStockPayload);
+            logger.debug({ payload: updatedStockPayload }, '📢 [Socket.io Server] Emitting stock:updated event');
             getIO().emit('stock:updated', { products: updatedStockPayload });
         }
     } catch (socketErr) {
-        console.error("Socket emission failed:", socketErr);
+        logger.error(socketErr, '❌ [Socket.io Server] Emission failed');
     }
 
     return order;
