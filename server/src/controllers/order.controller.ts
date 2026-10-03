@@ -118,7 +118,6 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
  * @route PUT /api/v1/orders/admin/:id
  * @access Private (Admin)
  */
-const ALLOWED_STATUSES: OrderStatus[] = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 export const updateOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { status, courierName, trackingNumber, cancellationReason } = req.body;
 
@@ -172,6 +171,26 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response, ne
     res.status(200).json({
         success: true,
         message: `Payment status updated to ${paymentStatus}`,
+        order,
+    });
+});
+
+/**
+ * @desc Track Guest/User Order using Order ID and Phone Number
+ * @route POST /api/v1/orders/track
+ * @access Public
+ */
+export const trackOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const { orderId, phoneNo } = req.body;
+
+    if (!orderId || !phoneNo) {
+        return next(new AppError("Please provide both Order ID and Phone Number", 400));
+    }
+
+    const order = await orderService.trackOrderService(orderId, phoneNo);
+
+    res.status(200).json({
+        success: true,
         order,
     });
 });

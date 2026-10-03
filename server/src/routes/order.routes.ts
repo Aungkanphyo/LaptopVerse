@@ -1,12 +1,13 @@
 import { Router } from "express";
-import { authorize, protect } from "../middlewares/auth.middleware";
-import { deleteOrder, getAllOrders, getSingleOrder, myOrders, newOrder, updateOrder, verifyPayment } from "../controllers/order.controller";
+import { authorize, optionalAuth, protect } from "../middlewares/auth.middleware";
+import { deleteOrder, getAllOrders, getSingleOrder, myOrders, newOrder, trackOrder, updateOrder, verifyPayment } from "../controllers/order.controller";
 import { upload } from "../middlewares/upload.middleware";
 
 const router = Router();
 
 // User Routes
-router.route('/new').post(protect, upload.single('slipFile'), newOrder); // POST /api/v1/orders/new
+router.route('/new').post(optionalAuth, upload.single('slipFile'), newOrder); // Allow both login users and guest users to create an order
+router.route('/track').post(trackOrder); // Public Order Tracking Endpoint
 router.route('/my/orders').get(protect, myOrders); // GET /api/v1/orders/my/orders
 
 // Admin Routes
