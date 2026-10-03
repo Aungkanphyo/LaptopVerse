@@ -19,7 +19,6 @@ const PaymentScreen = () => {
     const dispatch = useAppDispatch();
 
     const cart = useAppSelector((state) => state.cart);
-    const { isAuthenticated } = useAppSelector((state) => state.auth);
 
     const { data, isLoading, isError } = useGetPublicManualPaymentInfoQuery();
     const [createOrder, { isLoading: isPlacingOrder }] = useCreateOrderMutation();
@@ -74,12 +73,6 @@ const PaymentScreen = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!isAuthenticated) {
-            toast.error("Please login to place an order.");
-            navigate("/login");
-            return;
-        }
-
         if (!cart.shippingInfo) return;
 
         if (paymentMethod === "online") {
@@ -122,7 +115,7 @@ const PaymentScreen = () => {
                 );
             }
 
-            await createOrder({
+            const res = await createOrder({
                 shippingInfo: {
                     address: cart.shippingInfo.address,
                     city: cart.shippingInfo.city,
@@ -143,7 +136,8 @@ const PaymentScreen = () => {
                     ? "Order placed! We will confirm your payment receipt soon."
                     : "COD Order Placed Successfully!"
             );
-            navigate("/");
+            const createdOrder = res.order as { _id: string; shippingInfo: { phoneNo: string } };
+            navigate(`/track-order?orderId=${createdOrder._id}&phoneNo=${encodeURIComponent(createdOrder.shippingInfo.phoneNo)}`);
         } catch (err: unknown) {
             let message = "Failed to place order";
             if (isFetchBaseQueryError(err)) {

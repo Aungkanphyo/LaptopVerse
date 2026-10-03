@@ -25,6 +25,7 @@ import InquiryManagement from "./pages/admin/InquiryManagement";
 import AdminProfile from "./pages/admin/AdminProfile";
 import ShippingScreen from "./features/cart/ShippingScreen";
 import ManageOrders from "./pages/admin/ManageOrders";
+import TrackOrder from "./features/orders/pages/TrackOrder";
 
 const router = createBrowserRouter([
     {
@@ -70,6 +71,10 @@ const router = createBrowserRouter([
             {
                 path: "buying-guides",
                 element: <BuyingGuides />,
+            },
+            {
+                path: "track-order",
+                element: <TrackOrder />,
             },
         ]
     },

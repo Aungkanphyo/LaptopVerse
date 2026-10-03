@@ -59,6 +59,37 @@ export const protect = asyncHandler(async (req: Request, res: Response, next: Ne
 });
 
 /**
+ * @desc Middleware that optionally extracts user info if token is present, but allows guest access
+ * @access Public / Optional Auth Routes
+ */
+export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+    let token: string | undefined;
+
+    // Get token from Header or Cookies
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies?.accessToken) {
+        token = req.cookies.accessToken;
+    }
+
+    // If there is no token, the user will be allowed to continue as a Guest without displaying an error
+    if (!token) {
+        return next();
+    }
+
+    try {
+        const decoded = verifyAccessToken(token);
+        if (typeof decoded !== 'string' && decoded.id) {
+            req.userId = decoded.id;
+        }
+    } catch {
+        // If the token has expired or is invalid, the process will continue as a guest without throwing an error
+        req.userId = undefined;
+    }
+    next();
+};
+
+/**
  * @desc Role-Based Access Control (RBAC) Middleware
  * @param roles - Allow Roles (eg: 'admin', 'manager')
  * @returns Express Middleware

@@ -45,7 +45,7 @@ export interface IUpdateOrderStatusInput {
 
 const ALLOWED_STATUSES: OrderStatus[] = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
-export const createOrderService = async (orderData: ICreateOrderInput, userId: string): Promise<IOrder> => {
+export const createOrderService = async (orderData: ICreateOrderInput, userId?: string): Promise<IOrder> => {
     const updatedStockPayload: StockUpdatePayload['products'] = [];
     const order = await withTransaction(async (session) => {
         const { orderItems, shippingInfo, paymentInfo } = orderData;
@@ -103,7 +103,7 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
                     itemsPrice: calculatedItemsPrice,
                     totalPrice: finalTotalPrice,
                     paidAt: isPaid ? new Date() : undefined,
-                    user: new mongoose.Types.ObjectId(userId),
+                    user: userId ? new mongoose.Types.ObjectId(userId) : undefined,
                 },
             ],
             { session }
@@ -121,6 +121,29 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId: s
     }
 
     return order;
+};
+
+/**
+ * @desc Track Order Status for Guests (Requires Order ID & Phone Number for Verification)
+ */
+export const trackOrderService = async (orderId: string, phoneNo: string): Promise<IOrder> => {
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+        throw new AppError('Invalid Order ID format', 400);
+    }
+
+    const cleanedPhone = phoneNo.trim();
+    const order = await Order.findById(orderId).lean();
+
+    if (!order) {
+        throw new AppError('Order not found with the provided details', 404);
+    }
+
+    // Security Check: Phone Number Verification
+    if (order.shippingInfo.phoneNo.trim() !== cleanedPhone) {
+        throw new AppError('Phone number does not match with order details', 403);
+    }
+
+    return order as unknown as IOrder;
 };
 
 /**

@@ -28,7 +28,7 @@ export interface IOrder<TUser = mongoose.Types.ObjectId> {
     shippingInfo: IShippingInfo;
     orderItems: IOrderItem[];
 
-    user: TUser; // Default: ObjectId | Populated: IOrderUser
+    user?: TUser; // Default: ObjectId | Populated: IOrderUser
 
     paymentInfo: {
         id?: string; // Payment gateway transaction ID
@@ -95,7 +95,7 @@ const orderSchema: Schema<IOrder> = new Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true,
+        required: false,
     },
 
     paymentInfo: {

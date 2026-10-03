@@ -111,6 +111,11 @@ export interface IGetAllOrdersAdminResponse {
     orders: IAdminOrder[];
 }
 
+export interface ITrackOrderRequest {
+    orderId: string;
+    phoneNo: string;
+}
+
 export const orderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         createOrder: builder.mutation<ICreateOrderResponse, ICreateOrderRequest>({
@@ -179,6 +184,14 @@ export const orderApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["Order"],
         }),
+        // Guest Order Tracking API
+        trackOrder: builder.query<{ success: boolean; order: IOrder }, ITrackOrderRequest>({
+            query: ({ orderId, phoneNo }) => ({
+                url: "/orders/track",
+                method: "POST",
+                body: { orderId, phoneNo },
+            }),
+        }),
     }),
 });
 
@@ -188,5 +201,6 @@ export const {
     useGetAllOrdersAdminQuery,
     useVerifyPaymentMutation,
     useUpdateOrderStatusAdminMutation,
+    useTrackOrderQuery,
 } = orderApiSlice;
 
