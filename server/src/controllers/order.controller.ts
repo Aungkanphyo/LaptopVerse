@@ -181,13 +181,13 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response, ne
  * @access Public
  */
 export const trackOrder = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { orderId, phoneNo } = req.body;
+    const { orderCode, phoneNo } = req.body;
 
-    if (!orderId || !phoneNo) {
+    if (typeof orderCode !== "string" || typeof phoneNo !== "string" || !orderCode.trim() || !phoneNo.trim()) {
         return next(new AppError("Please provide both Order ID and Phone Number", 400));
     }
 
-    const order = await orderService.trackOrderService(orderId, phoneNo);
+    const order = await orderService.trackOrderService(orderCode, phoneNo);
 
     res.status(200).json({
         success: true,

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
@@ -27,9 +27,11 @@ const PaymentScreen = () => {
     const [userPickedIndex, setUserPickedIndex] = useState<number | null>(null);
     const [slipFile, setSlipFile] = useState<File | null>(null);
     const [slipPreview, setSlipPreview] = useState<string | null>(null);
+    const isSubmittedRef = useRef<boolean>(false);
 
     // Early Navigation Guard
     useEffect(() => {
+        if (isSubmittedRef.current) return;
         if (cart.cartItems.length === 0) {
             navigate("/cart");
         } else if (!cart.shippingInfo) {
@@ -129,16 +131,25 @@ const PaymentScreen = () => {
                 totalPrice: cart.totalPrice,
                 slipFile: paymentMethod === "online" ? slipFile : null,
             }).unwrap();
-
+            isSubmittedRef.current = true;
+            const createdOrderCode = res.order?.orderCode;
+            const userPhoneNo = res.order?.shippingInfo?.phoneNo || cart.shippingInfo.phoneNo;
             dispatch(clearCartItems());
             toast.success(
                 paymentMethod === "online"
                     ? "Order placed! We will confirm your payment receipt soon."
                     : "COD Order Placed Successfully!"
             );
-            const createdOrder = res.order as { _id: string; shippingInfo: { phoneNo: string } };
-            navigate(`/track-order?orderId=${createdOrder._id}&phoneNo=${encodeURIComponent(createdOrder.shippingInfo.phoneNo)}`);
+            if (createdOrderCode) {
+                navigate(
+                    `/track-order?orderCode=${createdOrderCode}&phoneNo=${encodeURIComponent(userPhoneNo)}`,
+                    { replace: true }
+                );
+            } else {
+                toast.error("Order placed, but missing tracking details.");
+            }
         } catch (err: unknown) {
+            isSubmittedRef.current = false;
             let message = "Failed to place order";
             if (isFetchBaseQueryError(err)) {
                 message = (err.data as { message?: string })?.message || message;

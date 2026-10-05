@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux.hooks"
 import { useLogoutMutation } from "../../features/auth/authApiSlice";
 import { logout } from "../../features/auth/authSlice";
 import Search from "./Search";
-import { GitCompare, ShoppingCart } from "lucide-react";
+import { GitCompare, PackageCheck, ShoppingCart } from "lucide-react";
 import { AiAdvisorModal } from "@/features/ai/components/AiAdvisorModal";
 
 const Navbar = () => {
@@ -43,6 +43,13 @@ const Navbar = () => {
 
                     {/* Navigation Links */}
                     <div className="hidden lg:flex items-center gap-6 xl:gap-8 shrink-0">
+                        <Link
+                            to="/track-order"
+                            className="text-base font-semibold text-slate-300 hover:text-white transition-colors whitespace-nowrap flex items-center gap-1.5"
+                        >
+                            <PackageCheck className="w-4 h-4 text-blue-400" />
+                            Track Order
+                        </Link>
                         <HashLink
                             smooth
                             to="/#buying-guides"

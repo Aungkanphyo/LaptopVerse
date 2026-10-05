@@ -13,7 +13,7 @@ import {
     FileText,
 } from "lucide-react";
 import { formatPrice } from "@/utils/formatCurrency";
-import type { IAdminOrder } from "@/features/orders/orderApiSlice";
+import type { IAdminOrder } from "@/types/order.types";
 
 interface OrderCardProps {
     order: IAdminOrder;

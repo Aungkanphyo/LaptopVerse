@@ -8,6 +8,32 @@ import sendEmail from "../utils/sendEmail";
 import { getPaymentApprovedTemplate, getPaymentRejectedTemplate } from "../utils/emailTemplates";
 import { getIO, StockUpdatePayload } from "../config/socket.config";
 import { logger } from "../utils/logger";
+import Counter from "../models/counter.model";
+
+// Helper function
+const generateOrderCode = async (session?: mongoose.ClientSession): Promise<string> => {
+    const counter = await Counter.findOneAndUpdate(
+        { _id: "order" },
+        { $inc: { sequence: 1 } },
+        {
+            new: true,
+            upsert: true,
+            session,
+        }
+    );
+
+    if (!counter) {
+        throw new AppError("Failed to generate order sequence", 500);
+    }
+
+    const dateStr = new Date()
+        .toISOString()
+        .slice(2, 10)
+        .replace(/-/g, "");
+    const sequenceStr = String(counter.sequence).padStart(4, "0");
+
+    return `LV-${dateStr}-${sequenceStr}`;
+};
 
 // Service Layer Interfaces (DTOs)
 export interface ICreateOrderInput {
@@ -93,10 +119,11 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId?: 
 
         const isPaid = paymentInfo?.status === 'succeeded';
         const finalTotalPrice = calculatedItemsPrice;
-
+        const orderCode = await generateOrderCode(session);
         const [createdOrder] = await Order.create(
             [
                 {
+                    orderCode,
                     shippingInfo,
                     orderItems,
                     paymentInfo,
@@ -126,21 +153,19 @@ export const createOrderService = async (orderData: ICreateOrderInput, userId?: 
 /**
  * @desc Track Order Status for Guests (Requires Order ID & Phone Number for Verification)
  */
-export const trackOrderService = async (orderId: string, phoneNo: string): Promise<IOrder> => {
-    if (!mongoose.Types.ObjectId.isValid(orderId)) {
-        throw new AppError('Invalid Order ID format', 400);
+export const trackOrderService = async (orderCode: string, phoneNo: string): Promise<IOrder> => {
+    const normalizedOrderCode = orderCode.trim().toUpperCase(); 
+    const normalizedPhoneNo = phoneNo.trim();
+    if (!normalizedOrderCode || !normalizedPhoneNo) {
+        throw new AppError('Order Code and Phone Number are required', 400);
     }
 
-    const cleanedPhone = phoneNo.trim();
-    const order = await Order.findById(orderId).lean();
+    const order = await Order.findOne({ 
+        orderCode: normalizedOrderCode, "shippingInfo.phoneNo": normalizedPhoneNo, 
+    }).lean();
 
     if (!order) {
         throw new AppError('Order not found with the provided details', 404);
-    }
-
-    // Security Check: Phone Number Verification
-    if (order.shippingInfo.phoneNo.trim() !== cleanedPhone) {
-        throw new AppError('Phone number does not match with order details', 403);
     }
 
     return order as unknown as IOrder;
