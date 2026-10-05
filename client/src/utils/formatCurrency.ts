@@ -6,5 +6,6 @@ export const formatPrice = (price: number | undefined | null): string => {
     if (price === undefined || price === null || isNaN(price)) {
         return '0 Ks';
     }
-    return `${kyatFormatter.format(price)} Ks`;
+    const numericPrice = Number(price);
+    return `${kyatFormatter.format(numericPrice)} Ks`;
 };

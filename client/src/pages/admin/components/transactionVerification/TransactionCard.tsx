@@ -15,7 +15,8 @@ import {
     Smartphone,
     FileText,
 } from "lucide-react";
-import type { IAdminOrder } from "@/features/orders/orderApiSlice";
+import type { IAdminOrder } from "@/types/order.types";
+import { formatPrice } from "@/utils/formatCurrency";
 
 interface TransactionCardProps {
     order: IAdminOrder;
@@ -137,7 +138,7 @@ export const TransactionCard = memo(
                         <p className="text-sm font-bold pt-2 border-t border-slate-800/60 text-slate-300">
                             Total Amount:{" "}
                             <span className="text-blue-400 font-extrabold">
-                                {Number(order.totalPrice || 0).toLocaleString()} MMK
+                                {formatPrice(order.totalPrice || 0)}
                             </span>
                         </p>
                     </div>
