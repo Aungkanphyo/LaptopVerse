@@ -60,6 +60,7 @@ export interface IAdminOrderQueryParams {
     limit?: number;
     status?: string;
     keyword?: string;
+    paymentStatus?: string;
 }
 
 export interface IUpdateOrderStatusInput {
@@ -217,6 +218,10 @@ export const getAllOrdersAdminService = async (params: IAdminOrderQueryParams) =
     const status = params.status;
     const keyword = (params.keyword || '').trim();
     const matchStage: Record<string, any> = {};
+
+    if(params.paymentStatus) {
+        matchStage['paymentInfo.status'] = params.paymentStatus;
+    }
 
     if (status && status !== 'all') {
         matchStage.orderStatus = status;

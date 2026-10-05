@@ -150,6 +150,8 @@ orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1, createdAt: -1 });
 // To view the overall sorting in the Admin Panel without the status column
 orderSchema.index({ createdAt: -1 });
+// To separate "Manage Orders" and "Transactions" based on payment status
+orderSchema.index({ "paymentInfo.status": 1, createdAt: -1 });
 // OPTIMIZATION: Sparse Index – Reduces index size by excluding documents that do not yet have a tracking number
 orderSchema.index({ "trackingInfo.trackingNumber": 1 }, { sparse: true });
 // OPTIMIZATION: To enable Quick Search using the phone number in the Admin Keyword Search.

@@ -31,6 +31,7 @@ const ManageOrders = () => {
         limit,
         keyword,
         status: filterStatus,
+        paymentStatus: 'succeeded',
     });
     const [updateOrderStatus, { isLoading: isUpdating }] = useUpdateOrderStatusAdminMutation();
 
