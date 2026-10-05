@@ -11,7 +11,6 @@ import { Search, Package, XCircle, Copy, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/utils/formatCurrency";
 
-// Search Form ကို သီးသန့် Sub-component အဖြစ် ခွဲထုတ်ခြင်း
 interface SearchFormProps {
     initialOrderCode: string;
     initialPhoneNo: string;
@@ -25,7 +24,6 @@ const SearchForm: React.FC<SearchFormProps> = ({
     onSearch,
     isLoading,
 }) => {
-    // Initial State အဖြစ် URL Param တန်ဖိုးများကို တိုက်ရိုက်ယူသည်
     const [orderCode, setOrderCode] = useState(initialOrderCode);
     const [phoneNo, setPhoneNo] = useState(initialPhoneNo);
 
@@ -147,7 +145,6 @@ export const TrackOrder: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* `key` ထည့်သွင်းထားခြင်းကြောင့် URL params ပြောင်းလဲပါက React မှ Form State ကို အလိုအလျောက် Reset လုပ်ပေးမည် */}
                     <SearchForm
                         key={`${urlOrderCode}_${urlPhoneNo}`}
                         initialOrderCode={urlOrderCode}
