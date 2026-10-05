@@ -2,8 +2,6 @@ import { useState, useCallback } from "react";
 import {
     useGetAllOrdersAdminQuery,
     useUpdateOrderStatusAdminMutation,
-    type IAdminOrder,
-    type OrderStatus,
 } from "@/features/orders/orderApiSlice";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +15,7 @@ import { UpdateStatusModal } from "./components/manageOrders/UpdateStatusModal";
 import { OrderDetailModal } from "./components/transactionVerification/OrderDetailModal";
 import { useSearchParams } from "react-router-dom";
 import Pagination from "@/components/common/Pagination";
+import type { IAdminOrder, OrderStatus } from "@/types/order.types";
 
 const ManageOrders = () => {
     // URL Query Search Parameters State

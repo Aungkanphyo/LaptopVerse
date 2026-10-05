@@ -1,120 +1,5 @@
 import { apiSlice } from "@/app/services/apiSlice";
-
-export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-export interface ICreateOrderRequest {
-    shippingInfo: {
-        address: string;
-        city: string;
-        phoneNo: string;
-        postalCode: string;
-        country: string;
-    };
-    orderItems: Array<{
-        name: string;
-        quantity: number;
-        price: number;
-        image: string;
-        product: string;
-    }>;
-    paymentInfo: {
-        id?: string;
-        status: string;
-        slipUrl?: string;
-    };
-    itemsPrice: number;
-    totalPrice: number;
-    slipFile?: File | null;
-}
-
-export interface ICreateOrderResponse {
-    success: boolean;
-    order: unknown;
-}
-
-export interface IOrder {
-    _id: string;
-    orderItems: Array<{
-        name: string;
-        quantity: number;
-        price: number;
-        image: string;
-        product?: string;
-    }>;
-    paymentInfo: {
-        id?: string;
-        status: 'pending' | 'succeeded' | 'failed';
-        slipUrl?: string;
-        slipPublicId?: string;
-    };
-    itemsPrice?: number;
-    totalPrice: number;
-    orderStatus: OrderStatus;
-    deliveredAt?: string;
-    trackingInfo?: {
-        courierName?: string;
-        trackingNumber?: string;
-    };
-    cancellationReason?: string;
-    createdAt: string;
-    updatedAt?: string;
-}
-
-// Admin Order Details Interface
-export interface IAdminOrder extends IOrder {
-    user: {
-        _id: string;
-        fullName?: string;
-        name?: string;
-        email: string;
-    };
-    shippingInfo: {
-        address: string;
-        city: string;
-        phoneNo: string;
-        postalCode: string;
-        country: string;
-    };
-}
-
-// Verify Payment Request Payload Interface
-export interface IVerifyPaymentRequest {
-    id: string;
-    paymentStatus: 'succeeded' | 'failed';
-    rejectionReason?: string;
-}
-
-export interface IUpdateOrderStatusRequest {
-    id: string;
-    status: OrderStatus;
-    courierName?: string;
-    trackingNumber?: string;
-    cancellationReason?: string;
-}
-
-// Get All Orders Admin Query Parameters
-export interface IGetAllOrdersAdminParams {
-    page?: number;
-    limit?: number;
-    keyword?: string;
-    status?: string;
-}
-
-// Paginated Response Interface
-export interface IGetAllOrdersAdminResponse {
-    success: boolean;
-    count: number;
-    total: number;
-    totalPages: number;
-    page: number;
-    limit: number;
-    totalAmount: number;
-    orders: IAdminOrder[];
-}
-
-export interface ITrackOrderRequest {
-    orderId: string;
-    phoneNo: string;
-}
+import type { ICreateOrderRequest, ICreateOrderResponse, IGetAllOrdersAdminParams, IGetAllOrdersAdminResponse, IOrder, ITrackOrderRequest, IUpdateOrderStatusRequest, IVerifyPaymentRequest } from "@/types/order.types";
 
 export const orderApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
@@ -186,10 +71,10 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         }),
         // Guest Order Tracking API
         trackOrder: builder.query<{ success: boolean; order: IOrder }, ITrackOrderRequest>({
-            query: ({ orderId, phoneNo }) => ({
+            query: ({ orderCode, phoneNo }) => ({
                 url: "/orders/track",
                 method: "POST",
-                body: { orderId, phoneNo },
+                body: { orderCode, phoneNo },
             }),
         }),
     }),

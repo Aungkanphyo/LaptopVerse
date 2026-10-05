@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Model, Schema } from "mongoose";
 
 export type OrderStatus = 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 
@@ -25,6 +25,7 @@ interface IShippingInfo {
 }
 
 export interface IOrder<TUser = mongoose.Types.ObjectId> {
+    orderCode: string; // User-friendly ID e.g., LV-45342
     shippingInfo: IShippingInfo;
     orderItems: IOrderItem[];
 
@@ -89,6 +90,13 @@ const shippingInfoSchema: Schema<IShippingInfo> = new Schema({
 );
 
 const orderSchema: Schema<IOrder> = new Schema({
+    orderCode: {
+        type: String,
+        required: true,
+        unique: true,
+        uppercase: true,
+        trim: true,
+    },
     shippingInfo: { type: shippingInfoSchema, required: true },
     orderItems: [orderItemSchema], // Array of Order Items
 
