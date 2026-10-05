@@ -91,6 +91,7 @@ export interface IGetAllOrdersAdminParams {
     limit?: number;
     keyword?: string;
     status?: string;
+    paymentStatus?: string;
 }
 
 // Paginated Response Interface

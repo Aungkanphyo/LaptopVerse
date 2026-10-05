@@ -99,12 +99,14 @@ export const getAllOrders = asyncHandler(async (req: Request, res: Response, nex
     const limit = parseInt(req.query.limit as string, 10);
     const status = req.query.status as string;
     const keyword = req.query.keyword as string;
+    const paymentStatus = req.query.paymentStatus as string;
 
     const result = await orderService.getAllOrdersAdminService({
         page,
         limit,
         status,
         keyword,
+        paymentStatus,
     });
 
     res.status(200).json({
