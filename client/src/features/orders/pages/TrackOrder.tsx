@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTrackOrderQuery } from "@/features/orders/orderApiSlice";
 import { isFetchBaseQueryError } from "@/utils/errorHelpers";
-import { Search, Package, XCircle, Copy, Check, Loader2 } from "lucide-react";
+import { Search, Package, XCircle, Copy, Check, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/utils/formatCurrency";
 
@@ -143,6 +143,12 @@ export const TrackOrder: React.FC = () => {
                         <p className="text-sm text-slate-400 mt-1">
                             Enter your Order Code (e.g. LV-261004-0001) and Phone Number to check progress.
                         </p>
+                        <div className="mt-4 bg-amber-500/10 border border-amber-500/20 text-amber-400 p-3.5 rounded-xl flex items-start gap-3 text-sm">
+                            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-amber-500" />
+                            <p className="leading-relaxed">
+                                <span className="font-semibold text-amber-300">Important Note:</span> Please make sure to <span className="font-semibold text-amber-200">save or note down your Order Code and Phone Number</span>, as they are only displayed here once for tracking your order progress next time.
+                            </p>
+                        </div>
                     </div>
 
                     <SearchForm

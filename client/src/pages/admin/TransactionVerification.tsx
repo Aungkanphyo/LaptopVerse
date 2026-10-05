@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from "react";
 import {
     useGetAllOrdersAdminQuery,
     useVerifyPaymentMutation,
-    type IAdminOrder,
 } from "@/features/orders/orderApiSlice";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +16,7 @@ import { TransactionCard } from "./components/transactionVerification/Transactio
 import { RejectReasonModal } from "./components/transactionVerification/RejectReasonModal";
 import { SlipImageModal } from "./components/transactionVerification/SlipImageModal";
 import { OrderDetailModal } from "./components/transactionVerification/OrderDetailModal";
+import type { IAdminOrder } from "@/types/order.types";
 
 // Helper for extracting API error messages
 const getErrorMessage = (error: unknown): string => {
