@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useTrackOrderQuery } from "@/features/orders/orderApiSlice";
 import { isFetchBaseQueryError } from "@/utils/errorHelpers";
-import { Search, Package, XCircle, Copy, Check, Loader2, AlertCircle } from "lucide-react";
+import { Search, Package, XCircle, Copy, Check, Loader2, AlertCircle, ArrowLeft, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/utils/formatCurrency";
 
@@ -134,6 +134,15 @@ export const TrackOrder: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#070913] text-slate-100 py-12 px-4">
             <div className="max-w-3xl mx-auto space-y-8">
+                <div className="flex items-center justify-between">
+                    <Link
+                        to="/"
+                        className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors cursor-pointer group"
+                    >
+                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                        <span>Continue Shopping</span>
+                    </Link>
+                </div>
                 {/* Search Form */}
                 <Card className="p-6 md:p-8 bg-[#0e1322] border-slate-800 rounded-3xl shadow-2xl">
                     <div className="mb-6">
@@ -242,6 +251,14 @@ export const TrackOrder: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+
+                        <div className="pt-4 flex justify-center border-t border-slate-800/80">
+                            <Link to="/">
+                                <Button className="bg-blue-600 hover:bg-blue-500 text-white font-medium px-6 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer transition shadow-lg shadow-blue-600/20">
+                                    <ShoppingBag className="w-4 h-4" /> Continue Shopping
+                                </Button>
+                            </Link>
                         </div>
                     </Card>
                 )}

@@ -21,6 +21,7 @@ import aiRoutes from './routes/ai.routes';
 import inquiryRoutes from './routes/inquiry.routes';
 import { createServer } from 'http';
 import { initSocket } from './config/socket.config';
+import chatRoutes from './routes/chat.routes';
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -71,6 +72,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use("/api/v1/guides", guideRoutes);
 app.use("/api/v1/contact-settings", contactSettingsRoutes);
 app.use('/api/v1/inquiries', inquiryRoutes);
+app.use('/api/v1/chat', chatRoutes);
 
 // AI Advisor API Endpoint Registration
 app.use("/api/v1/ai", aiRoutes);

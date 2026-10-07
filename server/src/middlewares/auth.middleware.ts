@@ -81,10 +81,12 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
         const decoded = verifyAccessToken(token);
         if (typeof decoded !== 'string' && decoded.id) {
             req.userId = decoded.id;
+            req.role = decoded.role;
         }
     } catch {
         // If the token has expired or is invalid, the process will continue as a guest without throwing an error
         req.userId = undefined;
+        req.role = undefined;
     }
     next();
 };
