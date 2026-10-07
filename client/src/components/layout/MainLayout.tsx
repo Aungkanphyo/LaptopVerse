@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { initializeCart } from "@/features/cart/cartSlice";
 import OAuthHandler from "../common/OAuthHandler";
 import CompareBar from "@/features/compare/components/CompareBar";
+import FloatingChatWidget from "@/features/chat/components/FloatingChatWidget";
 
 const HIDE_NAVBAR_ROUTES = ["/login", "/register", "/verify-email"];
 const MainLayout = () => {
@@ -28,6 +29,8 @@ const MainLayout = () => {
                 <Outlet />
             </main>
             <CompareBar />
+
+            <FloatingChatWidget />
 
             <footer className="bg-[#0a0d18] border-t border-slate-800/80 py-8 text-center text-xs font-medium text-slate-500">
                 <div className="max-w-7xl mx-auto px-4">
